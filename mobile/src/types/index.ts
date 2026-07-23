@@ -1,24 +1,16 @@
-// ─── Navigation ────────────────────────────────────────────────────
-export type RootStackParamList = {
-  Login: undefined;
-  Main: undefined;
-};
-
 export type MainTabParamList = {
   Home: undefined;
-  Send: { recipient?: string; amount?: string } | undefined;
+  Send: {recipient?: string; amount?: string} | undefined;
   History: undefined;
   QR: undefined;
 };
 
-// ─── Wallet ────────────────────────────────────────────────────────
 export interface WalletInfo {
   publicKey: string;
   /** Base58-encoded private key – NEVER leaves the device */
   privateKey: string;
 }
 
-// ─── API responses ────────────────────────────────────────────────
 export interface BalanceResponse {
   walletAddress: string;
   solBalance: number;
@@ -34,7 +26,7 @@ export interface PaymentCreateRequest {
 }
 
 export interface PaymentCreateResponse {
-  unsignedTransaction: string; // base64-encoded message bytes
+  unsignedTransaction: string;
   senderAddress: string;
   recipientAddress: string;
   amount: number;
@@ -42,7 +34,7 @@ export interface PaymentCreateResponse {
 }
 
 export interface PaymentSendRequest {
-  signedTransaction: string; // base64-encoded signed transaction bytes
+  signedTransaction: string;
 }
 
 export interface PaymentSendResponse {
@@ -59,7 +51,6 @@ export interface TransactionStatusResponse {
   slot?: number;
 }
 
-// ─── Local history ─────────────────────────────────────────────────
 export type TransactionStatus = 'pending' | 'confirmed' | 'failed';
 
 export interface TransactionRecord {
@@ -68,6 +59,23 @@ export interface TransactionRecord {
   amount: number;
   signature: string;
   status: TransactionStatus;
-  date: string; // ISO 8601
+  date: string;
   memo?: string;
+}
+
+export type ThemePreference = 'dark' | 'light';
+
+export interface UserPreferences {
+  confirmBeforeSending: boolean;
+}
+
+export interface AppSettings {
+  backendBroadcastEnabled: boolean;
+}
+
+export interface TokenMetadata {
+  mint: string;
+  symbol: string;
+  name: string;
+  decimals: number;
 }

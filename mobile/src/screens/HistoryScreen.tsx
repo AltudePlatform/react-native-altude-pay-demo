@@ -8,7 +8,8 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import {getHistory, clearHistory} from '../services/storage';
+import {clearHistory, getHistory, updateHistoryRecord} from '../services/storage';
+import {getTransactionStatus} from '../services/solana';
 import {TransactionRecord} from '../types';
 import TransactionItem from '../components/TransactionItem';
 
@@ -16,15 +17,46 @@ export default function HistoryScreen(): React.JSX.Element {
   const [history, setHistory] = useState<TransactionRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const refreshPendingRecords = useCallback(
+    async (records: TransactionRecord[]): Promise<TransactionRecord[]> => {
+      const updatedRecords = await Promise.all(
+        records.map(async record => {
+          if (record.status !== 'pending') {
+            return record;
+          }
+
+          const status = await getTransactionStatus(record.signature);
+          const nextStatus =
+            status.status === 'failed'
+              ? 'failed'
+              : status.confirmed
+                ? 'confirmed'
+                : 'pending';
+
+          if (nextStatus !== record.status) {
+            await updateHistoryRecord(record.id, {status: nextStatus});
+            return {...record, status: nextStatus};
+          }
+
+          return record;
+        }),
+      );
+
+      return updatedRecords;
+    },
+    [],
+  );
+
   const loadHistory = useCallback(async () => {
     setLoading(true);
     try {
       const records = await getHistory();
-      setHistory(records);
+      const refreshed = await refreshPendingRecords(records);
+      setHistory(refreshed);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [refreshPendingRecords]);
 
   useEffect(() => {
     loadHistory();
@@ -33,7 +65,7 @@ export default function HistoryScreen(): React.JSX.Element {
   const handleClear = useCallback(() => {
     Alert.alert(
       'Clear History',
-      'Are you sure you want to clear all transaction history?',
+      'Are you sure you want to clear all locally stored transaction history?',
       [
         {text: 'Cancel', style: 'cancel'},
         {
@@ -72,7 +104,7 @@ export default function HistoryScreen(): React.JSX.Element {
           <Text style={styles.emptyIcon}>📋</Text>
           <Text style={styles.emptyText}>No transactions yet</Text>
           <Text style={styles.emptySubtext}>
-            Your sent payments will appear here.
+            Confirmed and pending payments stored on this device appear here.
           </Text>
         </View>
       ) : (
@@ -142,5 +174,6 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 14,
     textAlign: 'center',
+    paddingHorizontal: 24,
   },
 });

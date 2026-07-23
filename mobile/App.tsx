@@ -1,18 +1,18 @@
 /**
  * AltudePay – Solana USDC Payment Demo
  *
- * Entry point. Hydrates persisted auth / wallet state on startup,
+ * Entry point. Hydrates persisted client state on startup,
  * then delegates to the navigation tree.
  */
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {StatusBar} from 'react-native';
 
 import AppNavigator from './src/navigation/AppNavigator';
-import {useAuthStore} from './src/store/authStore';
+import {ensureClientState, getTheme, getWallet} from './src/services/storage';
 import {useWalletStore} from './src/store/walletStore';
-import {getUsername, getWallet} from './src/services/storage';
+import {ThemePreference} from './src/types';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,21 +24,24 @@ const queryClient = new QueryClient({
 });
 
 function AppContent(): React.JSX.Element {
-  const hydrateAuth = useAuthStore(s => s.hydrate);
   const hydrateWallet = useWalletStore(s => s.hydrate);
+  const [theme, setTheme] = useState<ThemePreference>('dark');
 
-  // Restore persisted state on mount
   useEffect(() => {
     (async () => {
-      const [username, wallet] = await Promise.all([getUsername(), getWallet()]);
-      hydrateAuth(username);
+      await ensureClientState();
+      const [wallet, savedTheme] = await Promise.all([getWallet(), getTheme()]);
       hydrateWallet(wallet);
+      setTheme(savedTheme);
     })();
-  }, [hydrateAuth, hydrateWallet]);
+  }, [hydrateWallet]);
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="#0d0d1a" />
+      <StatusBar
+        barStyle={theme === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={theme === 'dark' ? '#0d0d1a' : '#ffffff'}
+      />
       <AppNavigator />
     </>
   );

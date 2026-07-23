@@ -19,8 +19,7 @@ public class PaymentController : ControllerBase
     }
 
     /// <summary>
-    /// Creates an unsigned USDC transfer transaction.
-    /// The client must sign and return it via /api/payment/send.
+    /// Creates an unsigned USDC transfer transaction for the mobile client.
     /// </summary>
     [HttpPost("create")]
     [ProducesResponseType(typeof(PaymentCreateResponse), StatusCodes.Status200OK)]
@@ -44,7 +43,7 @@ public class PaymentController : ControllerBase
     }
 
     /// <summary>
-    /// Broadcasts a signed transaction to the Solana network and returns the signature.
+    /// Broadcasts a signed transaction to Solana and returns the signature.
     /// </summary>
     [HttpPost("send")]
     [ProducesResponseType(typeof(PaymentSendResponse), StatusCodes.Status200OK)]
@@ -68,31 +67,6 @@ public class PaymentController : ControllerBase
         {
             _logger.LogError(ex, "Error broadcasting transaction");
             return StatusCode(500, new { error = "Failed to broadcast transaction", details = ex.Message });
-        }
-    }
-
-    /// <summary>
-    /// Gets the confirmation status of a transaction by its signature.
-    /// </summary>
-    /// <param name="signature">Base58-encoded transaction signature</param>
-    [HttpGet("{signature}")]
-    [ProducesResponseType(typeof(TransactionStatusResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetTransactionStatus(string signature)
-    {
-        if (string.IsNullOrWhiteSpace(signature))
-            return BadRequest(new { error = "Signature is required" });
-
-        try
-        {
-            var response = await _solanaService.GetTransactionStatusAsync(signature);
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting transaction status for {Signature}", signature);
-            return StatusCode(500, new { error = "Failed to get transaction status", details = ex.Message });
         }
     }
 }

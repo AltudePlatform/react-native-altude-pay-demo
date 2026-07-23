@@ -12,10 +12,8 @@ import {useNavigation} from '@react-navigation/native';
 import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 
 import {useBalance} from '../hooks/useBalance';
-import {useAuthStore} from '../store/authStore';
 import {useWalletStore} from '../store/walletStore';
 import {generateDemoWallet} from '../services/solana';
-import {truncateAddress} from '../services/solana';
 import BalanceCard from '../components/BalanceCard';
 import WalletAddress from '../components/WalletAddress';
 import {MainTabParamList} from '../types';
@@ -24,22 +22,23 @@ type NavProp = BottomTabNavigationProp<MainTabParamList, 'Home'>;
 
 export default function HomeScreen(): React.JSX.Element {
   const navigation = useNavigation<NavProp>();
-  const username = useAuthStore(s => s.username);
-  const logout = useAuthStore(s => s.logout);
   const wallet = useWalletStore(s => s.wallet);
   const setWallet = useWalletStore(s => s.setWallet);
+  const removeWallet = useWalletStore(s => s.removeWallet);
 
   const {data: balance, isLoading, refetch} = useBalance();
 
   const handleGenerateWallet = useCallback(async () => {
     Alert.alert(
-      'Generate New Wallet',
-      'This will replace your current wallet. Make sure you have backed up your private key.',
+      wallet ? 'Replace Wallet' : 'Generate Demo Wallet',
+      wallet
+        ? 'This replaces the locally stored demo wallet. Back up your private key first.'
+        : 'Generate a local demo wallet. Private keys stay on this device.',
       [
         {text: 'Cancel', style: 'cancel'},
         {
-          text: 'Generate',
-          style: 'destructive',
+          text: wallet ? 'Replace' : 'Generate',
+          style: wallet ? 'destructive' : 'default',
           onPress: async () => {
             const newWallet = generateDemoWallet();
             await setWallet(newWallet);
@@ -47,14 +46,24 @@ export default function HomeScreen(): React.JSX.Element {
         },
       ],
     );
-  }, [setWallet]);
+  }, [setWallet, wallet]);
 
-  const handleLogout = useCallback(() => {
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
-      {text: 'Cancel', style: 'cancel'},
-      {text: 'Log Out', style: 'destructive', onPress: logout},
-    ]);
-  }, [logout]);
+  const handleDisconnectWallet = useCallback(() => {
+    Alert.alert(
+      'Disconnect Wallet',
+      'Remove the locally stored wallet from this device?',
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Disconnect',
+          style: 'destructive',
+          onPress: async () => {
+            await removeWallet();
+          },
+        },
+      ],
+    );
+  }, [removeWallet]);
 
   return (
     <ScrollView
@@ -67,18 +76,23 @@ export default function HomeScreen(): React.JSX.Element {
           tintColor="#9945FF"
         />
       }>
-      {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Welcome back,</Text>
-          <Text style={styles.username}>{username}</Text>
+        <View style={styles.headerText}>
+          <Text style={styles.title}>AltudePay</Text>
+          <Text style={styles.subtitle}>Client-first Solana USDC demo</Text>
+          <Text style={styles.helperText}>
+            Balances and confirmations come directly from Solana Devnet.
+          </Text>
         </View>
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
+        {wallet ? (
+          <TouchableOpacity
+            onPress={handleDisconnectWallet}
+            style={styles.secondaryAction}>
+            <Text style={styles.secondaryActionText}>Disconnect</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
-      {/* Wallet section */}
       {wallet ? (
         <>
           <WalletAddress address={wallet.publicKey} />
@@ -100,11 +114,19 @@ export default function HomeScreen(): React.JSX.Element {
               onPress={() => navigation.navigate('QR')}>
               <Text style={styles.actionBtnTextSecondary}>My QR Code</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.ghostBtn]}
+              onPress={handleGenerateWallet}>
+              <Text style={styles.ghostBtnText}>Generate New Wallet</Text>
+            </TouchableOpacity>
           </View>
         </>
       ) : (
         <View style={styles.noWallet}>
           <Text style={styles.noWalletText}>No wallet connected</Text>
+          <Text style={styles.noWalletSubtext}>
+            Create a local demo wallet to start using the app.
+          </Text>
           <TouchableOpacity
             style={[styles.actionBtn, styles.primaryBtn]}
             onPress={handleGenerateWallet}>
@@ -113,7 +135,6 @@ export default function HomeScreen(): React.JSX.Element {
         </View>
       )}
 
-      {/* Devnet badge */}
       <View style={styles.badge}>
         <Text style={styles.badgeText}>DEVNET</Text>
       </View>
@@ -136,24 +157,35 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 28,
+    gap: 12,
   },
-  greeting: {
-    color: '#888',
-    fontSize: 14,
+  headerText: {
+    flex: 1,
   },
-  username: {
+  title: {
     color: '#fff',
-    fontSize: 22,
+    fontSize: 28,
     fontWeight: '700',
   },
-  logoutBtn: {
+  subtitle: {
+    color: '#9945FF',
+    fontSize: 14,
+    marginTop: 4,
+  },
+  helperText: {
+    color: '#888',
+    fontSize: 13,
+    marginTop: 8,
+    lineHeight: 18,
+  },
+  secondaryAction: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#3a3a55',
   },
-  logoutText: {
+  secondaryActionText: {
     color: '#888',
     fontSize: 13,
   },
@@ -174,6 +206,11 @@ const styles = StyleSheet.create({
     borderColor: '#9945FF',
     backgroundColor: 'transparent',
   },
+  ghostBtn: {
+    borderWidth: 1,
+    borderColor: '#3a3a55',
+    backgroundColor: 'transparent',
+  },
   actionBtnText: {
     color: '#fff',
     fontWeight: '700',
@@ -184,14 +221,27 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 16,
   },
+  ghostBtnText: {
+    color: '#ccc',
+    fontWeight: '600',
+    fontSize: 15,
+  },
   noWallet: {
     alignItems: 'center',
     paddingVertical: 40,
-    gap: 20,
+    gap: 14,
   },
   noWalletText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  noWalletSubtext: {
     color: '#888',
-    fontSize: 16,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 8,
   },
   badge: {
     marginTop: 40,

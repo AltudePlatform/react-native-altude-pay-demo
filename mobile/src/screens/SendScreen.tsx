@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -15,9 +15,10 @@ import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
 import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 
 import {usePayment} from '../hooks/usePayment';
+import {getRecentRecipients, getUserPreferences} from '../services/storage';
+import {isValidSolanaAddress, truncateAddress} from '../services/solana';
 import {useWalletStore} from '../store/walletStore';
-import {isValidSolanaAddress} from '../services/solana';
-import {MainTabParamList} from '../types';
+import {MainTabParamList, TransactionRecord} from '../types';
 
 type NavProp = BottomTabNavigationProp<MainTabParamList, 'Send'>;
 type RoutePropType = RouteProp<MainTabParamList, 'Send'>;
@@ -29,9 +30,14 @@ export default function SendScreen(): React.JSX.Element {
   const [recipient, setRecipient] = useState(route.params?.recipient ?? '');
   const [amount, setAmount] = useState(route.params?.amount ?? '');
   const [memo, setMemo] = useState('');
+  const [recentRecipients, setRecentRecipients] = useState<string[]>([]);
 
   const wallet = useWalletStore(s => s.wallet);
-  const {mutate: sendPayment, isPending, isSuccess, data: txRecord} = usePayment();
+  const {mutate: sendPayment, isPending} = usePayment();
+
+  useEffect(() => {
+    getRecentRecipients().then(setRecentRecipients);
+  }, []);
 
   const validate = useCallback((): string | null => {
     if (!wallet) return 'No wallet connected. Go to Home to generate a wallet.';
@@ -42,7 +48,51 @@ export default function SendScreen(): React.JSX.Element {
     return null;
   }, [wallet, recipient, amount]);
 
-  const handleSend = useCallback(() => {
+  const handlePaymentSuccess = useCallback(
+    async (record: TransactionRecord) => {
+      setRecentRecipients(await getRecentRecipients());
+      setRecipient('');
+      setAmount('');
+      setMemo('');
+
+      if (record.status === 'confirmed') {
+        Alert.alert(
+          '✅ Payment Confirmed',
+          `Transaction confirmed on Solana.\n\nSignature:\n${record.signature.slice(0, 20)}...`,
+          [{text: 'OK', onPress: () => navigation.navigate('History')}],
+        );
+        return;
+      }
+
+      Alert.alert(
+        '⏳ Payment Submitted',
+        `Broadcast complete. Confirmation is still pending on Solana.\n\nSignature:\n${record.signature.slice(0, 20)}...`,
+        [{text: 'OK', onPress: () => navigation.navigate('History')}],
+      );
+    },
+    [navigation],
+  );
+
+  const submitPayment = useCallback(
+    (amt: number) => {
+      sendPayment(
+        {recipientAddress: recipient, amount: amt, memo: memo || undefined},
+        {
+          onSuccess: record => {
+            handlePaymentSuccess(record).catch(() => {
+              Alert.alert('Error', 'Payment succeeded, but the UI could not update.');
+            });
+          },
+          onError: err => {
+            Alert.alert('Payment Failed', (err as Error).message);
+          },
+        },
+      );
+    },
+    [handlePaymentSuccess, memo, recipient, sendPayment],
+  );
+
+  const handleSend = useCallback(async () => {
     const error = validate();
     if (error) {
       Alert.alert('Validation Error', error);
@@ -50,6 +100,12 @@ export default function SendScreen(): React.JSX.Element {
     }
 
     const amt = parseFloat(amount);
+    const preferences = await getUserPreferences();
+
+    if (!preferences.confirmBeforeSending) {
+      submitPayment(amt);
+      return;
+    }
 
     Alert.alert(
       'Confirm Payment',
@@ -58,29 +114,11 @@ export default function SendScreen(): React.JSX.Element {
         {text: 'Cancel', style: 'cancel'},
         {
           text: 'Send',
-          onPress: () =>
-            sendPayment(
-              {recipientAddress: recipient, amount: amt, memo: memo || undefined},
-              {
-                onSuccess: record => {
-                  Alert.alert(
-                    '✅ Payment Sent',
-                    `Transaction confirmed!\n\nSignature:\n${record.signature.slice(0, 20)}...`,
-                    [{text: 'OK', onPress: () => navigation.navigate('History')}],
-                  );
-                  setRecipient('');
-                  setAmount('');
-                  setMemo('');
-                },
-                onError: err => {
-                  Alert.alert('Payment Failed', (err as Error).message);
-                },
-              },
-            ),
+          onPress: () => submitPayment(amt),
         },
       ],
     );
-  }, [validate, amount, recipient, memo, sendPayment, navigation]);
+  }, [amount, recipient, submitPayment, validate]);
 
   return (
     <KeyboardAvoidingView
@@ -90,9 +128,27 @@ export default function SendScreen(): React.JSX.Element {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Send USDC</Text>
-        <Text style={styles.subtitle}>Solana Devnet</Text>
+        <Text style={styles.subtitle}>Client-first flow with Solana RPC confirmation</Text>
 
         <View style={styles.form}>
+          {recentRecipients.length > 0 ? (
+            <>
+              <Text style={styles.label}>Recent Recipients</Text>
+              <View style={styles.recipientList}>
+                {recentRecipients.map(address => (
+                  <TouchableOpacity
+                    key={address}
+                    style={styles.recipientChip}
+                    onPress={() => setRecipient(address)}>
+                    <Text style={styles.recipientChipText}>
+                      {truncateAddress(address, 4)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          ) : null}
+
           <Text style={styles.label}>Recipient Address</Text>
           <TextInput
             style={styles.input}
@@ -127,7 +183,11 @@ export default function SendScreen(): React.JSX.Element {
 
           <TouchableOpacity
             style={[styles.sendBtn, isPending && styles.sendBtnDisabled]}
-            onPress={handleSend}
+            onPress={() => {
+              handleSend().catch(() => {
+                Alert.alert('Error', 'Could not start the payment flow.');
+              });
+            }}
             disabled={isPending}>
             {isPending ? (
               <ActivityIndicator color="#fff" />
@@ -136,7 +196,6 @@ export default function SendScreen(): React.JSX.Element {
             )}
           </TouchableOpacity>
 
-          {/* Scan QR shortcut */}
           <TouchableOpacity
             style={styles.scanBtn}
             onPress={() => navigation.navigate('QR')}>
@@ -177,6 +236,25 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 6,
     marginTop: 12,
+  },
+  recipientList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 4,
+  },
+  recipientChip: {
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#3a3a55',
+    backgroundColor: '#1a1a2e',
+  },
+  recipientChipText: {
+    color: '#ccc',
+    fontSize: 12,
+    fontFamily: 'monospace',
   },
   input: {
     backgroundColor: '#1e1e30',

@@ -1,30 +1,38 @@
 # AltudePay – Solana USDC Payment Demo
 
-A React Native application demonstrating sending and receiving USDC on Solana.
+A React Native application demonstrating client-first USDC payments on Solana Devnet.
 
-The backend runs locally and acts **only** as a helper service. It never stores private keys or user funds. Everything runs on **Solana Devnet**.
+The mobile app is the primary application and owns all persisted state. The ASP.NET Core backend runs locally only as a stateless helper service for unsigned transaction creation and optional transaction broadcast.
 
 ---
 
 ## Architecture
 
 ```
-Mobile App  ←──────────────────────→  Backend (ASP.NET Core 9)
-  │                                         │
-  │  1. Request unsigned transaction        │
-  │  ────────────────────────────────────→  │
-  │                                         │  Build transaction
-  │  2. Return base64 unsigned tx           │  (no signing)
-  │  ←────────────────────────────────────  │
-  │                                         │
-  │  Sign locally (private key stays here)  │
-  │                                         │
-  │  3. Send signed base64 transaction      │
-  │  ────────────────────────────────────→  │
-  │                                         │  Broadcast to Solana
-  │  4. Return signature                    │
-  │  ←────────────────────────────────────  │
+React Native App  ←────────────────────────────→  Backend Helper (ASP.NET Core 9)
+      │                                                   │
+      │  1. Request unsigned transaction                  │
+      │  ───────────────────────────────────────────────→ │
+      │                                                   │  Build unsigned tx
+      │  2. Receive base64 unsigned transaction           │  (no persistence)
+      │  ←─────────────────────────────────────────────── │
+      │
+      │  3. Sign locally with connected wallet
+      │
+      │  4. Broadcast directly or via backend helper
+      │
+      │  5. Query Solana RPC for balances and confirmation
+      │
+      │  6. Save history, recipients, settings, and cache locally
 ```
+
+### Design principles
+
+- The mobile application owns application state.
+- The blockchain is the source of truth for balances and confirmations.
+- The backend is stateless and disposable.
+- Private keys never leave the device.
+- Features should keep working with minimal mobile changes if backend helpers are removed later.
 
 ---
 
@@ -36,14 +44,13 @@ Mobile App  ←─────────────────────�
 | React Native 0.76 | Mobile framework |
 | TypeScript | Type safety |
 | React Navigation | Screen navigation |
-| Zustand | Global state (auth, wallet) |
-| TanStack Query | Server state & caching |
-| Axios | HTTP client |
-| `@solana/web3.js` | Transaction signing |
-| `@solana/spl-token` | SPL token accounts |
+| Zustand | Local wallet state |
+| TanStack Query | Solana RPC caching |
+| Axios | Backend helper client |
+| `@solana/web3.js` | Solana RPC, signing, broadcast |
+| `@solana/spl-token` | SPL token support |
 | `react-native-vision-camera` | QR code scanning |
-| `react-native-svg` / `react-native-qrcode-svg` | QR code generation |
-| `tweetnacl` | Ed25519 signing |
+| `react-native-svg` / `react-native-qrcode-svg` | QR rendering |
 | AsyncStorage | Local persistence |
 
 ### Backend (`/backend`)
@@ -58,19 +65,14 @@ Mobile App  ←─────────────────────�
 
 ## Getting Started
 
-### Prerequisites
-- Node.js 18+
-- .NET 9 SDK
-- React Native environment (Android Studio / Xcode)
-
-### 1 – Start the backend
+### 1 – Start the backend helper
 
 ```bash
 cd backend
 dotnet run
 ```
 
-The API will be available at `http://localhost:5001` and Swagger UI at `http://localhost:5001`.
+The helper API is available at `http://localhost:5001` and Swagger UI at `http://localhost:5001`.
 
 ### 2 – Install mobile dependencies
 
@@ -94,40 +96,65 @@ npm run android
 npm run ios
 ```
 
-> **Important for physical devices:** Edit `mobile/src/services/api.ts` and change `localhost` to your machine's local IP address.
+> **Important for physical devices:** edit `mobile/src/services/api.ts` and change `localhost` to your machine's local IP address if you want to use backend helper endpoints from a device.
+
+---
+
+## Client-Owned State
+
+Persisted locally with AsyncStorage:
+
+- Connected wallet information
+- Recent recipients
+- Local transaction history
+- App settings
+- User preferences
+- Theme
+- Cached balances
+- Cached token list
+
+---
+
+## Solana Source of Truth
+
+The mobile app reads the following directly from Solana Devnet RPC:
+
+- SOL balances
+- USDC balances
+- Transaction confirmation state
+
+No blockchain data is duplicated in a server database.
+
+---
+
+## Backend Helper API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/payment/create` | Build unsigned transaction |
+| `POST` | `/api/payment/send` | Broadcast signed transaction |
+
+The backend never stores user data and has no server-side persistence.
 
 ---
 
 ## Features
 
-- **Authentication** – username-only login, no password required
-- **Wallet** – generate a demo wallet or connect an existing one
-- **Balances** – live SOL and USDC balances from Solana Devnet
-- **Send USDC** – full payment flow: build → sign → broadcast
+- **Local wallet flow** – generate and store a demo wallet on-device
+- **Balances from Solana RPC** – live SOL and USDC balances from Devnet
+- **Send USDC** – build → sign → broadcast → confirm flow
+- **Recent recipients** – cached locally for quick repeat payments
 - **QR Code** – generate a Solana Pay QR code for your wallet
-- **QR Scan** – scan Solana Pay QR codes to pre-fill the Send screen
+- **QR Scan** – scan Solana Pay QR codes to pre-fill the send screen
 - **Transaction History** – locally stored history with Solana Explorer links
-
----
-
-## Backend API
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/balance/{wallet}` | SOL + USDC balances |
-| `POST` | `/api/payment/create` | Create unsigned transaction |
-| `POST` | `/api/payment/send` | Broadcast signed transaction |
-| `GET` | `/api/payment/{signature}` | Transaction status |
-
-Full interactive documentation is available at the Swagger UI when the backend is running.
 
 ---
 
 ## Security
 
 - Private keys **never** leave the mobile device
-- The backend only builds unsigned transactions and broadcasts already-signed ones
-- No wallet data is stored server-side
+- The backend only handles stateless helper operations
+- No wallet, user, or transaction data is stored server-side
 
 ---
 
@@ -135,60 +162,4 @@ Full interactive documentation is available at the Swagger UI when the backend i
 
 All transactions run on **Solana Devnet**. You can get free devnet SOL from the [Solana Faucet](https://faucet.solana.com/).
 
-The USDC mint address used on devnet is `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`. This can be changed in `backend/appsettings.json`.
-
----
-
-## Project Structure
-
-```
-.
-├── backend/                  # ASP.NET Core 9 Web API
-│   ├── Controllers/
-│   │   ├── WalletController.cs
-│   │   └── PaymentController.cs
-│   ├── Services/
-│   │   └── SolanaService.cs
-│   ├── Models/
-│   │   ├── BalanceResponse.cs
-│   │   ├── PaymentCreateRequest.cs
-│   │   ├── PaymentCreateResponse.cs
-│   │   ├── PaymentSendRequest.cs
-│   │   ├── PaymentSendResponse.cs
-│   │   └── TransactionStatusResponse.cs
-│   ├── Program.cs
-│   └── appsettings.json
-│
-└── mobile/                   # React Native app
-    ├── src/
-    │   ├── screens/
-    │   │   ├── LoginScreen.tsx
-    │   │   ├── HomeScreen.tsx
-    │   │   ├── SendScreen.tsx
-    │   │   ├── HistoryScreen.tsx
-    │   │   ├── QRScreen.tsx
-    │   │   └── ScanScreen.tsx
-    │   ├── components/
-    │   │   ├── BalanceCard.tsx
-    │   │   ├── TransactionItem.tsx
-    │   │   ├── WalletAddress.tsx
-    │   │   └── QRCodeMatrix.tsx
-    │   ├── services/
-    │   │   ├── api.ts
-    │   │   ├── solana.ts
-    │   │   └── storage.ts
-    │   ├── hooks/
-    │   │   ├── useBalance.ts
-    │   │   └── usePayment.ts
-    │   ├── navigation/
-    │   │   └── AppNavigator.tsx
-    │   ├── store/
-    │   │   ├── authStore.ts
-    │   │   └── walletStore.ts
-    │   └── types/
-    │       └── index.ts
-    ├── __tests__/
-    │   └── solana.test.ts
-    ├── App.tsx
-    └── package.json
-```
+The USDC mint address used on Devnet is `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`.

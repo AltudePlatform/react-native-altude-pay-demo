@@ -1,17 +1,12 @@
 import axios from 'axios';
 import {
-  BalanceResponse,
   PaymentCreateRequest,
   PaymentCreateResponse,
   PaymentSendRequest,
   PaymentSendResponse,
-  TransactionStatusResponse,
 } from '../types';
 
-// Backend URL – update to match your local machine's IP when testing on a physical device
-const BASE_URL = __DEV__
-  ? 'http://localhost:5001'
-  : 'https://localhost:5001';
+const BASE_URL = __DEV__ ? 'http://localhost:5001' : 'https://localhost:5001';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -19,7 +14,6 @@ export const apiClient = axios.create({
   headers: {'Content-Type': 'application/json'},
 });
 
-// ─── Interceptors ─────────────────────────────────────────────────
 apiClient.interceptors.response.use(
   response => response,
   error => {
@@ -31,16 +25,6 @@ apiClient.interceptors.response.use(
     return Promise.reject(new Error(message));
   },
 );
-
-// ─── API methods ──────────────────────────────────────────────────
-export const walletApi = {
-  getBalance: async (walletAddress: string): Promise<BalanceResponse> => {
-    const {data} = await apiClient.get<BalanceResponse>(
-      `/api/balance/${walletAddress}`,
-    );
-    return data;
-  },
-};
 
 export const paymentApi = {
   createTransaction: async (
@@ -59,15 +43,6 @@ export const paymentApi = {
     const {data} = await apiClient.post<PaymentSendResponse>(
       '/api/payment/send',
       request,
-    );
-    return data;
-  },
-
-  getTransactionStatus: async (
-    signature: string,
-  ): Promise<TransactionStatusResponse> => {
-    const {data} = await apiClient.get<TransactionStatusResponse>(
-      `/api/payment/${signature}`,
     );
     return data;
   },
