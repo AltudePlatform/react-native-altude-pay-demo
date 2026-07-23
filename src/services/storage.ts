@@ -1,10 +1,9 @@
 /**
  * Local-first storage helpers using AsyncStorage.
- * The mobile app owns persisted state; the backend remains stateless.
+ * The mobile app owns persisted state.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-  AppSettings,
   BalanceResponse,
   ThemePreference,
   TokenMetadata,
@@ -19,15 +18,10 @@ const KEYS = {
   WALLET: '@altudepay/wallet',
   HISTORY: '@altudepay/history',
   RECENT_RECIPIENTS: '@altudepay/recent-recipients',
-  SETTINGS: '@altudepay/settings',
   PREFERENCES: '@altudepay/preferences',
   THEME: '@altudepay/theme',
   TOKEN_LIST: '@altudepay/token-list',
 } as const;
-
-const DEFAULT_SETTINGS: AppSettings = {
-  backendBroadcastEnabled: true,
-};
 
 const DEFAULT_PREFERENCES: UserPreferences = {
   confirmBeforeSending: true,
@@ -60,20 +54,13 @@ async function readJson<T>(key: string, fallback: T): Promise<T> {
 }
 
 export async function ensureClientState(): Promise<void> {
-  const [settings, preferences, theme, tokenList] = await Promise.all([
-    AsyncStorage.getItem(KEYS.SETTINGS),
+  const [preferences, theme, tokenList] = await Promise.all([
     AsyncStorage.getItem(KEYS.PREFERENCES),
     AsyncStorage.getItem(KEYS.THEME),
     AsyncStorage.getItem(KEYS.TOKEN_LIST),
   ]);
 
   const writes: Promise<void>[] = [];
-
-  if (!settings) {
-    writes.push(
-      AsyncStorage.setItem(KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS)),
-    );
-  }
 
   if (!preferences) {
     writes.push(
@@ -95,14 +82,6 @@ export async function ensureClientState(): Promise<void> {
   }
 
   await Promise.all(writes);
-}
-
-export async function getSettings(): Promise<AppSettings> {
-  return readJson(KEYS.SETTINGS, DEFAULT_SETTINGS);
-}
-
-export async function saveSettings(settings: AppSettings): Promise<void> {
-  await AsyncStorage.setItem(KEYS.SETTINGS, JSON.stringify(settings));
 }
 
 export async function getUserPreferences(): Promise<UserPreferences> {

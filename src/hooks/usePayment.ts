@@ -1,13 +1,8 @@
 import {useMutation, useQueryClient} from '@tanstack/react-query';
-import {paymentApi} from '../services/api';
-import {
-  addRecentRecipient,
-  appendToHistory,
-  getSettings,
-} from '../services/storage';
+import {addRecentRecipient, appendToHistory} from '../services/storage';
 import {
   broadcastSignedTransaction,
-  signTransaction,
+  createSignedUsdcTransferTransaction,
   waitForTransactionConfirmation,
 } from '../services/solana';
 import {useWalletStore} from '../store/walletStore';
@@ -32,32 +27,14 @@ export function usePayment() {
     }: SendPaymentParams): Promise<TransactionRecord> => {
       if (!wallet) {throw new Error('No wallet connected');}
 
-      const createResponse = await paymentApi.createTransaction({
-        senderAddress: wallet.publicKey,
+      const signedTx = await createSignedUsdcTransferTransaction({
+        senderPrivateKey: wallet.privateKey,
         recipientAddress,
         amount,
         memo,
       });
 
-      const signedTx = signTransaction(
-        createResponse.unsignedTransaction,
-        wallet.privateKey,
-      );
-
-      const settings = await getSettings();
-      const signature = settings.backendBroadcastEnabled
-        ? await (async () => {
-            const sendResponse = await paymentApi.sendTransaction({
-              signedTransaction: signedTx,
-            });
-
-            if (!sendResponse.success) {
-              throw new Error(sendResponse.error ?? 'Transaction failed');
-            }
-
-            return sendResponse.signature;
-          })()
-        : await broadcastSignedTransaction(signedTx);
+      const signature = await broadcastSignedTransaction(signedTx);
 
       const status = await waitForTransactionConfirmation(signature);
 

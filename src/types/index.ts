@@ -17,32 +17,6 @@ export interface BalanceResponse {
   usdcBalance: number;
 }
 
-export interface PaymentCreateRequest {
-  senderAddress: string;
-  recipientAddress: string;
-  amount: number;
-  mint?: string;
-  memo?: string;
-}
-
-export interface PaymentCreateResponse {
-  unsignedTransaction: string;
-  senderAddress: string;
-  recipientAddress: string;
-  amount: number;
-  mint: string;
-}
-
-export interface PaymentSendRequest {
-  signedTransaction: string;
-}
-
-export interface PaymentSendResponse {
-  signature: string;
-  success: boolean;
-  error?: string;
-}
-
 export interface TransactionStatusResponse {
   signature: string;
   status: 'confirmed' | 'pending' | 'failed' | 'not_found';
@@ -67,10 +41,6 @@ export type ThemePreference = 'dark' | 'light';
 
 export interface UserPreferences {
   confirmBeforeSending: boolean;
-}
-
-export interface AppSettings {
-  backendBroadcastEnabled: boolean;
 }
 
 export interface TokenMetadata {

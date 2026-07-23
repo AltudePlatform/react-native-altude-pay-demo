@@ -1,16 +1,21 @@
 /**
  * Solana wallet and RPC utilities.
  *
- * Private keys NEVER leave the device. Balances and confirmations come
- * directly from Solana RPC so the backend stays optional and stateless.
+ * Private keys NEVER leave the device. Balances, signing, send, and
+ * confirmation all run directly against Solana RPC.
  */
+import {
+  createAssociatedTokenAccountInstruction,
+  createTransferCheckedInstruction,
+  getAssociatedTokenAddressSync,
+} from '@solana/spl-token';
 import {
   clusterApiUrl,
   Commitment,
   Connection,
   Keypair,
-  Message,
   PublicKey,
+  TransactionInstruction,
   Transaction,
 } from '@solana/web3.js';
 import bs58 from 'bs58';
@@ -22,6 +27,10 @@ export const USDC_DEVNET_MINT = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
 
 const COMMITMENT: Commitment = 'confirmed';
 const connection = new Connection(clusterApiUrl('devnet'), COMMITMENT);
+const USDC_DECIMALS = 6;
+const MEMO_PROGRAM_ID = new PublicKey(
+  'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr',
+);
 
 export function generateDemoWallet(): WalletInfo {
   const keypair = Keypair.generate();
@@ -36,20 +45,85 @@ export function keypairFromPrivateKey(privateKeyBase58: string): Keypair {
   return Keypair.fromSecretKey(secretKey);
 }
 
-export function signTransaction(
-  base64Message: string,
-  privateKeyBase58: string,
-): string {
-  const messageBytes = Buffer.from(base64Message, 'base64');
-  const message = Message.from(messageBytes);
+interface CreateSignedUsdcTransferParams {
+  senderPrivateKey: string;
+  recipientAddress: string;
+  amount: number;
+  memo?: string;
+}
 
-  const keypair = keypairFromPrivateKey(privateKeyBase58);
-  const transaction = Transaction.populate(message, []);
+export async function createSignedUsdcTransferTransaction({
+  senderPrivateKey,
+  recipientAddress,
+  amount,
+  memo,
+}: CreateSignedUsdcTransferParams): Promise<string> {
+  const sender = keypairFromPrivateKey(senderPrivateKey);
+  const recipient = new PublicKey(recipientAddress);
+  const mint = new PublicKey(USDC_DEVNET_MINT);
 
-  transaction.sign(keypair);
+  const amountBaseUnits = BigInt(Math.round(amount * 10 ** USDC_DECIMALS));
+  if (amountBaseUnits <= 0n) {
+    throw new Error('Amount must be greater than 0');
+  }
 
-  const signedBytes = transaction.serialize();
-  return Buffer.from(signedBytes).toString('base64');
+  const senderAta = getAssociatedTokenAddressSync(
+    mint,
+    sender.publicKey,
+    false,
+  );
+  const recipientAta = getAssociatedTokenAddressSync(mint, recipient, false);
+
+  const [senderAtaInfo, recipientAtaInfo, latestBlockhash] = await Promise.all([
+    connection.getAccountInfo(senderAta, COMMITMENT),
+    connection.getAccountInfo(recipientAta, COMMITMENT),
+    connection.getLatestBlockhash(COMMITMENT),
+  ]);
+
+  if (!senderAtaInfo) {
+    throw new Error('Sender USDC account not found on devnet.');
+  }
+
+  const transaction = new Transaction({
+    feePayer: sender.publicKey,
+    recentBlockhash: latestBlockhash.blockhash,
+  });
+  transaction.lastValidBlockHeight = latestBlockhash.lastValidBlockHeight;
+
+  if (!recipientAtaInfo) {
+    transaction.add(
+      createAssociatedTokenAccountInstruction(
+        sender.publicKey,
+        recipientAta,
+        recipient,
+        mint,
+      ),
+    );
+  }
+
+  transaction.add(
+    createTransferCheckedInstruction(
+      senderAta,
+      mint,
+      recipientAta,
+      sender.publicKey,
+      amountBaseUnits,
+      USDC_DECIMALS,
+    ),
+  );
+
+  if (memo) {
+    transaction.add(
+      new TransactionInstruction({
+        keys: [],
+        programId: MEMO_PROGRAM_ID,
+        data: Buffer.from(memo, 'utf8'),
+      }),
+    );
+  }
+
+  transaction.sign(sender);
+  return Buffer.from(transaction.serialize()).toString('base64');
 }
 
 export async function broadcastSignedTransaction(

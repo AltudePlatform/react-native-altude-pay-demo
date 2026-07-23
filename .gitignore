@@ -1,25 +1,17 @@
-# Backend build artifacts
-backend/bin/
-backend/obj/
-backend/*.user
-backend/*.suo
-backend/.vs/
-backend/.vsrdbg/
-
-# Mobile dependencies and build artifacts
-mobile/node_modules/
-mobile/ios/build/
-mobile/android/build/
-mobile/android/.gradle/
-mobile/android/app/build/
-mobile/.gradle/
-mobile/ios/Pods/
-mobile/ios/Podfile.lock
-mobile/.expo/
+# App dependencies and build artifacts
+node_modules/
+ios/build/
+android/build/
+android/.gradle/
+android/app/build/
+.gradle/
+ios/Pods/
+ios/Podfile.lock
+.expo/
 
 # Generated files
-mobile/android/local.properties
-mobile/*.keystore
+android/local.properties
+*.keystore
 
 # Environment files
 .env
