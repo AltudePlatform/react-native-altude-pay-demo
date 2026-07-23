@@ -11,7 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Solnet.Programs" Version="5.0.0" />
     <PackageReference Include="Solnet.Rpc" Version="5.0.0" />
-    <PackageReference Include="Solnet.Wallet" Version="6.1.0" />
+    <PackageReference Include="Solnet.Wallet" Version="5.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
   </ItemGroup>
 

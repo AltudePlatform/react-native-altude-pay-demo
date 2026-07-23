@@ -1,4 +1,5 @@
 import React from 'react';
+import {Text} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -16,29 +17,26 @@ import ScanScreen from '../screens/ScanScreen';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-function TabIcon({
-  name,
-  focused,
-}: {
-  name: string;
-  focused: boolean;
-}): React.JSX.Element {
-  // Simple text-based icons (SVG icons can be swapped in)
-  const icons: Record<string, string> = {
-    Home: '🏠',
-    Send: '💸',
-    History: '📋',
-    QR: '📷',
-  };
-  return (
-    <>{/* Emoji placeholder – swap with SVG icon components */}</>
+// Tab icon emojis – swap with react-native-svg icons for production
+const TAB_ICONS: Record<string, string> = {
+  Wallet: '🏠',
+  Send: '💸',
+  History: '📋',
+  QR: '📷',
+};
+
+function tabIcon(title: string) {
+  return ({focused}: {focused: boolean}) => (
+    <Text style={{fontSize: 16, opacity: focused ? 1 : 0.5}}>
+      {TAB_ICONS[title] ?? '○'}
+    </Text>
   );
 }
 
 function MainTabs(): React.JSX.Element {
   return (
     <Tab.Navigator
-      screenOptions={({route}) => ({
+      screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#9945FF',
         tabBarInactiveTintColor: '#888',
@@ -47,26 +45,26 @@ function MainTabs(): React.JSX.Element {
           borderTopColor: '#2d2d44',
         },
         tabBarLabelStyle: {fontSize: 12},
-      })}>
+      }}>
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{title: 'Wallet', tabBarIcon: () => null}}
+        options={{title: 'Wallet', tabBarIcon: tabIcon('Wallet')}}
       />
       <Tab.Screen
         name="Send"
         component={SendScreen}
-        options={{title: 'Send', tabBarIcon: () => null}}
+        options={{title: 'Send', tabBarIcon: tabIcon('Send')}}
       />
       <Tab.Screen
         name="History"
         component={HistoryScreen}
-        options={{title: 'History', tabBarIcon: () => null}}
+        options={{title: 'History', tabBarIcon: tabIcon('History')}}
       />
       <Tab.Screen
         name="QR"
         component={QRScreen}
-        options={{title: 'QR', tabBarIcon: () => null}}
+        options={{title: 'QR', tabBarIcon: tabIcon('QR')}}
       />
     </Tab.Navigator>
   );
@@ -79,13 +77,10 @@ export default function AppNavigator(): React.JSX.Element {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{headerShown: false}}>
         {isLoggedIn ? (
-          <>
-            <Stack.Screen name="Main" component={MainTabs} />
-          </>
+          <Stack.Screen name="Main" component={MainTabs} />
         ) : (
           <Stack.Screen name="Login" component={LoginScreen} />
         )}
-        {/* ScanScreen accessible from anywhere */}
       </Stack.Navigator>
     </NavigationContainer>
   );

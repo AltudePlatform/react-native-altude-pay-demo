@@ -70,9 +70,7 @@ export function usePayment() {
   });
 }
 
-export function useTransactionStatus(signature: string | null) {
-  const queryClient = useQueryClient();
-
+export function useTransactionStatus() {
   return useMutation({
     mutationFn: async (sig: string) => {
       const status = await paymentApi.getTransactionStatus(sig);
