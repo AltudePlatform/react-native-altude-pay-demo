@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text} from 'react-native';
+import {Text, StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
@@ -20,7 +20,7 @@ const TAB_ICONS: Record<string, string> = {
 
 function tabIcon(title: string) {
   return ({focused}: {focused: boolean}) => (
-    <Text style={{fontSize: 16, opacity: focused ? 1 : 0.5}}>
+    <Text style={[styles.tabIcon, focused ? styles.tabIconFocused : styles.tabIconMuted]}>
       {TAB_ICONS[title] ?? '○'}
     </Text>
   );
@@ -64,3 +64,15 @@ export default function AppNavigator(): React.JSX.Element {
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  tabIcon: {
+    fontSize: 16,
+  },
+  tabIconFocused: {
+    opacity: 1,
+  },
+  tabIconMuted: {
+    opacity: 0.5,
+  },
+});
