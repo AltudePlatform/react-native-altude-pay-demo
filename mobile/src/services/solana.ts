@@ -132,7 +132,9 @@ export async function waitForTransactionConfirmation(
     }
 
     if (attempt < attempts - 1) {
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+      await new Promise<void>(resolve => {
+        setTimeout(() => resolve(), delayMs);
+      });
     }
   }
 

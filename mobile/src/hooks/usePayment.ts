@@ -30,7 +30,7 @@ export function usePayment() {
       amount,
       memo,
     }: SendPaymentParams): Promise<TransactionRecord> => {
-      if (!wallet) throw new Error('No wallet connected');
+      if (!wallet) {throw new Error('No wallet connected');}
 
       const createResponse = await paymentApi.createTransaction({
         senderAddress: wallet.publicKey,
@@ -66,7 +66,12 @@ export function usePayment() {
         recipient: recipientAddress,
         amount,
         signature,
-        status: status.status === 'failed' ? 'failed' : status.status,
+        status:
+          status.status === 'confirmed'
+            ? 'confirmed'
+            : status.status === 'failed'
+              ? 'failed'
+              : 'pending',
         date: new Date().toISOString(),
         memo,
       };

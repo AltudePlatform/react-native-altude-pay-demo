@@ -50,7 +50,7 @@ function balanceCacheKey(walletAddress: string): string {
 
 async function readJson<T>(key: string, fallback: T): Promise<T> {
   const raw = await AsyncStorage.getItem(key);
-  if (!raw) return fallback;
+  if (!raw) {return fallback;}
 
   try {
     return JSON.parse(raw) as T;
@@ -138,7 +138,7 @@ export async function saveWallet(wallet: WalletInfo): Promise<void> {
 
 export async function getWallet(): Promise<WalletInfo | null> {
   const raw = await AsyncStorage.getItem(KEYS.WALLET);
-  if (!raw) return null;
+  if (!raw) {return null;}
 
   try {
     return JSON.parse(raw) as WalletInfo;

@@ -17,7 +17,6 @@ import {
   Share,
   Alert,
 } from 'react-native';
-import Svg, {Rect} from 'react-native-svg';
 import {useWalletStore} from '../store/walletStore';
 import {truncateAddress} from '../services/solana';
 import QRCodeMatrix from '../components/QRCodeMatrix';
@@ -28,12 +27,12 @@ export default function QRScreen(): React.JSX.Element {
   const wallet = useWalletStore(s => s.wallet);
 
   const solanaPayUrl = useMemo(() => {
-    if (!wallet) return '';
+    if (!wallet) {return '';}
     return `solana:${wallet.publicKey}?spl-token=${USDC_DEVNET_MINT}`;
   }, [wallet]);
 
   const handleShare = async () => {
-    if (!wallet) return;
+    if (!wallet) {return;}
     try {
       await Share.share({
         message: solanaPayUrl,

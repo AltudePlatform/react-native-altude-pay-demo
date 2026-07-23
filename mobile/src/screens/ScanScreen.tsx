@@ -5,7 +5,7 @@
  *  - recipient address
  *  - optional amount
  */
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Alert} from 'react-native';
 import {
   Camera,
@@ -24,7 +24,7 @@ function parseSolanaPayUrl(url: string): {
 } | null {
   // Solana Pay: solana:<address>?amount=<n>&...
   const match = url.match(/^solana:([1-9A-HJ-NP-Za-km-z]{32,44})(.*)?$/);
-  if (!match) return null;
+  if (!match) {return null;}
 
   const recipient = match[1];
   const params = new URLSearchParams(match[2]?.slice(1) ?? '');
@@ -49,9 +49,9 @@ export default function ScanScreen(): React.JSX.Element {
   const codeScanner = useCodeScanner({
     codeTypes: ['qr'],
     onCodeScanned: codes => {
-      if (scanned) return;
+      if (scanned) {return;}
       const first = codes[0]?.value;
-      if (!first) return;
+      if (!first) {return;}
 
       setScanned(true);
       const parsed = parseSolanaPayUrl(first);

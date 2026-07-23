@@ -40,11 +40,11 @@ export default function SendScreen(): React.JSX.Element {
   }, []);
 
   const validate = useCallback((): string | null => {
-    if (!wallet) return 'No wallet connected. Go to Home to generate a wallet.';
-    if (!isValidSolanaAddress(recipient)) return 'Invalid recipient address.';
+    if (!wallet) {return 'No wallet connected. Go to Home to generate a wallet.';}
+    if (!isValidSolanaAddress(recipient)) {return 'Invalid recipient address.';}
     const amt = parseFloat(amount);
-    if (isNaN(amt) || amt <= 0) return 'Enter a valid amount greater than 0.';
-    if (recipient === wallet.publicKey) return 'Cannot send to your own wallet.';
+    if (isNaN(amt) || amt <= 0) {return 'Enter a valid amount greater than 0.';}
+    if (recipient === wallet.publicKey) {return 'Cannot send to your own wallet.';}
     return null;
   }, [wallet, recipient, amount]);
 

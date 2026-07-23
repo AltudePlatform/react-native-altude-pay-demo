@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {clearHistory, getHistory, updateHistoryRecord} from '../services/storage';
 import {getTransactionStatus} from '../services/solana';
-import {TransactionRecord} from '../types';
+import {TransactionRecord, TransactionStatus} from '../types';
 import TransactionItem from '../components/TransactionItem';
 
 export default function HistoryScreen(): React.JSX.Element {
@@ -26,7 +26,7 @@ export default function HistoryScreen(): React.JSX.Element {
           }
 
           const status = await getTransactionStatus(record.signature);
-          const nextStatus =
+          const nextStatus: TransactionStatus =
             status.status === 'failed'
               ? 'failed'
               : status.confirmed
