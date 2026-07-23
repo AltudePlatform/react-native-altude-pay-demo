@@ -1,0 +1,36 @@
+# Backend build artifacts
+backend/bin/
+backend/obj/
+backend/*.user
+backend/*.suo
+backend/.vs/
+backend/.vsrdbg/
+
+# Mobile dependencies and build artifacts
+mobile/node_modules/
+mobile/ios/build/
+mobile/android/build/
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/.gradle/
+mobile/ios/Pods/
+mobile/ios/Podfile.lock
+mobile/.expo/
+
+# Generated files
+mobile/android/local.properties
+mobile/*.keystore
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+*.swp
+*.swo

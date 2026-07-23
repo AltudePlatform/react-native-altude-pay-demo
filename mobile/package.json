@@ -1,0 +1,67 @@
+{
+  "name": "AltudePay",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "start": "react-native start",
+    "test": "jest",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.1.2",
+    "@react-navigation/bottom-tabs": "^7.3.14",
+    "@react-navigation/native": "^7.1.9",
+    "@react-navigation/native-stack": "^7.3.14",
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.2",
+    "@tanstack/react-query": "^5.64.2",
+    "axios": "^1.18.1",
+    "bs58": "^6.0.0",
+    "react": "18.3.1",
+    "react-native": "0.76.9",
+    "react-native-qrcode-svg": "^6.3.15",
+    "react-native-safe-area-context": "^5.1.0",
+    "react-native-screens": "^4.5.0",
+    "react-native-svg": "^15.11.2",
+    "react-native-vision-camera": "^4.7.0",
+    "tweetnacl": "^1.0.3",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.9",
+    "@babel/preset-env": "^7.25.9",
+    "@babel/runtime": "^7.26.0",
+    "@react-native/babel-preset": "^0.76.9",
+    "@react-native/eslint-config": "^0.76.9",
+    "@react-native/metro-config": "^0.76.9",
+    "@react-native/typescript-config": "^0.76.9",
+    "@types/react": "^18.3.12",
+    "@types/react-native": "^0.73.0",
+    "@types/react-test-renderer": "^18.3.0",
+    "eslint": "^8.19.0",
+    "jest": "^29.6.3",
+    "prettier": "^2.8.8",
+    "react-test-renderer": "18.3.1",
+    "typescript": "5.0.4"
+  },
+  "jest": {
+    "preset": "react-native",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(react-native|@react-native|@react-navigation|react-native-svg|react-native-screens|react-native-safe-area-context|@solana|zustand|bs58|tweetnacl|superstruct|text-encoding-utf-8|rpc-websockets|jayson|bigint-buffer|borsh|eventemitter3|node-fetch)/)"
+    ]
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
