@@ -183,7 +183,10 @@ export async function getRecentRecipients(): Promise<string[]> {
 
 export async function addRecentRecipient(address: string): Promise<string[]> {
   const recent = await getRecentRecipients();
-  const updated = [address, ...recent.filter(item => item !== address)].slice(0, 5);
+  const updated = [
+    address,
+    ...recent.filter(existingAddress => existingAddress !== address),
+  ].slice(0, 5);
   await AsyncStorage.setItem(KEYS.RECENT_RECIPIENTS, JSON.stringify(updated));
   return updated;
 }
