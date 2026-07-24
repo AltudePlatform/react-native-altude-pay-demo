@@ -1,12 +1,13 @@
 # AltudePay – Solana USDC Payment Demo
 
-A standalone React Native app that demonstrates on-device USDC payments on Solana Devnet.
+A standalone React Native app that demonstrates USDC payments on Solana Devnet using Altude transaction APIs.
 
 ## Architecture
 
-- Single root-level mobile app (no backend service)
+- Single root-level mobile app using Altude hosted backend APIs
 - Wallet keys, history, recipients, preferences, and cache stored locally on-device
-- Balance checks, transaction signing, sending, and confirmation done directly from the app through Solana RPC
+- Payment flow follows: Transaction config -> blockhash -> partially signed transaction -> Transaction send
+- Balance checks and confirmation polling are performed through Solana RPC
 
 ## Tech Stack
 
@@ -17,7 +18,7 @@ A standalone React Native app that demonstrates on-device USDC payments on Solan
 | React Navigation | Screen navigation |
 | Zustand | Local wallet state |
 | TanStack Query | Solana RPC caching |
-| `@solana/web3.js` | Solana RPC, signing, broadcast |
+| `@solana/web3.js` | Solana RPC and signing |
 | `@solana/spl-token` | SPL token transfers |
 | `react-native-vision-camera` | QR code scanning |
 | `react-native-svg` / `react-native-qrcode-svg` | QR rendering |
@@ -65,7 +66,7 @@ npm test
 
 - Local demo wallet generation and storage
 - SOL/USDC balance reads from Solana Devnet RPC
-- Direct on-device USDC transaction build, sign, send, and confirmation flow
+- Altude-backed USDC transaction build, partial sign serialization, send, and confirmation flow
 - Local transaction history and recent recipients
 - Solana Pay QR generation and scan flow
 
@@ -73,3 +74,4 @@ npm test
 
 - Solana cluster: **Devnet**
 - Devnet USDC mint: `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`
+- Altude API base: `https://api.altude.so`

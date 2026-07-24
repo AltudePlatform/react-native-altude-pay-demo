@@ -128,7 +128,7 @@ export default function SendScreen(): React.JSX.Element {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Send USDC</Text>
-        <Text style={styles.subtitle}>Client-first flow with Solana RPC confirmation</Text>
+        <Text style={styles.subtitle}>Altude gas-station flow with Solana confirmation</Text>
 
         <View style={styles.form}>
           {recentRecipients.length > 0 ? (

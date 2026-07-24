@@ -49,3 +49,28 @@ export interface TokenMetadata {
   name: string;
   decimals: number;
 }
+
+export interface AltudeApiError {
+  status: number;
+  detail: string;
+  title?: string;
+  type?: string;
+  instance?: string;
+}
+
+export interface AltudeTransactionConfig {
+  FeePayer: string;
+  RpcUrl: string;
+  Token: string | null;
+  RpcEnvironment: string | null;
+  TokenExpiration: string | null;
+}
+
+export interface AltudeSendTransactionRequest {
+  SignedTransaction: string;
+}
+
+export interface AltudeTransactionSendResponse {
+  signature: string;
+  raw: unknown;
+}

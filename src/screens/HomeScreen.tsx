@@ -79,9 +79,9 @@ export default function HomeScreen(): React.JSX.Element {
       <View style={styles.header}>
         <View style={styles.headerText}>
           <Text style={styles.title}>AltudePay</Text>
-          <Text style={styles.subtitle}>Client-first Solana USDC demo</Text>
+          <Text style={styles.subtitle}>Altude-backed Solana USDC demo</Text>
           <Text style={styles.helperText}>
-            Balances and confirmations come directly from Solana Devnet.
+            Payments are routed through Altude Transaction send with gas-station config.
           </Text>
         </View>
         {wallet ? (
