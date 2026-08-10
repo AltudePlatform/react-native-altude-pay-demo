@@ -1,53 +1,61 @@
 import React from 'react';
-import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
+import {View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert} from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
+import {tokens} from '../theme/tokens';
 
 interface Props {
+  walletAddress?: string;
   solBalance: number;
   usdcBalance: number;
   isLoading: boolean;
 }
 
 export default function BalanceCard({
+  walletAddress,
   solBalance,
   usdcBalance,
   isLoading,
 }: Props): React.JSX.Element {
+  void solBalance;
+
+  const handleCopyAddress = () => {
+    if (!walletAddress) {
+      return;
+    }
+
+    Clipboard.setString(walletAddress);
+    Alert.alert('Copied', 'Payment address copied to clipboard.');
+  };
+
   if (isLoading) {
     return (
       <View style={[styles.card, styles.loadingCard]}>
-        <ActivityIndicator color="#9945FF" />
+        <ActivityIndicator color={tokens.colors.accent} />
       </View>
     );
   }
 
   return (
     <View style={styles.card}>
-      <Text style={styles.cardTitle}>Portfolio</Text>
-
-      <View style={styles.row}>
-        <View style={styles.balanceItem}>
-          <Text style={styles.balanceLabel}>USDC</Text>
-          <Text style={styles.balanceValue}>
-            {usdcBalance.toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </Text>
-          <Text style={styles.balanceCurrency}>USDC</Text>
+      <View style={styles.headerRow}>
+        <View>
+          <Text style={styles.cardTitle}>Balance</Text>
+          <Text style={styles.cardHint}>Available</Text>
         </View>
+        {walletAddress ? (
+          <TouchableOpacity style={styles.copyBtn} onPress={handleCopyAddress}>
+            <Text style={styles.copyBtnText}>Copy Address</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
 
-        <View style={styles.divider} />
-
-        <View style={styles.balanceItem}>
-          <Text style={styles.balanceLabel}>SOL</Text>
-          <Text style={styles.balanceValue}>
-            {solBalance.toLocaleString('en-US', {
-              minimumFractionDigits: 4,
-              maximumFractionDigits: 4,
-            })}
-          </Text>
-          <Text style={styles.balanceCurrency}>SOL</Text>
-        </View>
+      <View style={styles.singleBalanceWrap}>
+        <Text style={styles.balanceValue}>
+          {`$${usdcBalance.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`}
+        </Text>
       </View>
     </View>
   );
@@ -55,11 +63,11 @@ export default function BalanceCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: tokens.colors.card,
     borderRadius: 20,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#2d2d44',
+    borderColor: tokens.colors.border,
   },
   loadingCard: {
     height: 120,
@@ -67,35 +75,64 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardTitle: {
-    color: '#666',
+    color: tokens.colors.textMuted,
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 1,
     textTransform: 'uppercase',
-    marginBottom: 16,
+    marginBottom: 4,
+  },
+  cardHint: {
+    color: tokens.colors.textMuted,
+    fontSize: 11,
+    marginBottom: 14,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  copyBtn: {
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
+    backgroundColor: tokens.colors.page,
+    borderRadius: tokens.radius.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  copyBtnText: {
+    color: tokens.colors.textPrimary,
+    fontSize: 12,
+    fontWeight: '700',
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
   },
+  singleBalanceWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+  },
   balanceItem: {
     alignItems: 'center',
     flex: 1,
   },
   balanceLabel: {
-    color: '#888',
+    color: tokens.colors.textMuted,
     fontSize: 12,
     marginBottom: 4,
   },
   balanceValue: {
-    color: '#fff',
+    color: tokens.colors.textPrimary,
     fontSize: 26,
     fontWeight: '700',
     fontFamily: 'monospace',
   },
   balanceCurrency: {
-    color: '#9945FF',
+    color: tokens.colors.accent,
     fontSize: 12,
     fontWeight: '600',
     marginTop: 2,
@@ -103,6 +140,6 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     height: 50,
-    backgroundColor: '#2d2d44',
+    backgroundColor: tokens.colors.border,
   },
 });

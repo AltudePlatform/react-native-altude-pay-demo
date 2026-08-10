@@ -62,6 +62,45 @@ npm run type-check
 npm test
 ```
 
+## Android Altude SDK Integration
+
+The Android app module is configured to use Altude AndroidSDK from JitPack with:
+
+- `com.github.AltudePlatform.AndroidSDK:core:chen~pay-demo-02-SNAPSHOT`
+- `com.github.AltudePlatform.AndroidSDK:gasstation:chen~pay-demo-02-SNAPSHOT`
+- `com.github.AltudePlatform.AndroidSDK:vault:chen~pay-demo-02-SNAPSHOT`
+
+JitPack is added in Android Gradle settings repositories.
+
+### Instrumentation Tests (Setup / Create Account / Send USDC)
+
+Implemented test class:
+
+- `android/app/src/androidTest/java/com/altudepay/AltudeGasstationInstrumentedTest.kt`
+
+Required values (set as environment variables or Gradle properties):
+
+- `ALTUDE_ACCOUNT_PRIVATE_KEY_BASE64` (optional)
+
+The instrumentation tests use a static demo API key constant in
+`AltudeGasstationInstrumentedTest.kt`.
+
+If `ALTUDE_ACCOUNT_PRIVATE_KEY_BASE64` is not provided, the send test generates a temporary sender account and attempts account creation before transfer.
+
+Run test compilation:
+
+```bash
+cd android
+./gradlew :app:compileDebugKotlin :app:compileDebugAndroidTestKotlin
+```
+
+Run instrumentation tests on a connected emulator/device:
+
+```bash
+cd android
+./gradlew :app:connectedDebugAndroidTest
+```
+
 ## Features
 
 - Local demo wallet generation and storage

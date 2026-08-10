@@ -1,8 +1,18 @@
 export type MainTabParamList = {
   Home: undefined;
-  Send: {recipient?: string; amount?: string} | undefined;
+  Send: undefined;
+};
+
+export type RootStackParamList = {
+  Onboarding: undefined;
+  MainTabs: undefined;
   History: undefined;
   QR: undefined;
+  Scan: undefined;
+  PayAddress: {
+    amount: string;
+    recipient?: string;
+  };
 };
 
 export interface WalletInfo {
@@ -41,6 +51,14 @@ export type ThemePreference = 'dark' | 'light';
 
 export interface UserPreferences {
   confirmBeforeSending: boolean;
+}
+
+export interface UserProfile {
+  name: string;
+  countryCode: string;
+  phoneNumber: string;
+  email: string;
+  completedAt: string;
 }
 
 export interface TokenMetadata {

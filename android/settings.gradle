@@ -1,0 +1,63 @@
+pluginManagement {
+    // If a local react-native gradle plugin exists (npm/pnpm install), prefer it
+    // by including its build. This handles pnpm's hoisted layout.
+    def pluginPath = null
+    def direct = file("../node_modules/@react-native/gradle-plugin")
+    if (direct.exists()) {
+        pluginPath = direct.path
+    } else {
+        def pnpmDir = file("../node_modules/.pnpm")
+        if (pnpmDir.exists()) {
+            pnpmDir.eachDir { d ->
+                def candidate = file("../node_modules/.pnpm/${d.name}/node_modules/@react-native/gradle-plugin")
+                if (candidate.exists() && pluginPath == null) {
+                    pluginPath = candidate.path
+                }
+            }
+        }
+    }
+
+    if (pluginPath != null) {
+        includeBuild(pluginPath)
+    }
+
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        google()
+    }
+}
+
+plugins { id("com.facebook.react.settings") }
+
+dependencyResolutionManagement {
+	repositories {
+		google()
+		mavenCentral()
+	}
+}
+
+extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
+
+rootProject.name = 'AltudePay'
+include ':app'
+
+def reactNativeGradlePluginPath = null
+def directReactNativeGradlePluginPath = file("../node_modules/@react-native/gradle-plugin")
+if (directReactNativeGradlePluginPath.exists()) {
+    reactNativeGradlePluginPath = directReactNativeGradlePluginPath.path
+} else {
+    def pnpmDir = file("../node_modules/.pnpm")
+    if (pnpmDir.exists()) {
+        pnpmDir.eachDir { d ->
+            def candidate = file("../node_modules/.pnpm/${d.name}/node_modules/@react-native/gradle-plugin")
+            if (candidate.exists() && reactNativeGradlePluginPath == null) {
+                reactNativeGradlePluginPath = candidate.path
+            }
+        }
+    }
+}
+
+if (reactNativeGradlePluginPath != null) {
+    includeBuild(reactNativeGradlePluginPath)
+}

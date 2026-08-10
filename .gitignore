@@ -4,6 +4,7 @@ ios/build/
 android/build/
 android/.gradle/
 android/app/build/
+android/app/.cxx/
 .gradle/
 ios/Pods/
 ios/Podfile.lock

@@ -4,15 +4,36 @@ import {
   AltudeTransactionConfig,
   AltudeTransactionSendResponse,
 } from '../types';
+import {Connection, Commitment} from '@solana/web3.js';
 
 const ALTUDE_BASE_URL = 'https://api.altude.so';
 const ALTUDE_API_KEY =
   (typeof process !== 'undefined' && process.env.ALTUDE_API_KEY) ||
   'REPLACE_WITH_X_API_KEY';
 
+// Enable a lightweight mock mode when the web SDK / real Altude service is
+// not available. Set the environment variable `ALTUDE_USE_MOCK=1` or
+// `ALTUDE_USE_MOCK=true` to enable.
+const USE_ALTUDE_MOCK =
+  typeof process !== 'undefined' &&
+  (process.env.ALTUDE_USE_MOCK === '1' || process.env.ALTUDE_USE_MOCK === 'true');
+
 const CONFIG_CACHE_TTL_MS = 30_000;
 let cachedConfig: AltudeTransactionConfig | null = null;
 let cachedConfigAt = 0;
+const COMMITMENT: Commitment = 'confirmed';
+const connectionByRpcUrl = new Map<string, Connection>();
+
+function getConnection(rpcUrl: string): Connection {
+  const cached = connectionByRpcUrl.get(rpcUrl);
+  if (cached) {
+    return cached;
+  }
+
+  const next = new Connection(rpcUrl, COMMITMENT);
+  connectionByRpcUrl.set(rpcUrl, next);
+  return next;
+}
 
 export function buildAltudeHeaders(): Record<string, string> {
   return {
@@ -22,6 +43,10 @@ export function buildAltudeHeaders(): Record<string, string> {
 }
 
 function validateApiKey(): void {
+  if (USE_ALTUDE_MOCK) {
+    return;
+  }
+
   if (!ALTUDE_API_KEY || ALTUDE_API_KEY.startsWith('REPLACE_')) {
     throw new Error('Missing Altude API key. Set process.env.ALTUDE_API_KEY or update src/services/altudeApi.ts');
   }
@@ -171,6 +196,25 @@ function parseSendSignature(payload: unknown): string {
 export async function getTransactionConfig(
   forceRefresh = false,
 ): Promise<AltudeTransactionConfig> {
+  if (USE_ALTUDE_MOCK) {
+    const now = Date.now();
+    if (!forceRefresh && cachedConfig && now - cachedConfigAt < CONFIG_CACHE_TTL_MS) {
+      return cachedConfig;
+    }
+
+    // Minimal mock config that other code paths expect.
+    const mockConfig: AltudeTransactionConfig = {
+      FeePayer: 'MockFeePayer11111111111111111111111111111111',
+      RpcUrl: 'https://api.devnet.solana.com',
+      Token: null,
+      RpcEnvironment: 'devnet',
+      TokenExpiration: null,
+    };
+
+    cachedConfig = mockConfig;
+    cachedConfigAt = now;
+    return mockConfig;
+  }
   const now = Date.now();
   if (!forceRefresh && cachedConfig && now - cachedConfigAt < CONFIG_CACHE_TTL_MS) {
     return cachedConfig;
@@ -188,10 +232,16 @@ export async function getTransactionConfig(
 }
 
 export async function getTransactionBlockhash(): Promise<string> {
-  const payload = await requestAltude('/api/Transaction/blockhash', {
-    method: 'GET',
-  });
+  if (USE_ALTUDE_MOCK) {
+    // Return a deterministic-looking mock blockhash.
+    return `MOCK_BLOCKHASH_${Math.floor(Date.now() / 1000)}`;
+  }
 
+  validateApiKey();
+
+  const config = await getTransactionConfig();
+  const connection = getConnection(config.RpcUrl);
+  const payload = await connection.getLatestBlockhash(COMMITMENT);
   return parseBlockhash(payload);
 }
 
@@ -201,6 +251,20 @@ export async function sendTransactionToAltude(
   if (!signedTransaction) {
     throw new Error('Signed transaction is required');
   }
+
+  if (USE_ALTUDE_MOCK) {
+    // Simulate a successful send with a mock signature and echo the raw tx
+    const mockSig = `MOCK_SIG_${Math.random().toString(36).slice(2, 12)}`;
+    return {
+      signature: mockSig,
+      raw: {
+        mock: true,
+        signedTransaction,
+      },
+    };
+  }
+
+  validateApiKey();
 
   const body: AltudeSendTransactionRequest = {
     SignedTransaction: signedTransaction,

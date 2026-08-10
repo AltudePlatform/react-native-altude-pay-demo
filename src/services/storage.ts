@@ -9,16 +9,17 @@ import {
   TokenMetadata,
   TransactionRecord,
   UserPreferences,
+  UserProfile,
   WalletInfo,
 } from '../types';
-
-const USDC_DEVNET_MINT = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
+import {stableCoinMint} from '../config/paymentConfig';
 
 const KEYS = {
   WALLET: '@altudepay/wallet',
   HISTORY: '@altudepay/history',
   RECENT_RECIPIENTS: '@altudepay/recent-recipients',
   PREFERENCES: '@altudepay/preferences',
+  USER_PROFILE: '@altudepay/user-profile',
   THEME: '@altudepay/theme',
   TOKEN_LIST: '@altudepay/token-list',
 } as const;
@@ -31,7 +32,7 @@ const DEFAULT_THEME: ThemePreference = 'dark';
 
 const DEFAULT_TOKEN_LIST: TokenMetadata[] = [
   {
-    mint: USDC_DEVNET_MINT,
+    mint: stableCoinMint,
     symbol: 'USDC',
     name: 'USD Coin',
     decimals: 6,
@@ -94,6 +95,35 @@ export async function saveUserPreferences(
   await AsyncStorage.setItem(KEYS.PREFERENCES, JSON.stringify(preferences));
 }
 
+export async function getUserProfile(): Promise<UserProfile | null> {
+  const raw = await AsyncStorage.getItem(KEYS.USER_PROFILE);
+  if (!raw) {return null;}
+
+  try {
+    return JSON.parse(raw) as UserProfile;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveUserProfile(profile: UserProfile): Promise<void> {
+  await AsyncStorage.setItem(KEYS.USER_PROFILE, JSON.stringify(profile));
+}
+
+export async function clearUserProfile(): Promise<void> {
+  await AsyncStorage.removeItem(KEYS.USER_PROFILE);
+}
+
+export async function hasCompletedOnboarding(): Promise<boolean> {
+  const profile = await getUserProfile();
+  return Boolean(
+    profile &&
+      profile.countryCode.trim() &&
+      profile.phoneNumber.trim() &&
+      profile.email.trim(),
+  );
+}
+
 export async function getTheme(): Promise<ThemePreference> {
   const savedTheme = await AsyncStorage.getItem(KEYS.THEME);
   return savedTheme === 'light' ? 'light' : DEFAULT_THEME;
@@ -120,7 +150,20 @@ export async function getWallet(): Promise<WalletInfo | null> {
   if (!raw) {return null;}
 
   try {
-    return JSON.parse(raw) as WalletInfo;
+    const parsed = JSON.parse(raw) as Partial<WalletInfo>;
+    if (
+      typeof parsed?.publicKey !== 'string' ||
+      parsed.publicKey.trim().length === 0 ||
+      typeof parsed?.privateKey !== 'string' ||
+      parsed.privateKey.trim().length === 0
+    ) {
+      return null;
+    }
+
+    return {
+      publicKey: parsed.publicKey,
+      privateKey: parsed.privateKey,
+    };
   } catch {
     return null;
   }

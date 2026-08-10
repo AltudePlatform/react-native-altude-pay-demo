@@ -21,10 +21,12 @@ import {
 import bs58 from 'bs58';
 import {getTransactionBlockhash, getTransactionConfig} from './altudeApi';
 import {WalletInfo, BalanceResponse, TransactionStatusResponse} from '../types';
+import {stableCoinMint} from '../config/paymentConfig';
 
 export {isValidSolanaAddress, truncateAddress} from '../utils/helpers';
 
-export const USDC_DEVNET_MINT = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
+export const STABLE_COIN_MINT = stableCoinMint;
+export const USDC_DEVNET_MINT = STABLE_COIN_MINT;
 
 const COMMITMENT: Commitment = 'confirmed';
 const DEFAULT_RPC_URL = clusterApiUrl('devnet');
@@ -45,11 +47,11 @@ function getConnection(rpcUrl = DEFAULT_RPC_URL): Connection {
   return next;
 }
 
-export function generateDemoWallet(): WalletInfo {
-  const keypair = Keypair.generate();
+export async function generateDemoWallet(): Promise<WalletInfo> {
+  const wallet = Keypair.generate();
   return {
-    publicKey: keypair.publicKey.toBase58(),
-    privateKey: bs58.encode(keypair.secretKey),
+    publicKey: wallet.publicKey.toBase58(),
+    privateKey: bs58.encode(wallet.secretKey),
   };
 }
 
@@ -73,7 +75,7 @@ export async function createSignedUsdcTransferTransaction({
 }: CreateSignedUsdcTransferParams): Promise<string> {
   const sender = keypairFromPrivateKey(senderPrivateKey);
   const recipient = new PublicKey(recipientAddress);
-  const mint = new PublicKey(USDC_DEVNET_MINT);
+  const mint = new PublicKey(STABLE_COIN_MINT);
 
   const [config, blockhash] = await Promise.all([
     getTransactionConfig(),
@@ -169,7 +171,7 @@ export async function getWalletBalances(
 ): Promise<BalanceResponse> {
   const connection = getConnection();
   const owner = new PublicKey(walletAddress);
-  const mint = new PublicKey(USDC_DEVNET_MINT);
+  const mint = new PublicKey(STABLE_COIN_MINT);
 
   const [solBalanceLamports, tokenAccounts] = await Promise.all([
     connection.getBalance(owner, COMMITMENT),
@@ -185,6 +187,49 @@ export async function getWalletBalances(
     walletAddress,
     solBalance: solBalanceLamports / 1_000_000_000,
     usdcBalance,
+  };
+}
+
+interface EnsureMinimumSolBalanceResult {
+  initialSolBalance: number;
+  finalSolBalance: number;
+  airdroppedSol: number;
+}
+
+/**
+ * Devnet helper for demos: top up SOL until the wallet reaches a minimum balance.
+ */
+export async function ensureMinimumSolBalance(
+  walletAddress: string,
+  minimumSol = 10,
+): Promise<EnsureMinimumSolBalanceResult> {
+  const connection = getConnection(DEFAULT_RPC_URL);
+  const owner = new PublicKey(walletAddress);
+  const lamportsPerSol = 1_000_000_000;
+  const maxAirdropPerRequestSol = 2;
+
+  const readSolBalance = async () => {
+    const balanceLamports = await connection.getBalance(owner, COMMITMENT);
+    return balanceLamports / lamportsPerSol;
+  };
+
+  const initialSolBalance = await readSolBalance();
+  let currentSolBalance = initialSolBalance;
+
+  while (currentSolBalance + 0.000001 < minimumSol) {
+    const remainingSol = minimumSol - currentSolBalance;
+    const requestSol = Math.min(maxAirdropPerRequestSol, remainingSol);
+    const requestLamports = Math.max(1, Math.floor(requestSol * lamportsPerSol));
+
+    const signature = await connection.requestAirdrop(owner, requestLamports);
+    await connection.confirmTransaction(signature, COMMITMENT);
+    currentSolBalance = await readSolBalance();
+  }
+
+  return {
+    initialSolBalance,
+    finalSolBalance: currentSolBalance,
+    airdroppedSol: Math.max(0, currentSolBalance - initialSolBalance),
   };
 }
 

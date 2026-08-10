@@ -6,7 +6,8 @@ import bs58 from 'bs58';
 /**
  * Validates a Solana public key (base58, 32 bytes).
  */
-export function isValidSolanaAddress(address: string): boolean {
+export function isValidSolanaAddress(address: unknown): boolean {
+  if (typeof address !== 'string') {return false;}
   if (!address || address.length < 32 || address.length > 44) {return false;}
   try {
     const decoded = bs58.decode(address);
@@ -19,7 +20,8 @@ export function isValidSolanaAddress(address: string): boolean {
 /**
  * Truncates a public key for display: "ABC123...XYZ789"
  */
-export function truncateAddress(address: string, chars = 6): string {
+export function truncateAddress(address: unknown, chars = 6): string {
+  if (typeof address !== 'string') {return '';} 
   if (address.length <= chars * 2) {return address;}
   return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }

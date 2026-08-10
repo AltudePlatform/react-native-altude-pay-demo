@@ -6,17 +6,25 @@
  *  - optional amount
  */
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Alert} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  Platform,
+} from 'react-native';
 import {
   Camera,
   useCameraDevice,
   useCodeScanner,
 } from 'react-native-vision-camera';
 import {useNavigation} from '@react-navigation/native';
-import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
-import {MainTabParamList} from '../types';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootStackParamList} from '../types';
+import {tokens} from '../theme/tokens';
 
-type NavProp = BottomTabNavigationProp<MainTabParamList, 'QR'>;
+type NavProp = StackNavigationProp<RootStackParamList>;
 
 function parseSolanaPayUrl(url: string): {
   recipient?: string;
@@ -35,6 +43,21 @@ function parseSolanaPayUrl(url: string): {
 
 export default function ScanScreen(): React.JSX.Element {
   const navigation = useNavigation<NavProp>();
+
+  // VisionCamera native module is intentionally disabled on Android for this demo build.
+  if (Platform.OS === 'android') {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.kicker}>SCAN</Text>
+        <Text style={styles.title}>Scanner unavailable on Android</Text>
+        <Text style={styles.message}>Use Pay and paste a payment link instead.</Text>
+        <TouchableOpacity style={styles.cancelBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.cancelBtnText}>Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   const [hasPermission, setHasPermission] = useState(false);
   const [scanned, setScanned] = useState(false);
 
@@ -56,12 +79,12 @@ export default function ScanScreen(): React.JSX.Element {
       setScanned(true);
       const parsed = parseSolanaPayUrl(first);
       if (parsed?.recipient) {
-        navigation.navigate('Send', {
+        navigation.navigate('PayAddress', {
+          amount: parsed.amount ?? '0',
           recipient: parsed.recipient,
-          amount: parsed.amount,
         });
       } else {
-        Alert.alert('Invalid QR', 'This QR code is not a valid Solana Pay URL.', [
+        Alert.alert('Invalid QR', 'This QR code is not a valid payment link.', [
           {text: 'OK', onPress: () => setScanned(false)},
         ]);
       }
@@ -71,7 +94,9 @@ export default function ScanScreen(): React.JSX.Element {
   if (!hasPermission) {
     return (
       <View style={styles.center}>
-        <Text style={styles.message}>Camera permission required</Text>
+        <Text style={styles.kicker}>SCAN</Text>
+        <Text style={styles.title}>Camera permission required</Text>
+        <Text style={styles.message}>Grant access to scan payment codes.</Text>
         <TouchableOpacity
           style={styles.permBtn}
           onPress={() => Camera.requestCameraPermission()}>
@@ -84,7 +109,9 @@ export default function ScanScreen(): React.JSX.Element {
   if (!device) {
     return (
       <View style={styles.center}>
-        <Text style={styles.message}>Camera not available</Text>
+        <Text style={styles.kicker}>SCAN</Text>
+        <Text style={styles.title}>Camera not available</Text>
+        <Text style={styles.message}>Try again on a device with a rear camera.</Text>
       </View>
     );
   }
@@ -100,7 +127,11 @@ export default function ScanScreen(): React.JSX.Element {
 
       {/* Overlay */}
       <View style={styles.overlay}>
-        <Text style={styles.instruction}>Point at a Solana Pay QR code</Text>
+        <View style={styles.heroPanel}>
+          <Text style={styles.kicker}>SCAN</Text>
+          <Text style={styles.title}>Point at a payment QR code</Text>
+          <Text style={styles.message}>The camera will prefill the address and amount.</Text>
+        </View>
         <View style={styles.scanFrame} />
         <TouchableOpacity
           style={styles.cancelBtn}
@@ -113,48 +144,72 @@ export default function ScanScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: '#000'},
+  container: {flex: 1, backgroundColor: tokens.colors.page},
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0d0d1a',
+    backgroundColor: tokens.colors.page,
+    paddingHorizontal: 20,
   },
-  message: {color: '#fff', fontSize: 16, marginBottom: 20},
+  kicker: {
+    color: tokens.colors.accent,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    fontSize: 11,
+    marginBottom: 8,
+  },
+  title: {
+    color: tokens.colors.textPrimary,
+    fontSize: 24,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  message: {
+    color: tokens.colors.textMuted,
+    fontSize: 15,
+    marginBottom: 20,
+    textAlign: 'center',
+    lineHeight: 21,
+  },
   permBtn: {
-    backgroundColor: '#9945FF',
+    backgroundColor: tokens.colors.accent,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 10,
+    borderRadius: tokens.radius.md,
   },
   permBtnText: {color: '#fff', fontWeight: '700'},
   overlay: {
     flex: 1,
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 60,
-    paddingBottom: 60,
+    paddingTop: 28,
+    paddingBottom: 28,
+    backgroundColor: 'rgba(244, 247, 252, 0.2)',
   },
-  instruction: {
-    color: '#fff',
-    fontSize: 16,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 20,
+  heroPanel: {
+    width: '100%',
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderRadius: tokens.radius.lg,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
   },
   scanFrame: {
     width: 240,
     height: 240,
     borderWidth: 2,
-    borderColor: '#9945FF',
+    borderColor: tokens.colors.accent,
     borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   cancelBtn: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: tokens.colors.accent,
     paddingHorizontal: 32,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: tokens.radius.md,
   },
-  cancelBtnText: {color: '#fff', fontWeight: '600', fontSize: 16},
+  cancelBtnText: {color: '#fff', fontWeight: '700', fontSize: 16},
 });

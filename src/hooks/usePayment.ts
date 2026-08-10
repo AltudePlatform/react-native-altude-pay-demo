@@ -5,6 +5,7 @@ import {
   waitForTransactionConfirmation,
 } from '../services/solana';
 import {getTransactionConfig, sendTransactionToAltude} from '../services/altudeApi';
+import * as altudeSdk from '../services/altudeSdk';
 import {useWalletStore} from '../store/walletStore';
 import {AltudeApiError, TransactionRecord} from '../types';
 import {generateId} from '../utils/helpers';
@@ -57,7 +58,7 @@ export function usePayment() {
         }
 
         const [config, signedTx] = await Promise.all([
-          getTransactionConfig(),
+          altudeSdk.getTransactionConfig(),
           createSignedUsdcTransferTransaction({
             senderPrivateKey: wallet.privateKey,
             recipientAddress,
@@ -66,7 +67,7 @@ export function usePayment() {
           }),
         ]);
 
-        const sendResult = await sendTransactionToAltude(signedTx);
+        const sendResult = await altudeSdk.sendTransaction(signedTx);
         const signature = sendResult.signature;
 
         const status = await waitForTransactionConfirmation(
@@ -97,7 +98,7 @@ export function usePayment() {
         ]);
 
         if (record.status === 'failed') {
-          throw new Error(status.error ?? 'Transaction failed on Solana');
+          throw new Error(status.error ?? 'Payment failed to confirm');
         }
 
         return record;

@@ -1,33 +1,29 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Linking} from 'react-native';
+import {View, Text, StyleSheet} from 'react-native';
 import {TransactionRecord} from '../types';
 import {truncateAddress} from '../services/solana';
+import {tokens} from '../theme/tokens';
 
 interface Props {
   record: TransactionRecord;
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  confirmed: '#14F195',
-  pending: '#FFB800',
-  failed: '#FF6B6B',
+  confirmed: tokens.colors.success,
+  pending: '#bb7d18',
+  failed: '#bf3f2a',
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  confirmed: '✓ Confirmed',
-  pending: '⏳ Pending',
-  failed: '✗ Failed',
+  confirmed: 'Confirmed',
+  pending: 'Pending',
+  failed: 'Failed',
 };
 
 export default function TransactionItem({record}: Props): React.JSX.Element {
   const date = new Date(record.date);
   const statusColor = STATUS_COLORS[record.status] ?? '#888';
   const statusLabel = STATUS_LABELS[record.status] ?? record.status;
-
-  const handleViewExplorer = () => {
-    const url = `https://explorer.solana.com/tx/${record.signature}?cluster=devnet`;
-    Linking.openURL(url);
-  };
 
   return (
     <View style={styles.container}>
@@ -45,29 +41,24 @@ export default function TransactionItem({record}: Props): React.JSX.Element {
         </View>
 
         <View style={styles.right}>
-          <Text style={styles.amount}>-{record.amount} USDC</Text>
+          <Text style={styles.amount}>-{`$${record.amount.toFixed(2)}`}</Text>
           <Text style={[styles.status, {color: statusColor}]}>
             {statusLabel}
           </Text>
         </View>
       </View>
-
-      <TouchableOpacity onPress={handleViewExplorer} style={styles.sigRow}>
-        <Text style={styles.sig}>{truncateAddress(record.signature, 8)}</Text>
-        <Text style={styles.explorerLink}>View ↗</Text>
-      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1a1a2e',
-    borderRadius: 14,
+    backgroundColor: '#fff',
+    borderRadius: tokens.radius.md,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#2d2d44',
+    borderColor: tokens.colors.border,
   },
   row: {
     flexDirection: 'row',
@@ -76,25 +67,25 @@ const styles = StyleSheet.create({
   },
   info: {flex: 1},
   recipient: {
-    color: '#fff',
+    color: tokens.colors.textPrimary,
     fontSize: 14,
     fontFamily: 'monospace',
     fontWeight: '600',
   },
   date: {
-    color: '#666',
+    color: tokens.colors.textMuted,
     fontSize: 11,
     marginTop: 2,
   },
   memo: {
-    color: '#888',
+    color: tokens.colors.textMuted,
     fontSize: 12,
     marginTop: 4,
     fontStyle: 'italic',
   },
   right: {alignItems: 'flex-end'},
   amount: {
-    color: '#FF6B6B',
+    color: tokens.colors.accentDark,
     fontSize: 15,
     fontWeight: '700',
   },
@@ -102,22 +93,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 4,
     fontWeight: '600',
-  },
-  sigRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderTopWidth: 1,
-    borderTopColor: '#2d2d44',
-    paddingTop: 8,
-    marginTop: 4,
-  },
-  sig: {
-    color: '#555',
-    fontSize: 11,
-    fontFamily: 'monospace',
-  },
-  explorerLink: {
-    color: '#9945FF',
-    fontSize: 11,
   },
 });
