@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -19,7 +20,6 @@ import {generateDemoWallet, truncateAddress} from '../services/solana';
 import BalanceCard from '../components/BalanceCard';
 import {RootStackParamList, TransactionRecord} from '../types';
 import {tokens} from '../theme/tokens';
-import { topupWallet } from '../services/faucet';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
 
@@ -31,6 +31,9 @@ export default function HomeScreen(): React.JSX.Element {
 
   const {data: balance, isLoading, refetch} = useBalance();
   const [historyPreview, setHistoryPreview] = useState<TransactionRecord[]>([]);
+  const [isAutoCreatingWallet, setIsAutoCreatingWallet] = useState(false);
+  const [walletCreationError, setWalletCreationError] = useState<string | null>(null);
+  const [hasAttemptedAutoCreate, setHasAttemptedAutoCreate] = useState(false);
 
   const hasWallet = typeof wallet?.publicKey === 'string' && wallet.publicKey.length > 0;
 
@@ -39,27 +42,6 @@ export default function HomeScreen(): React.JSX.Element {
   }, []);
 
   const displayAddress = hasWallet ? truncateAddress(wallet!.publicKey, 6) : 'No account';
-
-  const handleGenerateWallet = useCallback(async () => {
-    Alert.alert(
-      hasWallet ? 'Replace Account' : 'Create Account',
-      hasWallet
-        ? 'This will replace the account currently stored on this device. Make sure your access details are backed up.'
-        : 'Create a new payment account on this device. Your account details stay local.',
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {
-          text: hasWallet ? 'Replace' : 'Generate',
-          style: hasWallet ? 'destructive' : 'default',
-          onPress: async () => {
-            const newWallet = await generateDemoWallet();
-            await setWallet(newWallet);
-            await topupWallet(newWallet.publicKey);
-          },
-        },
-      ],
-    );
-  }, [hasWallet, setWallet]);
 
   const handleDisconnectWallet = useCallback(() => {
     Alert.alert(
@@ -78,28 +60,44 @@ export default function HomeScreen(): React.JSX.Element {
     );
   }, [removeWallet]);
 
-  // Auto-generate a wallet on first visit if none exists (no user prompt).
+  // Best-effort wallet auto-create if startup hydration did not provide one.
   React.useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      if (hasWallet) return;
+      if (hasWallet || isAutoCreatingWallet || hasAttemptedAutoCreate) {return;}
 
       try {
-        const newWallet = await generateDemoWallet();
+        setHasAttemptedAutoCreate(true);
+        setIsAutoCreatingWallet(true);
+        setWalletCreationError(null);
+        const newWallet = await Promise.race([
+          generateDemoWallet(),
+          new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('Wallet generation timed out')), 12_000);
+          }),
+        ]);
         if (cancelled) return;
         await setWallet(newWallet);
-        // Try to top up for demo convenience; ignore failures.
-        topupWallet(newWallet.publicKey).catch(() => {});
-      } catch {
-        // Ignore generation failures here; user can still press Create Account.
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Could not create account right now.';
+        if (!cancelled) {
+          setWalletCreationError(message);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsAutoCreatingWallet(false);
+        }
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [hasWallet, setWallet]);
+  }, [hasAttemptedAutoCreate, hasWallet, isAutoCreatingWallet, setWallet]);
 
   const handleOpenHistory = useCallback(() => {
     navigation.navigate('History');
@@ -166,6 +164,20 @@ export default function HomeScreen(): React.JSX.Element {
         <Text style={styles.heroTitle}>{displayAddress}</Text>
         <Text style={styles.heroSubtitle}>Manage payments and monitor account activity from one place.</Text>
       </View>
+
+      {!hasWallet && (
+        <View style={styles.noWallet}>
+          <ActivityIndicator size="large" color={tokens.colors.accent} />
+          <Text style={styles.noWalletText}>
+            {isAutoCreatingWallet ? 'Creating your wallet…' : 'Preparing wallet…'}
+          </Text>
+          <Text style={styles.noWalletSubtext}>
+            {walletCreationError
+              ? `Wallet setup failed: ${walletCreationError}. Retrying automatically...`
+              : 'Please wait while we automatically prepare your account.'}
+          </Text>
+        </View>
+      )}
 
       {hasWallet && (
         <>
@@ -360,39 +372,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 2,
     textTransform: 'capitalize',
-  },
-  actionBtn: {
-    borderRadius: tokens.radius.md,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  primaryBtn: {
-    backgroundColor: tokens.colors.accent,
-  },
-  secondaryBtn: {
-    borderWidth: 1,
-    borderColor: tokens.colors.accent,
-    backgroundColor: '#fff',
-  },
-  ghostBtn: {
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-    backgroundColor: tokens.colors.card,
-  },
-  actionBtnText: {
-    color: '#fff',
-    fontWeight: '800',
-    fontSize: 16,
-  },
-  actionBtnTextSecondary: {
-    color: tokens.colors.accent,
-    fontWeight: '800',
-    fontSize: 16,
-  },
-  ghostBtnText: {
-    color: tokens.colors.textPrimary,
-    fontWeight: '600',
-    fontSize: 15,
   },
   noWallet: {
     alignItems: 'center',

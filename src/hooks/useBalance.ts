@@ -29,7 +29,7 @@ export function useBalance() {
       return balance;
     },
     enabled: !!wallet?.publicKey,
-    refetchInterval: 30_000,
-    staleTime: 10_000,
+    refetchInterval: 60_000,
+    staleTime: 30_000,
   });
 }

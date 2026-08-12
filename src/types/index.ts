@@ -17,7 +17,7 @@ export type RootStackParamList = {
 
 export interface WalletInfo {
   publicKey: string;
-  /** Base58-encoded private key – NEVER leaves the device */
+  /** 32-byte seed stored as lowercase hex – NEVER leaves the device */
   privateKey: string;
 }
 

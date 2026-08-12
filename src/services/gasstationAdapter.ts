@@ -1,111 +1,158 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {ALTUDE_API_KEY, ALTUDE_NETWORK} from '../config/apiConfig';
+import {stableCoinMint} from '../config/paymentConfig';
+import {runtimeConfig} from '../config/runtimeConfig';
 
-type GasStationInstance = any;
+const ALLOW_FALLBACK_SEND =
+  runtimeConfig.useMockData ||
+  (typeof process !== 'undefined' &&
+    (process.env.ALTUDE_ALLOW_FALLBACK_SEND === '1' ||
+      process.env.ALTUDE_ALLOW_FALLBACK_SEND === 'true')) ||
+  (typeof __DEV__ !== 'undefined' && __DEV__);
 
-let instance: GasStationInstance | null = null;
+// Lazily hold the instance — avoids loading @altude/gasstation (and its
+// heavy `gill` / @solana/kit transitive deps) until the first SDK call.
+type GasstationLike = {
+  getBalance: (args: {account: string; token?: string}) => Promise<{
+    lamports?: number;
+    uiAmount?: number;
+  }>;
+  getConfig: () => Promise<any>;
+  send: (args: {
+    sourceSigner: {
+      address: string;
+      signTransactionMessage: (txBytes: Uint8Array) => Promise<Uint8Array>;
+    };
+    toAddress: string;
+    amount: number;
+    token?: string;
+  }) => Promise<{Signature?: string; signature?: string}>;
+};
 
-function storageProxy() {
+let instance: GasstationLike | null = null;
+let initializationError: Error | null = null;
+
+function toError(error: unknown): Error {
+  if (error instanceof Error) {
+    return error;
+  }
+  return new Error(String(error));
+}
+
+function createFallbackGasstation(): GasstationLike {
   return {
-    getItem: async (key: string) => {
-      try {
-        return await AsyncStorage.getItem(key);
-      } catch {
-        return null;
+    async getBalance(args) {
+      if (args.token === stableCoinMint) {
+        return {uiAmount: runtimeConfig.mock.usdcBalance};
       }
+      return {lamports: Math.round(runtimeConfig.mock.solBalance * 1_000_000_000)};
     },
-    setItem: async (key: string, value: string) => {
-      try {
-        await AsyncStorage.setItem(key, value);
-      } catch {
-        // ignore
-      }
+    async getConfig() {
+      const {getTransactionConfig} = await import('./altudeApi');
+      return getTransactionConfig();
     },
-    removeItem: async (key: string) => {
-      try {
-        await AsyncStorage.removeItem(key);
-      } catch {
-        // ignore
+    async send(args) {
+      if (ALLOW_FALLBACK_SEND) {
+        const signature = `MOCK_SIG_${Date.now().toString(36)}${Math.random()
+          .toString(36)
+          .slice(2, 8)}`;
+        if (runtimeConfig.mock.sendDelayMs > 0) {
+          await new Promise<void>(resolve => {
+            setTimeout(resolve, runtimeConfig.mock.sendDelayMs);
+          });
+        }
+        console.warn('[gasstationAdapter] Using fallback mock send signature:', signature);
+        return {signature};
       }
+      const reason = initializationError?.message
+        ? ` (${initializationError.message})`
+        : '';
+      throw new Error(
+        `Gas station SDK is unavailable on this runtime${reason}.`,
+      );
     },
   };
 }
 
-export function tryLoadGasstation(): GasStationInstance | null {
-  if (instance !== null) return instance;
+export function getGasstationInitializationError(): Error | null {
+  return initializationError;
+}
 
-  try {
-    // Use an indirect require to avoid Metro's static analysis bundling
-    // (Metro tries to resolve direct `require('...')` calls at bundle time
-    // which can cause native/node-only dependencies to break the bundle).
-    // eslint-disable-next-line no-eval
-    const dynamicRequire = eval("require");
-    const pkg = dynamicRequire('@altude/gasstation');
-    const AltudeGasStation = pkg?.AltudeGasStation ?? pkg?.default ?? null;
-    if (!AltudeGasStation) {
-      instance = null;
+export async function getGasstation(): Promise<GasstationLike> {
+  if (!instance) {
+    if (runtimeConfig.useMockData) {
+      initializationError = null;
+      instance = createFallbackGasstation();
       return instance;
     }
 
-    const options = {
-      apiKey: (typeof process !== 'undefined' && process.env.ALTUDE_API_KEY) || '',
-      network: (typeof process !== 'undefined' && process.env.ALTUDE_NETWORK) || 'devnet',
-    } as any;
-
-    instance = new AltudeGasStation(options);
-
-    // If the package exposes a method to inject a storage adapter, prefer that.
     try {
-      if (typeof instance.setStorage === 'function') {
-        instance.setStorage(storageProxy());
-      }
-    } catch (e) {
-      // ignore if storage injection not supported or fails
+      const {AltudeGasStation} = await import('@altude/gasstation');
+      const sdk = new AltudeGasStation({
+        apiKey: ALTUDE_API_KEY,
+        network: ALTUDE_NETWORK,
+      }) as any;
+      instance = {
+        async getBalance(args) {
+          if (typeof sdk.getBalance === 'function') {
+            return sdk.getBalance(args);
+          }
+          return {lamports: 0, uiAmount: 0};
+        },
+        async getConfig() {
+          if (typeof sdk.getConfig === 'function') {
+            return sdk.getConfig();
+          }
+          const {getTransactionConfig} = await import('./altudeApi');
+          return getTransactionConfig();
+        },
+        async send(args) {
+          if (typeof sdk.send === 'function') {
+            return sdk.send(args);
+          }
+          throw new Error('Gas station SDK send() is unavailable.');
+        },
+      };
+      initializationError = null;
+    } catch (error) {
+      initializationError = toError(error);
+      console.warn(
+        '[gasstationAdapter] Falling back: SDK unavailable.',
+        initializationError,
+      );
+      instance = createFallbackGasstation();
     }
-
-    return instance;
-  } catch (e) {
-    instance = null;
-    return null;
   }
+  return instance;
 }
 
 export async function getTransactionConfig(): Promise<any> {
-  const loaded = tryLoadGasstation();
-  if (!loaded) throw new Error('Gasstation not available');
-
-  if (typeof loaded.getTransactionConfig === 'function') {
-    return await loaded.getTransactionConfig();
-  }
-
-  // Gasstation may not implement this; throw to let callers fallback.
-  throw new Error('getTransactionConfig not implemented by gasstation');
+  const gs = await getGasstation();
+  return gs.getConfig();
 }
 
-export async function sendTransaction(signedTransaction: string): Promise<{signature: string}> {
-  const loaded = tryLoadGasstation();
-  if (!loaded) throw new Error('Gasstation not available');
-
-  if (typeof loaded.send === 'function') {
-    const res = await loaded.send({transaction: signedTransaction});
-    // Normalize common shapes
-    if (res && typeof res === 'object' && 'signature' in res) {
-      return {signature: res.signature};
-    }
-
-    // If send returns a plain signature string
-    if (typeof res === 'string') {
-      return {signature: res};
-    }
-
-    // Unknown return; throw to trigger fallback
-    throw new Error('Unexpected gasstation send result');
-  }
-
-  throw new Error('send not implemented by gasstation');
+export async function sendWithSigner(
+  sourceSigner: {
+    address: string;
+    signTransactionMessage: (txBytes: Uint8Array) => Promise<Uint8Array>;
+  },
+  toAddress: string,
+  amount: number,
+  token?: string,
+): Promise<{signature: string}> {
+  const gs = await getGasstation();
+  const res = await gs.send({
+    sourceSigner,
+    toAddress,
+    amount,
+    token,
+  });
+  const sig = res.Signature ?? res.signature ?? '';
+  return {signature: sig};
 }
 
 export default {
-  tryLoadGasstation,
+  getGasstation,
   getTransactionConfig,
-  sendTransaction,
+  sendWithSigner,
 };
+

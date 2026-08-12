@@ -60,8 +60,8 @@ export default function OnboardingScreen({
 
   const validate = (): string | null => {
     if (!countryCode.trim()) {return 'Please select a country code.';}
-    if (sanitizedPhone.length < 7 || sanitizedPhone.length > 15) {
-      return 'Please enter a valid contact number.';
+    if (sanitizedPhone.length === 0) {
+      return 'Please enter a contact number.';
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       return 'Please enter a valid email address.';

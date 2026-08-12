@@ -4,17 +4,20 @@ import {
   AltudeTransactionConfig,
   AltudeTransactionSendResponse,
 } from '../types';
-import {Connection, Commitment} from '@solana/web3.js';
+import {runtimeConfig} from '../config/runtimeConfig';
+
+type Commitment = 'processed' | 'confirmed' | 'finalized';
 
 const ALTUDE_BASE_URL = 'https://api.altude.so';
 const ALTUDE_API_KEY =
   (typeof process !== 'undefined' && process.env.ALTUDE_API_KEY) ||
-  'REPLACE_WITH_X_API_KEY';
+  'ak_YbBKrObNGCmGlk5d2qHte9HEgngK-mZtsosTJNtQsO8';
 
 // Enable a lightweight mock mode when the web SDK / real Altude service is
 // not available. Set the environment variable `ALTUDE_USE_MOCK=1` or
 // `ALTUDE_USE_MOCK=true` to enable.
 const USE_ALTUDE_MOCK =
+  runtimeConfig.useMockData ||
   typeof process !== 'undefined' &&
   (process.env.ALTUDE_USE_MOCK === '1' || process.env.ALTUDE_USE_MOCK === 'true');
 
@@ -22,14 +25,24 @@ const CONFIG_CACHE_TTL_MS = 30_000;
 let cachedConfig: AltudeTransactionConfig | null = null;
 let cachedConfigAt = 0;
 const COMMITMENT: Commitment = 'confirmed';
-const connectionByRpcUrl = new Map<string, Connection>();
+const connectionByRpcUrl = new Map<string, any>();
 
-function getConnection(rpcUrl: string): Connection {
+async function getConnection(rpcUrl: string): Promise<any> {
   const cached = connectionByRpcUrl.get(rpcUrl);
   if (cached) {
     return cached;
   }
 
+  async function loadWeb3(): Promise<{Connection: new (rpcUrl: string, commitment: Commitment) => any}> {
+    try {
+      // Jest's CommonJS runtime handles require() here more reliably than import().
+      return require('@solana/web3.js');
+    } catch {
+      return await import('@solana/web3.js');
+    }
+  }
+
+  const {Connection} = await loadWeb3();
   const next = new Connection(rpcUrl, COMMITMENT);
   connectionByRpcUrl.set(rpcUrl, next);
   return next;
@@ -240,7 +253,7 @@ export async function getTransactionBlockhash(): Promise<string> {
   validateApiKey();
 
   const config = await getTransactionConfig();
-  const connection = getConnection(config.RpcUrl);
+  const connection = await getConnection(config.RpcUrl);
   const payload = await connection.getLatestBlockhash(COMMITMENT);
   return parseBlockhash(payload);
 }

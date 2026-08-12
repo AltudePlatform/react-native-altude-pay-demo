@@ -20,7 +20,9 @@ import {
 import {useWalletStore} from './src/store/walletStore';
 import {UserProfile} from './src/types';
 import {tokens} from './src/theme/tokens';
-import {ensureMinimumSolBalance, generateDemoWallet} from './src/services/solana';
+import {createDemoAccount} from './src/services/accountBootstrap';
+
+const SHOW_STARTUP_DIAGNOSTICS = false;
 
 type RootErrorBoundaryState = {
   errorMessage: string | null;
@@ -103,35 +105,18 @@ function AppContent(): React.JSX.Element {
     (async () => {
       try {
         await ensureClientState();
+
         const [storedWallet, completed] = await Promise.all([
           getWallet(),
           hasCompletedOnboarding(),
         ]);
 
-        const wallet =
-          storedWallet ??
-          (await withTimeout(
-            generateDemoWallet(),
-            12_000,
-            'Wallet generation timed out',
-          ));
-        if (!storedWallet) {
-          try {
-            await setWallet(wallet);
-          } catch {
-            // If persistence fails, still continue with the in-memory wallet.
-          }
-        }
-
         if (!cancelled) {
-          hydrateWallet(wallet);
+          // Hydrate quickly from disk and let screen-level background tasks
+          // handle wallet creation so first render is not blocked.
+          hydrateWallet(storedWallet);
           setOnboardingComplete(completed);
         }
-
-        // Keep startup responsive; airdrop runs in the background for credits.
-        ensureMinimumSolBalance(wallet.publicKey, 5).catch(() => {
-          // Ignore faucet/rate-limit failures so app startup flow still works.
-        });
       } catch {
         if (!cancelled) {
           hydrateWallet(null);
@@ -159,19 +144,13 @@ function AppContent(): React.JSX.Element {
       const stored = await getWallet();
       if (!stored) {
         const wallet = await withTimeout(
-          generateDemoWallet(),
+          createDemoAccount(),
           12_000,
           'Wallet generation timed out',
         );
-        try {
-          await setWallet(wallet);
-        } catch {
-          // Ignore persistence failures; still hydrate so the app can continue.
-        }
         hydrateWallet(wallet);
 
         // Kick off background airdrop to keep UX smooth.
-        ensureMinimumSolBalance(wallet.publicKey, 5).catch(() => {});
       }
     } catch {
       // Ignore onboarding-time wallet generation errors; still continue to dashboard.
@@ -194,9 +173,7 @@ function AppContent(): React.JSX.Element {
         barStyle="dark-content"
         backgroundColor={tokens.colors.page}
       />
-      <View style={styles.debugBanner} pointerEvents="none">
-        <Text style={styles.debugBannerText}>DEBUG: APP ROOT MOUNTED</Text>
-      </View>
+      {SHOW_STARTUP_DIAGNOSTICS ? <View style={styles.diagBanner} /> : null}
       <AppNavigator
         onboardingComplete={onboardingComplete}
         onOnboardingComplete={handleOnboardingComplete}
@@ -229,23 +206,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  debugBanner: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    right: 8,
-    zIndex: 9999,
-    backgroundColor: '#d63333',
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-  },
-  debugBannerText: {
-    color: '#ffffff',
-    fontWeight: '800',
-    fontSize: 12,
-    textAlign: 'center',
-  },
   rootErrorContainer: {
     flex: 1,
     backgroundColor: '#2b0d0d',
@@ -264,5 +224,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 15,
     lineHeight: 22,
+  },
+  diagBanner: {
+    backgroundColor: '#101010',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2f2f2f',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
   },
 });

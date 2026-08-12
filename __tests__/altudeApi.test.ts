@@ -7,6 +7,17 @@ describe('altudeApi service', () => {
     jest.resetModules();
     mockGetLatestBlockhash.mockReset();
 
+    jest.doMock('../src/config/runtimeConfig', () => ({
+      runtimeConfig: {
+        useMockData: false,
+        mock: {
+          solBalance: 1.245,
+          usdcBalance: 250.75,
+          sendDelayMs: 400,
+        },
+      },
+    }));
+
     jest.doMock('@solana/web3.js', () => ({
       Connection: jest.fn().mockImplementation(() => ({
         getLatestBlockhash: mockGetLatestBlockhash,

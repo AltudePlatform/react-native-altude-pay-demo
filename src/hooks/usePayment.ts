@@ -1,14 +1,11 @@
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {addRecentRecipient, appendToHistory} from '../services/storage';
-import {
-  createSignedUsdcTransferTransaction,
-  waitForTransactionConfirmation,
-} from '../services/solana';
-import {getTransactionConfig, sendTransactionToAltude} from '../services/altudeApi';
-import * as altudeSdk from '../services/altudeSdk';
+import {buildSigner, waitForTransactionConfirmation} from '../services/solana';
+import {sendWithSigner} from '../services/gasstationAdapter';
 import {useWalletStore} from '../store/walletStore';
 import {AltudeApiError, TransactionRecord} from '../types';
 import {generateId} from '../utils/helpers';
+import {STABLE_COIN_MINT} from '../services/solana';
 
 interface SendPaymentParams {
   recipientAddress: string;
@@ -50,32 +47,30 @@ export function usePayment() {
     mutationFn: async ({
       recipientAddress,
       amount,
-      memo,
+      memo: _memo,
     }: SendPaymentParams): Promise<TransactionRecord> => {
       try {
         if (!wallet) {
           throw new Error('No wallet connected');
         }
 
-        const [config, signedTx] = await Promise.all([
-          altudeSdk.getTransactionConfig(),
-          createSignedUsdcTransferTransaction({
-            senderPrivateKey: wallet.privateKey,
-            recipientAddress,
-            amount,
-            memo,
-          }),
-        ]);
+        const sourceSigner = buildSigner(wallet);
 
-        const sendResult = await altudeSdk.sendTransaction(signedTx);
-        const signature = sendResult.signature;
+        // amount is in USDC; gasstation expects smallest unit (lamports for SOL,
+        // or token base units). For USDC that is 6 decimals.
+        const amountBaseUnits = Math.round(amount * 1_000_000);
 
-        const status = await waitForTransactionConfirmation(
-          signature,
-          12,
-          1_500,
-          config.RpcUrl,
+        const {signature} = await sendWithSigner(
+          sourceSigner,
+          recipientAddress,
+          amountBaseUnits,
+          STABLE_COIN_MINT,
         );
+
+        const isMockSignature = signature.startsWith('MOCK_SIG_');
+        const status = isMockSignature
+          ? {signature, status: 'confirmed' as const, confirmed: true}
+          : await waitForTransactionConfirmation(signature, 12, 1_500);
 
         const record: TransactionRecord = {
           id: generateId(),
@@ -89,7 +84,6 @@ export function usePayment() {
                 ? 'failed'
                 : 'pending',
           date: new Date().toISOString(),
-          memo,
         };
 
         await Promise.all([
@@ -112,3 +106,4 @@ export function usePayment() {
     },
   });
 }
+

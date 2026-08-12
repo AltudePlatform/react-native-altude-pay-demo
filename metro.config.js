@@ -6,34 +6,25 @@ const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
  * https://reactnative.dev/docs/metro
  */
 const defaultConfig = getDefaultConfig(__dirname);
-const screensShimPath = path.resolve(__dirname, 'src', 'shims', 'react-native-screens.tsx');
-
-function isScreensRequest(moduleName) {
-	if (!moduleName) return false;
-	const normalized = String(moduleName).replace(/\\/g, '/');
-	return (
-		normalized === 'react-native-screens' ||
-		normalized.startsWith('react-native-screens/') ||
-		normalized.includes('/react-native-screens/') ||
-		normalized.includes('react-native-screens@')
-	);
-}
-
+const screensShimPath = path.resolve(
+	__dirname,
+	'src',
+	'shims',
+	'react-native-screens.tsx',
+);
+const rpcWebsocketsBrowserPath = path.resolve(
+	__dirname,
+	'node_modules',
+	'rpc-websockets',
+	'dist',
+	'index.browser.cjs',
+);
 const config = {
 	resolver: {
 		sourceExts: [...defaultConfig.resolver.sourceExts, 'mjs', 'cjs'],
-		resolveRequest: (context, moduleName, platform) => {
-			if (isScreensRequest(moduleName)) {
-				return {
-					type: 'sourceFile',
-					filePath: screensShimPath,
-				};
-			}
-
-			return context.resolveRequest(context, moduleName, platform);
-		},
 		extraNodeModules: {
-			'react-native-screens': path.resolve(__dirname, 'src', 'shims', 'react-native-screens'),
+			'react-native-screens': screensShimPath,
+			'rpc-websockets': rpcWebsocketsBrowserPath,
 		},
 		// Keep Metro from indexing huge generated native build directories.
 		blockList: [
