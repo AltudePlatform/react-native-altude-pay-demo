@@ -20,6 +20,28 @@ const SOLANA_DERIVATION_PATH = "m/44'/501'/0'/0'";
 const COMMITMENT: Commitment = 'confirmed';
 const DEFAULT_RPC_URL = 'https://api.devnet.solana.com';
 const connectionByRpcUrl = new Map<string, any>();
+type CryptoWithRandomValues = {
+  getRandomValues?: (...args: any[]) => unknown;
+};
+let cryptoRandomValuesPromise: Promise<void> | null = null;
+
+async function ensureCryptoRandomValues(): Promise<void> {
+  const crypto = (globalThis as typeof globalThis & {
+    crypto?: CryptoWithRandomValues;
+  }).crypto;
+
+  if (typeof crypto?.getRandomValues === 'function') {
+    return;
+  }
+
+  if (!cryptoRandomValuesPromise) {
+    cryptoRandomValuesPromise = Promise.resolve().then(() => {
+      require('react-native-get-random-values');
+    });
+  }
+
+  await cryptoRandomValuesPromise;
+}
 
 async function loadAltudeCore(): Promise<any> {
   try {
@@ -121,6 +143,8 @@ export function hexToBytes(hex: string): Uint8Array {
  * Fallback path uses local crypto libs if the SDK bundle cannot load.
  */
 export async function generateDemoWallet(): Promise<WalletInfo> {
+  await ensureCryptoRandomValues();
+
   try {
     const altudeCore = await loadAltudeCore();
     const {generateMnemonic, deriveSolanaKeypair} = altudeCore;
@@ -367,4 +391,3 @@ export async function waitForTransactionConfirmation(
 
   return {signature, status: 'pending', confirmed: false};
 }
-
