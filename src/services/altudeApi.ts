@@ -5,13 +5,11 @@ import {
   AltudeTransactionSendResponse,
 } from '../types';
 import {runtimeConfig} from '../config/runtimeConfig';
+import {ALTUDE_API_KEY, hasAltudeApiKey} from '../config/apiConfig';
 
 type Commitment = 'processed' | 'confirmed' | 'finalized';
 
 const ALTUDE_BASE_URL = 'https://api.altude.so';
-const ALTUDE_API_KEY =
-  (typeof process !== 'undefined' && process.env.ALTUDE_API_KEY) ||
-  'ak_YbBKrObNGCmGlk5d2qHte9HEgngK-mZtsosTJNtQsO8';
 
 // Enable a lightweight mock mode when the web SDK / real Altude service is
 // not available. Set the environment variable `ALTUDE_USE_MOCK=1` or
@@ -60,8 +58,8 @@ function validateApiKey(): void {
     return;
   }
 
-  if (!ALTUDE_API_KEY || ALTUDE_API_KEY.startsWith('REPLACE_')) {
-    throw new Error('Missing Altude API key. Set process.env.ALTUDE_API_KEY or update src/services/altudeApi.ts');
+  if (!hasAltudeApiKey()) {
+    throw new Error('Missing Altude API key. Add ALTUDE_API_KEY to .env and restart Metro.');
   }
 }
 

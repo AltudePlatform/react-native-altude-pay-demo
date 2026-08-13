@@ -26,6 +26,21 @@ A standalone React Native app that demonstrates USDC payments on Solana Devnet u
 
 ## Getting Started
 
+### Request Altude Access
+
+Before configuring the app, visit [Altude](https://altude.so) and complete the access-request form to receive an API key. Do not add the key to source code or commit it to the repository.
+
+### Configure Local Environment
+
+Create a `.env` file in the repository root using `.env.example` as a template:
+
+```bash
+ALTUDE_API_KEY=replace_with_your_key
+ALTUDE_NETWORK=devnet
+```
+
+Restart Metro after changing `.env`. The app checks for this key before allowing onboarding to continue when real services are enabled (`useMockData: false`). The default mock mode does not require an API key.
+
 Install dependencies from repository root:
 
 ```bash

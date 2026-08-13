@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createStackNavigator} from '@react-navigation/stack';
@@ -20,6 +20,7 @@ const RootStack = createStackNavigator<RootStackParamList>();
 type AppNavigatorProps = {
   onboardingComplete: boolean;
   onOnboardingComplete: (profile: UserProfile) => Promise<void>;
+  onLogout: () => Promise<void>;
 };
 
 function tabIcon(shape: 'circle' | 'diamond') {
@@ -31,7 +32,7 @@ function tabIcon(shape: 'circle' | 'diamond') {
   );
 }
 
-function MainTabs(): React.JSX.Element {
+function MainTabs({onLogout}: {onLogout: () => Promise<void>}): React.JSX.Element {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -52,9 +53,9 @@ function MainTabs(): React.JSX.Element {
       }}>
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
-        options={{title: 'Dashboard', tabBarIcon: tabIcon('circle')}}
-      />
+        options={{title: 'Home', tabBarIcon: tabIcon('circle')}}>
+        {() => <HomeScreen onLogout={onLogout} />}
+      </Tab.Screen>
       <Tab.Screen
         name="Send"
         component={SendScreen}
@@ -67,16 +68,19 @@ function MainTabs(): React.JSX.Element {
 export default function AppNavigator({
   onboardingComplete,
   onOnboardingComplete,
+  onLogout,
 }: AppNavigatorProps): React.JSX.Element {
   return (
-    <NavigationContainer>
+    <NavigationContainer key={onboardingComplete ? 'authenticated' : 'onboarding'}>
       <RootStack.Navigator screenOptions={{headerShown: false}}>
         {!onboardingComplete ? (
           <RootStack.Screen name="Onboarding">
             {() => <OnboardingScreen onComplete={onOnboardingComplete} />}
           </RootStack.Screen>
         ) : null}
-        <RootStack.Screen name="MainTabs" component={MainTabs} />
+        <RootStack.Screen name="MainTabs">
+          {() => <MainTabs onLogout={onLogout} />}
+        </RootStack.Screen>
         <RootStack.Screen name="PayAddress" component={PayAddressScreen} />
         <RootStack.Screen name="History" component={HistoryScreen} />
         <RootStack.Screen name="QR" component={QRScreen} />

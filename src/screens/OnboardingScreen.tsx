@@ -15,6 +15,8 @@ import type {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList, UserProfile} from '../types';
 import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 import {tokens} from '../theme/tokens';
+import {hasAltudeApiKey} from '../config/apiConfig';
+import {runtimeConfig} from '../config/runtimeConfig';
 
 type OnboardingScreenProps = {
   onComplete: (profile: UserProfile) => Promise<void> | void;
@@ -24,6 +26,8 @@ type CountryOption = {
   label: string;
   code: string;
 };
+
+type ContactMethod = 'phone' | 'email';
 
 const COUNTRY_OPTIONS: CountryOption[] = [
   {label: 'United States', code: '+1'},
@@ -46,6 +50,7 @@ export default function OnboardingScreen({
   const [countryCode, setCountryCode] = useState('+1');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
+  const [contactMethod, setContactMethod] = useState<ContactMethod>('phone');
   const [countryModalVisible, setCountryModalVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -59,12 +64,24 @@ export default function OnboardingScreen({
   }, []);
 
   const validate = (): string | null => {
-    if (!countryCode.trim()) {return 'Please select a country code.';}
-    if (sanitizedPhone.length === 0) {
+    const trimmedEmail = email.trim();
+    const hasPhone = sanitizedPhone.length > 0;
+    const hasEmail = trimmedEmail.length > 0;
+
+    if (contactMethod === 'phone' && !countryCode.trim()) {
+      return 'Please select a country code.';
+    }
+    if (contactMethod === 'phone' && !hasPhone) {
       return 'Please enter a contact number.';
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    if (contactMethod === 'email' && !hasEmail) {
+      return 'Please enter an email address.';
+    }
+    if (contactMethod === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
       return 'Please enter a valid email address.';
+    }
+    if (!runtimeConfig.useMockData && !hasAltudeApiKey()) {
+      return 'An Altude API key is required. Add ALTUDE_API_KEY to .env, restart Metro, then try again.';
     }
     return null;
   };
@@ -78,9 +95,9 @@ export default function OnboardingScreen({
 
     const profile: UserProfile = {
       name: name.trim(),
-      countryCode,
-      phoneNumber: sanitizedPhone,
-      email: email.trim().toLowerCase(),
+      countryCode: contactMethod === 'phone' ? countryCode : '',
+      phoneNumber: contactMethod === 'phone' ? sanitizedPhone : '',
+      email: contactMethod === 'email' ? email.trim().toLowerCase() : '',
       completedAt: new Date().toISOString(),
     };
 
@@ -135,36 +152,63 @@ export default function OnboardingScreen({
           editable={!isSaving}
         />
 
-        <Text style={styles.label}>Mobile Number</Text>
-        <View style={styles.phoneRow}>
-          <TouchableOpacity
-            style={styles.countryBtn}
-            onPress={() => setCountryModalVisible(true)}
-            disabled={isSaving}>
-            <Text style={styles.countryBtnText}>{countryCode}</Text>
-          </TouchableOpacity>
-          <TextInput
-            style={[styles.input, styles.phoneInput]}
-            placeholder="Enter mobile number"
-            placeholderTextColor={tokens.colors.textMuted}
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            keyboardType="phone-pad"
-            editable={!isSaving}
-          />
+        <Text style={styles.label}>Preferred contact method</Text>
+        <View style={styles.radioRow}>
+          {([
+            {value: 'phone' as const, label: 'Phone number'},
+            {value: 'email' as const, label: 'Email'},
+          ]).map(option => (
+            <TouchableOpacity
+              key={option.value}
+              style={styles.radioOption}
+              onPress={() => setContactMethod(option.value)}
+              disabled={isSaving}
+              accessibilityRole="radio"
+              accessibilityState={{selected: contactMethod === option.value}}>
+              <View style={styles.radioOuter}>
+                {contactMethod === option.value ? <View style={styles.radioInner} /> : null}
+              </View>
+              <Text style={styles.radioLabel}>{option.label}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        <Text style={styles.label}>Email Address</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="you@example.com"
-          placeholderTextColor={tokens.colors.textMuted}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          editable={!isSaving}
-        />
+        {contactMethod === 'phone' ? (
+          <>
+            <Text style={styles.label}>Mobile Number</Text>
+            <View style={styles.phoneRow}>
+              <TouchableOpacity
+                style={styles.countryBtn}
+                onPress={() => setCountryModalVisible(true)}
+                disabled={isSaving}>
+                <Text style={styles.countryBtnText}>{countryCode}</Text>
+              </TouchableOpacity>
+              <TextInput
+                style={[styles.input, styles.phoneInput]}
+                placeholder="Enter mobile number"
+                placeholderTextColor={tokens.colors.textMuted}
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+                keyboardType="phone-pad"
+                editable={!isSaving}
+              />
+            </View>
+          </>
+        ) : (
+          <>
+            <Text style={styles.label}>Email Address</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="you@example.com"
+              placeholderTextColor={tokens.colors.textMuted}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              editable={!isSaving}
+            />
+          </>
+        )}
 
         <TouchableOpacity
           style={[styles.continueBtn, isSaving && styles.continueBtnDisabled]}
@@ -323,6 +367,37 @@ const styles = StyleSheet.create({
   },
   phoneInput: {
     flex: 1,
+  },
+  radioRow: {
+    flexDirection: 'row',
+    gap: 20,
+    marginBottom: 4,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  radioOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: tokens.colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: tokens.colors.accent,
+  },
+  radioLabel: {
+    color: tokens.colors.textPrimary,
+    fontSize: 14,
+    fontWeight: '600',
   },
   continueBtn: {
     marginTop: 20,

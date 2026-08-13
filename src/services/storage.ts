@@ -118,9 +118,8 @@ export async function hasCompletedOnboarding(): Promise<boolean> {
   const profile = await getUserProfile();
   return Boolean(
     profile &&
-      profile.countryCode.trim() &&
-      profile.phoneNumber.trim() &&
-      profile.email.trim(),
+      ((profile.countryCode.trim() && profile.phoneNumber.trim()) ||
+        profile.email.trim()),
   );
 }
 

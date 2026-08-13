@@ -1,6 +1,6 @@
 export const runtimeConfig = {
   // Toggle this flag anytime to switch between real services and local mock data.
-  useMockData: true,
+  useMockData: false,
 
   mock: {
     solBalance: 1.245,

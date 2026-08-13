@@ -19,12 +19,20 @@ const rpcWebsocketsBrowserPath = path.resolve(
 	'dist',
 	'index.browser.cjs',
 );
+const gillBrowserPath = path.resolve(
+	__dirname,
+	'node_modules',
+	'gill',
+	'dist',
+	'index.browser.cjs',
+);
 const config = {
 	resolver: {
 		sourceExts: [...defaultConfig.resolver.sourceExts, 'mjs', 'cjs'],
 		extraNodeModules: {
 			'react-native-screens': screensShimPath,
 			'rpc-websockets': rpcWebsocketsBrowserPath,
+			gill: gillBrowserPath,
 		},
 		// Keep Metro from indexing huge generated native build directories.
 		blockList: [

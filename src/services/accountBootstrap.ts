@@ -7,9 +7,11 @@ export async function createDemoAccount(): Promise<WalletInfo> {
   const wallet = await generateDemoWallet();
 
   if (!runtimeConfig.useMockData) {
-    await createDevnetTokenAccount(wallet, undefined, {
+    void createDevnetTokenAccount(wallet, undefined, {
       skipFunding: true,
       strict: false,
+    }).catch(error => {
+      console.warn('[accountBootstrap] Token account setup failed:', error);
     });
   }
 

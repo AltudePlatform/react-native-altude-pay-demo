@@ -23,11 +23,14 @@ import {tokens} from '../theme/tokens';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
 
-export default function HomeScreen(): React.JSX.Element {
+type HomeScreenProps = {
+  onLogout: () => Promise<void>;
+};
+
+export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Element {
   const navigation = useNavigation<NavProp>();
   const wallet = useWalletStore(s => s.wallet);
   const setWallet = useWalletStore(s => s.setWallet);
-  const removeWallet = useWalletStore(s => s.removeWallet);
 
   const {data: balance, isLoading, refetch} = useBalance();
   const [historyPreview, setHistoryPreview] = useState<TransactionRecord[]>([]);
@@ -45,20 +48,20 @@ export default function HomeScreen(): React.JSX.Element {
 
   const handleDisconnectWallet = useCallback(() => {
     Alert.alert(
-      'Disconnect Account',
-      'Remove the account stored on this device?',
+      'Logout',
+      'Log out and remove the account stored on this device?',
       [
         {text: 'Cancel', style: 'cancel'},
         {
-          text: 'Disconnect',
+          text: 'Logout',
           style: 'destructive',
           onPress: async () => {
-            await removeWallet();
+            await onLogout();
           },
         },
       ],
     );
-  }, [removeWallet]);
+  }, [onLogout]);
 
   // Best-effort wallet auto-create if startup hydration did not provide one.
   React.useEffect(() => {
@@ -153,7 +156,7 @@ export default function HomeScreen(): React.JSX.Element {
           <TouchableOpacity
             onPress={handleDisconnectWallet}
             style={styles.heroTopAction}>
-            <Text style={styles.heroSecondaryActionText}>Disconnect</Text>
+            <Text style={styles.heroSecondaryActionText}>Logout</Text>
           </TouchableOpacity>
         ) : null}
 

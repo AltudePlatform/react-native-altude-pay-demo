@@ -61,16 +61,17 @@ describe('account bootstrap and SDK wrapper', () => {
     expect(saveWallet).toHaveBeenCalledTimes(1);
   });
 
-  it('creates a devnet token account when mock mode is disabled', async () => {
+  it('starts devnet token account setup without delaying wallet creation', async () => {
     const generatedWallet = {
       publicKey: 'DemoPublicKey33333333333333333333333333333333',
       privateKey: 'fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210',
     };
-    const createDevnetTokenAccount = jest.fn().mockResolvedValue({
-      wallet: generatedWallet,
-      tokenAccountAddress: 'Ata11111111111111111111111111111111111111111',
-      mint: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
-    });
+    let resolveTokenAccount: (() => void) | undefined;
+    const createDevnetTokenAccount = jest.fn(
+      () => new Promise<void>(resolve => {
+        resolveTokenAccount = resolve;
+      }),
+    );
     const saveWallet = jest.fn().mockResolvedValue(undefined);
 
     jest.doMock('../src/config/runtimeConfig', () => ({
@@ -105,5 +106,6 @@ describe('account bootstrap and SDK wrapper', () => {
       },
     );
     expect(saveWallet).toHaveBeenCalledTimes(1);
+    resolveTokenAccount?.();
   });
 });

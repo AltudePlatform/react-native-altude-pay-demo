@@ -13,6 +13,7 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import AppNavigator from './src/navigation/AppNavigator';
 import {
   ensureClientState,
+  clearUserProfile,
   getWallet,
   hasCompletedOnboarding,
   saveUserProfile,
@@ -159,6 +160,11 @@ function AppContent(): React.JSX.Element {
     setOnboardingComplete(true);
   };
 
+  const handleLogout = async () => {
+    await Promise.all([clearUserProfile(), useWalletStore.getState().removeWallet()]);
+    setOnboardingComplete(false);
+  };
+
   if (!ready) {
     return (
       <View style={styles.loadingScreen}>
@@ -177,6 +183,7 @@ function AppContent(): React.JSX.Element {
       <AppNavigator
         onboardingComplete={onboardingComplete}
         onOnboardingComplete={handleOnboardingComplete}
+        onLogout={handleLogout}
       />
     </>
   );
