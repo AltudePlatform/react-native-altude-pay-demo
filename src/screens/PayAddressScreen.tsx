@@ -23,7 +23,7 @@ import {tokens} from '../theme/tokens';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
 type RouteType = RouteProp<RootStackParamList, 'PayAddress'>;
-const TEST_RECIPIENT_ADDRESS = '11111111111111111111111111111111';
+const SYSTEM_PROGRAM_ADDRESS = '11111111111111111111111111111111';
 
 export default function PayAddressScreen(): React.JSX.Element {
   const navigation = useNavigation<NavProp>();
@@ -52,10 +52,6 @@ export default function PayAddressScreen(): React.JSX.Element {
     setRecipient(text);
   }, []);
 
-  const handlePopulateTestAddress = useCallback(() => {
-    setRecipient(TEST_RECIPIENT_ADDRESS);
-  }, []);
-
   const validate = useCallback((): string | null => {
     if (!wallet) {
       return 'No account connected. Go to Home to create one.';
@@ -67,6 +63,10 @@ export default function PayAddressScreen(): React.JSX.Element {
 
     if (!isValidSolanaAddress(recipient)) {
       return 'Enter a valid recipient address.';
+    }
+
+    if (recipient === SYSTEM_PROGRAM_ADDRESS) {
+      return 'Enter a wallet address, not the Solana system-program address.';
     }
 
     if (recipient === wallet.publicKey) {
@@ -142,7 +142,7 @@ export default function PayAddressScreen(): React.JSX.Element {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <View style={styles.hero}>
-        <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
+        <Svg style={StyleSheet.absoluteFill} width="110%" height="110%">
           <Defs>
             <LinearGradient id="payAddressHeroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <Stop offset="0%" stopColor="#3f8cff" />
@@ -178,9 +178,6 @@ export default function PayAddressScreen(): React.JSX.Element {
         <View style={styles.rowHeader}>
           <Text style={styles.label}>Recipient Address</Text>
           <View style={styles.rowHeaderActions}>
-            <TouchableOpacity onPress={handlePopulateTestAddress}>
-              <Text style={styles.populateText}>Populate test address</Text>
-            </TouchableOpacity>
             <TouchableOpacity onPress={handlePasteRecipient}>
               <Text style={styles.pasteText}>Paste</Text>
             </TouchableOpacity>

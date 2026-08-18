@@ -108,4 +108,61 @@ describe('account bootstrap and SDK wrapper', () => {
     expect(saveWallet).toHaveBeenCalledTimes(1);
     resolveTokenAccount?.();
   });
+
+  it('reuses an already stored wallet instead of creating a new one', async () => {
+    const storedWallet = {
+      publicKey: 'DemoPublicKey44444444444444444444444444444444',
+      privateKey: '1111111111111111111111111111111111111111111111111111111111111111',
+    };
+    const generateDemoWallet = jest.fn();
+
+    jest.doMock('../src/services/solana', () => ({
+      generateDemoWallet,
+      createDevnetTokenAccount: jest.fn(),
+    }));
+    jest.doMock('../src/services/storage', () => ({
+      getWallet: jest.fn().mockResolvedValue(storedWallet),
+      saveWallet: jest.fn(),
+    }));
+
+    const {ensureDemoAccount} = require('../src/services/accountBootstrap');
+    const wallet = await ensureDemoAccount();
+
+    expect(wallet).toEqual(storedWallet);
+    expect(generateDemoWallet).not.toHaveBeenCalled();
+  });
+
+  it('deduplicates concurrent ensureDemoAccount calls', async () => {
+    const generatedWallet = {
+      publicKey: 'DemoPublicKey55555555555555555555555555555555',
+      privateKey: '2222222222222222222222222222222222222222222222222222222222222222',
+    };
+    let resolveGeneration: ((wallet: typeof generatedWallet) => void) | undefined;
+    const generateDemoWallet = jest.fn(
+      () =>
+        new Promise<typeof generatedWallet>(resolve => {
+          resolveGeneration = resolve;
+        }),
+    );
+
+    jest.doMock('../src/services/solana', () => ({
+      generateDemoWallet,
+      createDevnetTokenAccount: jest.fn().mockResolvedValue(undefined),
+    }));
+    jest.doMock('../src/services/storage', () => ({
+      getWallet: jest.fn().mockResolvedValue(null),
+      saveWallet: jest.fn().mockResolvedValue(undefined),
+    }));
+
+    const {ensureDemoAccount} = require('../src/services/accountBootstrap');
+    const first = ensureDemoAccount();
+    const second = ensureDemoAccount();
+
+    resolveGeneration?.(generatedWallet);
+    const [firstResult, secondResult] = await Promise.all([first, second]);
+
+    expect(firstResult).toEqual(generatedWallet);
+    expect(secondResult).toEqual(generatedWallet);
+    expect(generateDemoWallet).toHaveBeenCalledTimes(1);
+  });
 });

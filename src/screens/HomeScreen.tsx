@@ -186,7 +186,6 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
         <>
           <BalanceCard
             walletAddress={wallet!.publicKey}
-            solBalance={balance?.solBalance ?? 0}
             usdcBalance={balance?.usdcBalance ?? 0}
             isLoading={isLoading}
           />

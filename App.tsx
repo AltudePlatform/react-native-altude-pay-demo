@@ -15,13 +15,14 @@ import {
   ensureClientState,
   clearUserProfile,
   getWallet,
+  getUserProfile,
   hasCompletedOnboarding,
   saveUserProfile,
 } from './src/services/storage';
 import {useWalletStore} from './src/store/walletStore';
 import {UserProfile} from './src/types';
 import {tokens} from './src/theme/tokens';
-import {createDemoAccount} from './src/services/accountBootstrap';
+import {ensureDemoAccount} from './src/services/accountBootstrap';
 
 const SHOW_STARTUP_DIAGNOSTICS = false;
 
@@ -136,23 +137,23 @@ function AppContent(): React.JSX.Element {
   }, [hydrateWallet, setWallet]);
 
   const handleOnboardingComplete = async (profile: UserProfile) => {
-    await saveUserProfile(profile);
+    const existingProfile = await getUserProfile();
+    if (!existingProfile) {
+      await saveUserProfile(profile);
+    }
 
     // Ensure a persisted wallet exists when the user finishes onboarding.
     // If none is stored (e.g. storage was cleared or generation skipped earlier),
     // generate one now, persist it, hydrate the in-memory store, and top-up.
     try {
-      const stored = await getWallet();
-      if (!stored) {
-        const wallet = await withTimeout(
-          createDemoAccount(),
-          12_000,
-          'Wallet generation timed out',
-        );
-        hydrateWallet(wallet);
+      const wallet = await withTimeout(
+        ensureDemoAccount(),
+        12_000,
+        'Wallet generation timed out',
+      );
+      hydrateWallet(wallet);
 
-        // Kick off background airdrop to keep UX smooth.
-      }
+      // Kick off background airdrop to keep UX smooth.
     } catch {
       // Ignore onboarding-time wallet generation errors; still continue to dashboard.
     }

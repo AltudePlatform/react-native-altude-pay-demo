@@ -5,19 +5,15 @@ import {tokens} from '../theme/tokens';
 
 interface Props {
   walletAddress?: string;
-  solBalance: number;
   usdcBalance: number;
   isLoading: boolean;
 }
 
 export default function BalanceCard({
   walletAddress,
-  solBalance,
   usdcBalance,
   isLoading,
 }: Props): React.JSX.Element {
-  void solBalance;
-
   const handleCopyAddress = () => {
     if (!walletAddress) {
       return;
@@ -106,24 +102,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
   singleBalanceWrap: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 6,
-  },
-  balanceItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  balanceLabel: {
-    color: tokens.colors.textMuted,
-    fontSize: 12,
-    marginBottom: 4,
   },
   balanceValue: {
     color: tokens.colors.textPrimary,
@@ -136,10 +118,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginTop: 2,
-  },
-  divider: {
-    width: 1,
-    height: 50,
-    backgroundColor: tokens.colors.border,
   },
 });

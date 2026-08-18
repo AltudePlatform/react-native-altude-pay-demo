@@ -65,4 +65,47 @@ describe('generateDemoWallet startup bootstrap', () => {
       privateKey: '0a0b0c0d',
     });
   });
+
+  it('prefers the React Native Altude entrypoint when available', async () => {
+    const rnGenerateMnemonic = jest.fn(() => 'react-native mnemonic');
+    const rnDeriveSolanaKeypair = jest.fn().mockResolvedValue({
+      publicKey: new Uint8Array([5, 6, 7, 8]),
+      privateKey: new Uint8Array([20, 21, 22, 23]),
+    });
+    const nodeGenerateMnemonic = jest.fn(() => 'node mnemonic');
+    const nodeDeriveSolanaKeypair = jest.fn().mockResolvedValue({
+      publicKey: new Uint8Array([9, 9, 9, 9]),
+      privateKey: new Uint8Array([10, 10, 10, 10]),
+    });
+
+    jest.doMock('react-native-get-random-values', () => {
+      Object.defineProperty(globalScope, 'crypto', {
+        value: {getRandomValues: jest.fn()},
+        configurable: true,
+        writable: true,
+      });
+      return {};
+    });
+    jest.doMock('@altude/core/react-native', () => ({
+      generateMnemonic: rnGenerateMnemonic,
+      deriveSolanaKeypair: rnDeriveSolanaKeypair,
+    }), {virtual: true});
+    jest.doMock('@altude/core', () => ({
+      generateMnemonic: nodeGenerateMnemonic,
+      deriveSolanaKeypair: nodeDeriveSolanaKeypair,
+    }));
+    jest.doMock('@scure/base', () => ({
+      base58: {
+        encode: jest.fn(() => 'RNPublicKey11111111111111111111111111111111'),
+      },
+    }));
+
+    const {generateDemoWallet} = require('../src/services/solana');
+    const wallet = await generateDemoWallet();
+
+    expect(rnGenerateMnemonic).toHaveBeenCalledWith(12);
+    expect(nodeGenerateMnemonic).not.toHaveBeenCalled();
+    expect(wallet.publicKey).toBe('RNPublicKey11111111111111111111111111111111');
+    expect(wallet.privateKey).toBe('14151617');
+  });
 });

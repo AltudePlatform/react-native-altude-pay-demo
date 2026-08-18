@@ -45,6 +45,18 @@ async function ensureCryptoRandomValues(): Promise<void> {
 
 async function loadAltudeCore(): Promise<any> {
   try {
+    return require('@altude/core/react-native');
+  } catch {
+    // Continue to the browser and default export targets.
+  }
+
+  try {
+    return require('@altude/core/browser');
+  } catch {
+    // Continue to the default export target.
+  }
+
+  try {
     return require('@altude/core');
   } catch {
     if (typeof process !== 'undefined' && process.env.JEST_WORKER_ID) {
@@ -294,7 +306,44 @@ export async function createDevnetTokenAccount(
   }
 }
 
-/** Fetch SOL + USDC balances via Altude API (fast, no direct RPC needed). */
+function parsePaymentTokenBalance(balance: unknown): number {
+  if (!balance || typeof balance !== 'object') {
+    return 0;
+  }
+
+  const response = balance as {
+    uiAmount?: unknown;
+    TokenInfos?: Array<{
+      Account?: {
+        Data?: {
+          Parsed?: {
+            Info?: {
+              TokenAmount?: {
+                Amount?: unknown;
+                Decimals?: unknown;
+              };
+            };
+          };
+        };
+      };
+    }>;
+  };
+  const tokenAmount =
+    response.TokenInfos?.[0]?.Account?.Data?.Parsed?.Info?.TokenAmount;
+
+  if (tokenAmount?.Amount !== undefined) {
+    const rawAmount = Number(tokenAmount.Amount);
+    const decimals = Number(tokenAmount.Decimals ?? 0);
+    if (Number.isFinite(rawAmount) && Number.isInteger(decimals) && decimals >= 0) {
+      return rawAmount / 10 ** decimals;
+    }
+  }
+
+  const uiAmount = Number(response.uiAmount);
+  return Number.isFinite(uiAmount) ? uiAmount : 0;
+}
+
+/** Fetch the payment token balance through the Gas Station SDK. */
 export async function getWalletBalances(
   walletAddress: string,
 ): Promise<BalanceResponse> {
@@ -307,22 +356,17 @@ export async function getWalletBalances(
   }
 
   const {getGasstation} = await import('./gasstationAdapter');
-  const gs = getGasstation() as any;
+  const gasstation = await getGasstation();
+  const account = await gasstation.getBalance({
+    account: walletAddress,
+    token: STABLE_COIN_MINT,
+  });
 
-  const [solRes, usdcRes] = await Promise.allSettled([
-    gs.getBalance({account: walletAddress}) as Promise<{lamports?: number; uiAmount?: number}>,
-    gs.getBalance({account: walletAddress, token: STABLE_COIN_MINT}) as Promise<{lamports?: number; uiAmount?: number}>,
-  ]);
-
-  const solBalance =
-    solRes.status === 'fulfilled'
-      ? (solRes.value.lamports ?? 0) / 1_000_000_000
-      : 0;
-
-  const usdcBalance =
-    usdcRes.status === 'fulfilled' ? (usdcRes.value.uiAmount ?? 0) : 0;
-
-  return {walletAddress, solBalance, usdcBalance};
+  return {
+    walletAddress,
+    solBalance: 0,
+    usdcBalance: parsePaymentTokenBalance(account),
+  };
 }
 
 export async function getTransactionStatus(

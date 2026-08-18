@@ -56,8 +56,7 @@ export function usePayment() {
 
         const sourceSigner = buildSigner(wallet);
 
-        // amount is in USDC; gasstation expects smallest unit (lamports for SOL,
-        // or token base units). For USDC that is 6 decimals.
+        // The JS gas station SDK takes raw base units, not the UI amount. USDC has 6 decimals.
         const amountBaseUnits = Math.round(amount * 1_000_000);
 
         const {signature} = await sendWithSigner(

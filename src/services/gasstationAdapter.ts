@@ -86,7 +86,19 @@ export async function getGasstation(): Promise<GasstationLike> {
     }
 
     try {
-      const {AltudeGasStation} = await import('@altude/gasstation');
+      let gasstationModule: any;
+
+      try {
+        gasstationModule = require('@altude/gasstation/react-native');
+      } catch {
+        try {
+          gasstationModule = require('@altude/gasstation/browser');
+        } catch {
+          gasstationModule = require('@altude/gasstation');
+        }
+      }
+
+      const {AltudeGasStation} = gasstationModule;
       const sdk = new AltudeGasStation({
         apiKey: ALTUDE_API_KEY,
         network: ALTUDE_NETWORK,
@@ -146,7 +158,12 @@ export async function sendWithSigner(
     amount,
     token,
   });
-  const sig = res.Signature ?? res.signature ?? '';
+  const sig = res?.Signature ?? res?.signature;
+  if (typeof sig !== 'string' || sig.length === 0) {
+    throw new Error(
+      `Gas station send() returned no transaction signature: ${JSON.stringify(res)}`,
+    );
+  }
   return {signature: sig};
 }
 

@@ -93,7 +93,7 @@ export default function HistoryScreen(): React.JSX.Element {
   return (
     <View style={styles.container}>
       <View style={styles.hero}>
-        <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
+        <Svg style={StyleSheet.absoluteFill} width="110%" height="110%">
           <Defs>
             <LinearGradient id="historyHeroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <Stop offset="0%" stopColor="#3f8cff" />

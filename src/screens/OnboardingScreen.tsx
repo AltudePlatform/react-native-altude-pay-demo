@@ -120,9 +120,9 @@ export default function OnboardingScreen({
   return (
     <View style={styles.page}>
       <View style={styles.hero}>
-        <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
+        <Svg style={StyleSheet.absoluteFill} width="110%" height="110%">
           <Defs>
-            <LinearGradient id="onboardingHeroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <LinearGradient id="onboardingHeroGradient" x1="0%" y1="0%" x2="100%" y2="110%">
               <Stop offset="0%" stopColor="#3f8cff" />
               <Stop offset="55%" stopColor="#4f7ef4" />
               <Stop offset="100%" stopColor="#6d5ce8" />
