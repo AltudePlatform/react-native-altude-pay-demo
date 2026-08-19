@@ -15,7 +15,7 @@ import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 import {useBalance} from '../hooks/useBalance';
 import {getAccountPaymentHistory, transactionTypeLabel} from '../services/altudeHistory';
 import {useWalletStore} from '../store/walletStore';
-import {truncateAddress} from '../services/solana';
+import {truncateAddress, getAccountHistory, TransactionSummary} from '../services/solana';
 import BalanceCard from '../components/BalanceCard';
 import {AltudeHistoryEntry, RootStackParamList} from '../types';
 import {tokens} from '../theme/tokens';
@@ -31,7 +31,7 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
   const wallet = useWalletStore(s => s.wallet);
 
   const {data: balance, isLoading, refetch} = useBalance();
-  const [historyPreview, setHistoryPreview] = useState<AltudeHistoryEntry[]>([]);
+  const [historyPreview, setHistoryPreview] = useState<TransactionSummary[]>([]);
   const [historyError, setHistoryError] = useState<string | null>(null);
 
   const hasWallet = typeof wallet?.publicKey === 'string' && wallet.publicKey.length > 0;
@@ -71,7 +71,7 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
 
     try {
       setHistoryError(null);
-      const history = await getAccountPaymentHistory(wallet.publicKey, 5,1);
+      const history = await getAccountHistory(wallet.publicKey, 5, 1);//await getAccountPaymentHistory(wallet.publicKey, 5,1);
       console.log('[HomeScreen] Loaded history preview:', history);
       setHistoryPreview(history);
     } catch (error) {
@@ -149,42 +149,92 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
             usdcBalance={balance?.usdcBalance ?? 0}
             isLoading={isLoading}
           />
+          {/*history */}
 
-          <View style={styles.historyCard}>
+           <View style={styles.historyCard}>
+            {/* Header */}
             <View style={styles.historyHeader}>
               <Text style={styles.historyTitle}>Recent Activity</Text>
+
               <TouchableOpacity onPress={handleOpenHistory}>
                 <Text style={styles.historyViewAll}>View all</Text>
               </TouchableOpacity>
             </View>
 
+            {/* Content */}
             {historyPreview.length === 0 ? (
-              <Text style={styles.historyEmpty}>
-                {historyError ?? 'No payments yet. Your latest activity will show here.'}
-              </Text>
+              <View style={styles.historyEmptyRow}>
+                <View style={styles.historyAvatar}>
+                  <Text style={styles.historyAvatarText}>↑</Text>
+                </View>
+
+                <View style={styles.historyRowLeft}>
+                  <Text style={styles.historyPerson}>
+                    No transactions yet
+                  </Text>
+
+                  <Text style={styles.historyMeta}>
+                    Your recent activity will appear here
+                  </Text>
+                </View>
+              </View>
             ) : (
-              historyPreview.map(item => (
-                <TouchableOpacity
-                  style={styles.historyRow}
-                  key={item.signature}
-                  onPress={() =>
-                    navigation.navigate('Receipt', {signature: item.signature})
-                  }>
-                  <View style={styles.historyRowLeft}>
-                    <Text style={styles.historyPerson}>
-                      {transactionTypeLabel(item.transactionType)}
-                    </Text>
-                    <Text style={styles.historyMeta}>
-                      {truncateAddress(item.signature, 8)}
-                    </Text>
-                  </View>
-                  <View style={styles.historyRowRight}>
-                    <Text style={styles.historyStatus}>Receipt</Text>
-                  </View>
-                </TouchableOpacity>
-              ))
+              historyPreview.map(item => {
+                const isSend = item.type === 'send';
+                const otherWallet = isSend ? item.to : item.from;
+
+                return (
+                  <TouchableOpacity
+                    style={styles.historyRow}
+                    key={item.signature}
+                    onPress={() =>
+                      navigation.navigate('Receipt', {
+                        signature: item.signature,
+                      })
+                    }>
+                    
+                    {/* Avatar */}
+                    <View style={styles.historyAvatar}>
+                      <Text style={styles.historyAvatarText}>
+                        {isSend ? '↑' : '↓'}
+                      </Text>
+                    </View>
+
+                    {/* Wallet information */}
+                    <View style={styles.historyRowLeft}>
+                      <Text style={styles.historyPerson}>
+                        {isSend ? 'Sent to' : 'Received from'}
+                      </Text>
+
+                      <Text style={styles.historyMeta}>
+                        {otherWallet
+                          ? truncateAddress(otherWallet, 8)
+                          : 'Unknown wallet'}
+                      </Text>
+                    </View>
+
+                    {/* Amount */}
+                    <View style={styles.historyRowRight}>
+                      <Text style={styles.historyAmount}>
+                        {isSend ? '-' : '+'}
+                        {item.amount.toLocaleString('en-US', {
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 4,
+                        })}
+                      </Text>
+
+                      <Text style={styles.historyStatus}>
+                        {item.status === 'success'
+                          ? 'Completed'
+                          : 'Failed'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })
             )}
           </View>
+          
 
         </>
       )}
@@ -194,15 +244,46 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
 }
 
 const styles = StyleSheet.create({
+
+  historyEmptyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+
+  historyAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: tokens.colors.border,
+    marginRight: 12,
+  },
+
+  historyAvatarText: {
+    ...tokens.type.label,
+    fontSize: 18,
+    fontWeight: '700',
+    color: tokens.colors.textPrimary,
+  },
+
+  historyAmount: {
+    ...tokens.type.label,
+    fontWeight: '700',
+    color: tokens.colors.textPrimary,
+  },
   container: {
     flex: 1,
     backgroundColor: tokens.colors.page,
   },
+
   content: {
     paddingHorizontal: 20,
     paddingTop: 28,
     paddingBottom: 32,
   },
+
   hero: {
     minHeight: 204,
     borderRadius: tokens.radius.lg,
@@ -213,6 +294,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
+
   heroGlowTop: {
     position: 'absolute',
     width: 160,
@@ -222,6 +304,7 @@ const styles = StyleSheet.create({
     right: -30,
     backgroundColor: 'rgba(255,255,255,0.24)',
   },
+
   heroGlowBottom: {
     position: 'absolute',
     width: 120,
@@ -231,29 +314,34 @@ const styles = StyleSheet.create({
     left: -26,
     backgroundColor: 'rgba(255,255,255,0.18)',
   },
+
   heroHeaderRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'flex-start',
     marginBottom: 14,
   },
+
   kicker: {
     ...tokens.type.eyebrow,
     color: tokens.onAccent.secondary,
     flexShrink: 1,
   },
+
   heroTitle: {
     ...tokens.type.title,
     fontSize: 28,
     lineHeight: 34,
     color: tokens.onAccent.primary,
   },
+
   heroSubtitle: {
     ...tokens.type.body,
     color: tokens.onAccent.secondary,
     marginTop: 10,
     maxWidth: '90%',
   },
+
   heroTopAction: {
     position: 'absolute',
     right: 14,
@@ -266,12 +354,14 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.45)',
     backgroundColor: 'rgba(255,255,255,0.16)',
   },
+
   heroSecondaryActionText: {
     ...tokens.type.caption,
     fontWeight: '700',
     color: tokens.onAccent.primary,
     textAlign: 'center',
   },
+
   historyCard: {
     marginTop: 14,
     borderRadius: tokens.radius.lg,
@@ -281,27 +371,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
+
   historyHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 6,
   },
+
   historyTitle: {
     ...tokens.type.heading,
     color: tokens.colors.textPrimary,
   },
+
   historyViewAll: {
     ...tokens.type.label,
     fontWeight: '700',
     color: tokens.colors.accent,
   },
+
   historyEmpty: {
     ...tokens.type.label,
     fontWeight: '500',
     color: tokens.colors.textMuted,
     paddingVertical: 8,
   },
+
   historyRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -311,27 +406,59 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 8,
   },
+
+  // NEW
+  historyAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: tokens.colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+
+  // NEW
+  historyAvatarText: {
+    ...tokens.type.label,
+    fontWeight: '700',
+    color: tokens.colors.textPrimary,
+  },
+
   historyRowLeft: {
     flex: 1,
     paddingRight: 10,
   },
+
   historyPerson: {
     ...tokens.type.label,
     color: tokens.colors.textPrimary,
   },
+
   historyMeta: {
     ...tokens.type.mono,
     color: tokens.colors.textMuted,
     marginTop: 2,
   },
+
   historyRowRight: {
     alignItems: 'flex-end',
   },
+
+  // NEW
+  historyAmount: {
+    ...tokens.type.label,
+    fontWeight: '700',
+    color: tokens.colors.textPrimary,
+  },
+
   historyStatus: {
     ...tokens.type.label,
     fontWeight: '700',
     color: tokens.colors.accent,
+    marginTop: 2,
   },
+
   noWallet: {
     alignItems: 'center',
     paddingVertical: 40,
@@ -342,16 +469,26 @@ const styles = StyleSheet.create({
     borderColor: tokens.colors.border,
     paddingHorizontal: 16,
   },
+
   noWalletText: {
     ...tokens.type.title,
     fontSize: 20,
     lineHeight: 26,
     color: tokens.colors.textPrimary,
   },
+
   noWalletSubtext: {
     ...tokens.type.body,
     color: tokens.colors.textMuted,
     textAlign: 'center',
     marginBottom: 8,
   },
+  historyEmptyRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  borderTopWidth: 1,
+  borderTopColor: tokens.colors.border,
+  paddingTop: 10,
+  paddingBottom: 8,
+},
 });
