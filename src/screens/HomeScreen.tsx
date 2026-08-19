@@ -79,10 +79,11 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
 
     try {
       setHistoryError(null);
-      setHistoryPreview(
-        await getAccountPaymentHistory(wallet.publicKey, PREVIEW_COUNT),
-      );
-    } catch {
+      const history = await getAccountPaymentHistory(wallet.publicKey, 5,1);
+      console.log('[HomeScreen] Loaded history preview:', history);
+      setHistoryPreview(history);
+    } catch (error) {
+      console.error('[HomeScreen] Failed to load history preview:', error);
       setHistoryError('Activity could not be loaded.');
       setHistoryPreview([]);
     } finally {

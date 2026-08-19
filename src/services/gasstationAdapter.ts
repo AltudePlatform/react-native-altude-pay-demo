@@ -18,9 +18,10 @@ type GasstationLike = {
   }>;
   getConfig: () => Promise<any>;
   getHistory: (args: {
-    account: string;
-    limit?: number;
-    offset?: number;
+    walletAddress: string;
+    account?: string;
+    pageSize?: number;
+    page?: number;
   }) => Promise<any>;
   send: (args: {
     sourceSigner: {
@@ -160,12 +161,21 @@ export async function getTransactionConfig(): Promise<any> {
 }
 
 export async function fetchAccountHistory(args: {
-  account: string;
-  limit?: number;
-  offset?: number;
+  walletAddress: string;
+  pageSize?: number,
+  page?: number,
 }): Promise<any> {
   const gs = await getGasstation();
-  return gs.getHistory(args);
+  // The API requires WalletAddress; `account` is the Android SDK's spelling of the same field.
+  console.log('[gasstationAdapter] Fetching account history with args:', args);
+  const res = await gs.getHistory({
+    walletAddress: args.walletAddress,
+    account: args.walletAddress,
+    pageSize: args.pageSize,
+    page: args.page,
+  });
+  console.log('[gasstationAdapter] Fetched account history:', res);
+  return res;
 }
 
 export async function sendWithSigner(

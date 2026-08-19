@@ -72,11 +72,11 @@ function extractRows(payload: unknown): unknown[] {
 
 export async function getAccountPaymentHistory(
   account: string,
-  limit = 20,
-  offset = 0,
+  pageSize?: number,
+  page?: number,
 ): Promise<AltudeHistoryEntry[]> {
-  const payload = await fetchAccountHistory({account, limit, offset});
-
+  const payload = await fetchAccountHistory({walletAddress:account, pageSize, page});
+    console.log('[altudeHistory] Fetched history payload:', payload);
   return extractRows(payload)
     .map(toEntry)
     .filter(
