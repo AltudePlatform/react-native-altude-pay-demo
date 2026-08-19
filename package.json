@@ -81,6 +81,12 @@
       "json",
       "node"
     ],
+    "setupFiles": [
+      "<rootDir>/__tests__/setup/jestSetup.js"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/__tests__/setup/"
+    ],
     "transformIgnorePatterns": []
   },
   "engines": {
