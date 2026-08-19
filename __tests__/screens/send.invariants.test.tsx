@@ -10,7 +10,6 @@
  * for the shared Button legitimately rewrites the node tree. These assertions
  * pin the semantics instead.
  */
-import React from 'react';
 import {act} from 'react-test-renderer';
 import {Text} from 'react-native';
 
