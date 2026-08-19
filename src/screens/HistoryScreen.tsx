@@ -38,7 +38,7 @@ export default function HistoryScreen(): React.JSX.Element {
     setLoading(true);
     setError(null);
     try {
-      setEntries(await getAccountPaymentHistory(account));
+      setEntries(await getAccountPaymentHistory(account, 20, 1));
     } catch (err) {
       setError(
         err instanceof Error && err.message
