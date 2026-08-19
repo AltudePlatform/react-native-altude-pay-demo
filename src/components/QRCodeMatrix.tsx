@@ -31,9 +31,8 @@ export default function QRCodeMatrix({
     <QRCode
       value={value}
       size={size}
-      color="#000"
-      backgroundColor="#fff"
-      // Solana logo overlay can be added via logo prop
+      color={tokens.color.qr.module}
+      backgroundColor={tokens.color.qr.background}
     />
   );
 }
@@ -42,10 +41,11 @@ const styles = StyleSheet.create({
   placeholder: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: tokens.color.surface,
+    borderRadius: tokens.radius.md,
   },
   placeholderText: {
     ...tokens.type.body,
-    color: tokens.colors.textMuted,
+    color: tokens.color.textMuted,
   },
 });

@@ -33,6 +33,13 @@ FadeIn.delay = () => FadeIn;
 FadeOut.duration = () => FadeOut;
 FadeOut.delay = () => FadeOut;
 
+const FadeInDown = entryExit();
+const FadeOutDown = entryExit();
+FadeInDown.duration = () => FadeInDown;
+FadeInDown.delay = () => FadeInDown;
+FadeOutDown.duration = () => FadeOutDown;
+FadeOutDown.delay = () => FadeOutDown;
+
 const Animated = {
   View: createAnimatedComponent(View),
   Text: createAnimatedComponent(Text),
@@ -91,4 +98,6 @@ module.exports = {
   Extrapolation: {CLAMP: 'clamp'},
   FadeIn,
   FadeOut,
+  FadeInDown,
+  FadeOutDown,
 };

@@ -10,10 +10,11 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   Alert,
   Platform,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {
   Camera,
   useCameraDevice,
@@ -22,6 +23,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from '../types';
+import {Button, Icon, Screen, ScreenHeader} from '../components/ui';
 import {tokens} from '../theme/tokens';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
@@ -44,37 +46,35 @@ function parseSolanaPayUrl(url: string): {
 export default function ScanScreen(): React.JSX.Element {
   const navigation = useNavigation<NavProp>();
 
-  // VisionCamera native module is intentionally disabled on Android for this demo build.
-  if (Platform.OS === 'android') {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.kicker}>SCAN</Text>
-        <Text style={styles.title}>Scanner unavailable on Android</Text>
-        <Text style={styles.message}>Use Pay and paste a payment link instead.</Text>
-        <TouchableOpacity style={styles.cancelBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.cancelBtnText}>Back</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
+  // Hooks must run unconditionally. The Android early-return used to sit above
+  // these calls, which tripped react-hooks/rules-of-hooks.
   const [hasPermission, setHasPermission] = useState(false);
   const [scanned, setScanned] = useState(false);
 
+  // VisionCamera's native module is intentionally disabled on Android in this
+  // build (see react-native.config.js), so the hook must not run there.
+  const isAndroid = Platform.OS === 'android';
   const device = useCameraDevice('back');
 
   useEffect(() => {
+    if (isAndroid) {
+      return;
+    }
     Camera.requestCameraPermission().then(status =>
       setHasPermission(status === 'granted'),
     );
-  }, []);
+  }, [isAndroid]);
 
   const codeScanner = useCodeScanner({
     codeTypes: ['qr'],
     onCodeScanned: codes => {
-      if (scanned) {return;}
+      if (scanned) {
+        return;
+      }
       const first = codes[0]?.value;
-      if (!first) {return;}
+      if (!first) {
+        return;
+      }
 
       setScanned(true);
       const parsed = parseSolanaPayUrl(first);
@@ -91,28 +91,60 @@ export default function ScanScreen(): React.JSX.Element {
     },
   });
 
+  if (isAndroid) {
+    return (
+      <Screen>
+        <ScreenHeader
+          onBack={() => navigation.goBack()}
+          backVariant="close"
+          eyebrow="Scan"
+        />
+        <View style={styles.message}>
+          <Icon name="scan" size={32} color={tokens.color.textMuted} />
+          <Text style={styles.title}>Scanner unavailable on Android</Text>
+          <Text style={styles.body}>Use Pay and paste a payment link instead.</Text>
+        </View>
+      </Screen>
+    );
+  }
+
   if (!hasPermission) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.kicker}>SCAN</Text>
-        <Text style={styles.title}>Camera permission required</Text>
-        <Text style={styles.message}>Grant access to scan payment codes.</Text>
-        <TouchableOpacity
-          style={styles.permBtn}
-          onPress={() => Camera.requestCameraPermission()}>
-          <Text style={styles.permBtnText}>Grant Permission</Text>
-        </TouchableOpacity>
-      </View>
+      <Screen>
+        <ScreenHeader
+          onBack={() => navigation.goBack()}
+          backVariant="close"
+          eyebrow="Scan"
+        />
+        <View style={styles.message}>
+          <Icon name="scan" size={32} color={tokens.color.textMuted} />
+          <Text style={styles.title}>Camera permission required</Text>
+          <Text style={styles.body}>Grant access to scan payment codes.</Text>
+          <Button
+            label="Grant permission"
+            fullWidth={false}
+            onPress={() => Camera.requestCameraPermission()}
+            style={styles.action}
+          />
+        </View>
+      </Screen>
     );
   }
 
   if (!device) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.kicker}>SCAN</Text>
-        <Text style={styles.title}>Camera not available</Text>
-        <Text style={styles.message}>Try again on a device with a rear camera.</Text>
-      </View>
+      <Screen>
+        <ScreenHeader
+          onBack={() => navigation.goBack()}
+          backVariant="close"
+          eyebrow="Scan"
+        />
+        <View style={styles.message}>
+          <Icon name="alert" size={32} color={tokens.color.textMuted} />
+          <Text style={styles.title}>Camera not available</Text>
+          <Text style={styles.body}>Try again on a device with a rear camera.</Text>
+        </View>
+      </Screen>
     );
   }
 
@@ -125,87 +157,90 @@ export default function ScanScreen(): React.JSX.Element {
         codeScanner={codeScanner}
       />
 
-      {/* Overlay */}
-      <View style={styles.overlay}>
-        <View style={styles.heroPanel}>
-          <Text style={styles.kicker}>SCAN</Text>
-          <Text style={styles.title}>Point at a payment QR code</Text>
-          <Text style={styles.message}>The camera will prefill the address and amount.</Text>
+      <SafeAreaView style={styles.overlay}>
+        <View style={styles.overlayHeader}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            accessibilityRole="button"
+            accessibilityLabel="Close scanner"
+            hitSlop={8}
+            style={({pressed}) => [styles.closeBtn, pressed && styles.pressed]}>
+            <Icon name="close" size={tokens.icon.lg} color={tokens.color.textPrimary} />
+          </Pressable>
+          <Text style={styles.overlayTitle}>Point at a payment QR code</Text>
         </View>
+
         <View style={styles.scanFrame} />
-        <TouchableOpacity
-          style={styles.cancelBtn}
-          onPress={() => navigation.goBack()}>
-          <Text style={styles.cancelBtnText}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
+
+        <Text style={styles.overlayHint}>
+          The camera will prefill the address and amount.
+        </Text>
+      </SafeAreaView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: tokens.colors.page},
-  center: {
+  container: {flex: 1, backgroundColor: tokens.color.canvas},
+  message: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: tokens.colors.page,
-    paddingHorizontal: 20,
-  },
-  kicker: {
-    ...tokens.type.eyebrow,
-    color: tokens.colors.textMuted,
-    marginBottom: 8,
+    gap: tokens.spacing.lg,
+    paddingBottom: tokens.spacing.giant,
   },
   title: {
     ...tokens.type.title,
-    color: tokens.colors.textPrimary,
+    color: tokens.color.textPrimary,
     textAlign: 'center',
-    marginBottom: 10,
   },
-  message: {
+  body: {
     ...tokens.type.body,
-    color: tokens.colors.textMuted,
-    marginBottom: 20,
+    color: tokens.color.textSecondary,
     textAlign: 'center',
   },
-  permBtn: {
-    backgroundColor: tokens.colors.accent,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: tokens.radius.md,
+  action: {
+    marginTop: tokens.spacing.md,
   },
-  permBtnText: {...tokens.type.body, fontWeight: '700', color: tokens.onAccent.primary},
   overlay: {
     flex: 1,
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 28,
-    paddingBottom: 28,
-    backgroundColor: 'rgba(244, 247, 252, 0.2)',
+    paddingVertical: tokens.spacing.xxl,
+    paddingHorizontal: tokens.layout.gutter,
+    // Dark scrim. A light wash over a camera feed washed out the preview.
+    backgroundColor: tokens.color.scrim.camera,
   },
-  heroPanel: {
-    width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderRadius: tokens.radius.lg,
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
+  overlayHeader: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    gap: tokens.spacing.lg,
+  },
+  closeBtn: {
+    alignSelf: 'flex-start',
+    width: tokens.layout.touchTarget,
+    height: tokens.layout.touchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pressed: {
+    opacity: 0.6,
+  },
+  overlayTitle: {
+    ...tokens.type.heading,
+    color: tokens.color.textPrimary,
+    textAlign: 'center',
   },
   scanFrame: {
     width: 240,
     height: 240,
     borderWidth: 2,
-    borderColor: tokens.colors.accent,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderColor: tokens.color.brand,
+    borderRadius: tokens.radius.lg,
   },
-  cancelBtn: {
-    backgroundColor: tokens.colors.accent,
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: tokens.radius.md,
+  overlayHint: {
+    ...tokens.type.body,
+    color: tokens.color.textSecondary,
+    textAlign: 'center',
   },
-  cancelBtnText: {...tokens.type.action, color: tokens.onAccent.primary},
 });
