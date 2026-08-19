@@ -1,19 +1,20 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import {View, Text, StyleSheet, FlatList, RefreshControl} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 
-import {getAccountPaymentHistory, transactionTypeLabel} from '../services/altudeHistory';
+import {getAccountPaymentHistory} from '../services/altudeHistory';
 import {truncateAddress} from '../services/solana';
 import {useWalletStore} from '../store/walletStore';
+import {formatRelativeDate} from '../utils/format';
+import {
+  Button,
+  Icon,
+  ListRow,
+  Screen,
+  ScreenHeader,
+  SkeletonRows,
+} from '../components/ui';
 import {AltudeHistoryEntry, RootStackParamList} from '../types';
 import {tokens} from '../theme/tokens';
 
@@ -55,208 +56,115 @@ export default function HistoryScreen(): React.JSX.Element {
   }, [loadHistory]);
 
   const renderItem = useCallback(
-    ({item}: {item: AltudeHistoryEntry}) => (
-      <TouchableOpacity
-        style={styles.row}
-        onPress={() => navigation.navigate('Receipt', {signature: item.signature})}>
-        <View style={styles.rowLeft}>
-          <Text style={styles.rowType}>{transactionTypeLabel(item.transactionType)}</Text>
-          <Text style={styles.rowSignature}>{truncateAddress(item.signature, 8)}</Text>
-        </View>
-        <Text style={styles.rowAction}>Solscan</Text>
-      </TouchableOpacity>
+    ({item, index}: {item: AltudeHistoryEntry; index: number}) => (
+      <ListRow
+        divided={index > 0}
+        leadingIcon="arrowUpRight"
+        leadingTone={item.error ? 'error' : 'success'}
+        title="Payment"
+        subtitle={formatRelativeDate(item.createdAt)}
+        value={truncateAddress(item.signature, 4)}
+        onPress={() => navigation.navigate('Receipt', {signature: item.signature})}
+        accessibilityLabel={`Payment, ${formatRelativeDate(item.createdAt)}`}
+        accessibilityHint="Opens the receipt"
+      />
     ),
     [navigation],
   );
 
+  /*
+    The header stays mounted while loading. Previously a full-screen spinner
+    replaced the entire body, so the layout jumped once data arrived.
+  */
+  const header = (
+    <ScreenHeader
+      onBack={() => navigation.goBack()}
+      eyebrow="Activity"
+      title="Recent payments"
+    />
+  );
+
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator color={tokens.colors.accent} size="large" />
-      </View>
+      <Screen>
+        {header}
+        <SkeletonRows count={5} />
+      </Screen>
+    );
+  }
+
+  if (entries.length === 0) {
+    return (
+      <Screen>
+        {header}
+        <View style={styles.empty}>
+          <Icon
+            name={error ? 'alert' : 'clock'}
+            size={32}
+            color={error ? tokens.color.error : tokens.color.textMuted}
+          />
+          <Text style={styles.emptyTitle}>
+            {error ? 'Activity unavailable' : 'No activity yet'}
+          </Text>
+          <Text style={styles.emptyBody}>
+            {error ?? 'Your payments will appear here once you send one.'}
+          </Text>
+          <Button
+            label="Refresh"
+            icon="refresh"
+            variant="secondary"
+            fullWidth={false}
+            onPress={loadHistory}
+            style={styles.retry}
+          />
+        </View>
+      </Screen>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.hero}>
-        <Svg style={StyleSheet.absoluteFill} width="110%" height="110%">
-          <Defs>
-            <LinearGradient id="historyHeroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <Stop offset="0%" stopColor={tokens.gradient.heroFrom} />
-              <Stop offset="55%" stopColor={tokens.gradient.heroMid} />
-              <Stop offset="100%" stopColor={tokens.gradient.heroTo} />
-            </LinearGradient>
-          </Defs>
-          <Rect x="0" y="0" width="100%" height="100%" fill="url(#historyHeroGradient)" />
-        </Svg>
-
-        <View style={styles.heroGlowTop} />
-        <View style={styles.heroGlowBottom} />
-
-        <Text style={styles.kicker}>ACTIVITY</Text>
-        <Text style={styles.title}>Recent Payments</Text>
-        <Text style={styles.subtitle}>Tap a payment to see its details on Solscan.</Text>
-      </View>
-
-      {entries.length === 0 ? (
-        <View style={styles.empty}>
-          <View style={styles.emptyBadge}>
-            <Text style={styles.emptyBadgeText}>PAY</Text>
-          </View>
-          <Text style={styles.emptyText}>
-            {error ? 'Activity unavailable' : 'No activity yet'}
-          </Text>
-          <Text style={styles.emptySubtext}>
-            {error ?? 'Your payments will appear here once you send one.'}
-          </Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={loadHistory}>
-            <Text style={styles.retryBtnText}>Refresh</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <FlatList
-          data={entries}
-          keyExtractor={item => item.signature}
-          renderItem={renderItem}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          onRefresh={loadHistory}
-          refreshing={loading}
-        />
-      )}
-    </View>
+    <Screen>
+      <FlatList
+        data={entries}
+        keyExtractor={item => item.signature}
+        renderItem={renderItem}
+        ListHeaderComponent={header}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={loadHistory}
+            tintColor={tokens.color.brand}
+            colors={[tokens.color.brand]}
+            progressBackgroundColor={tokens.color.surface}
+          />
+        }
+      />
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: tokens.colors.page,
-    paddingTop: 26,
-    paddingHorizontal: 20,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: tokens.colors.page,
-  },
-  hero: {
-    minHeight: 174,
-    borderRadius: tokens.radius.lg,
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 16,
-    marginBottom: 16,
-    overflow: 'hidden',
-    position: 'relative',
-    justifyContent: 'center',
-  },
-  heroGlowTop: {
-    position: 'absolute',
-    width: 150,
-    height: 150,
-    borderRadius: 999,
-    top: -54,
-    right: -34,
-    backgroundColor: 'rgba(255,255,255,0.24)',
-  },
-  heroGlowBottom: {
-    position: 'absolute',
-    width: 108,
-    height: 108,
-    borderRadius: 999,
-    bottom: -40,
-    left: -18,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-  },
-  kicker: {
-    ...tokens.type.eyebrow,
-    color: tokens.onAccent.secondary,
-    marginBottom: 6,
-  },
-  title: {
-    ...tokens.type.display,
-    color: tokens.onAccent.primary,
-  },
-  subtitle: {
-    ...tokens.type.body,
-    color: tokens.onAccent.secondary,
-    marginTop: 10,
-  },
   list: {
-    paddingBottom: 32,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: tokens.colors.card,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-    borderRadius: tokens.radius.md,
-    padding: 16,
-    marginBottom: 12,
-    gap: tokens.spacing.sm,
-  },
-  rowLeft: {
-    gap: 4,
-    flexShrink: 1,
-  },
-  rowType: {
-    ...tokens.type.heading,
-    color: tokens.colors.textPrimary,
-  },
-  rowSignature: {
-    ...tokens.type.mono,
-    color: tokens.colors.textMuted,
-  },
-  rowAction: {
-    ...tokens.type.label,
-    fontWeight: '700',
-    color: tokens.colors.accent,
+    paddingBottom: tokens.spacing.xxxl,
   },
   empty: {
-    flex: 1,
     alignItems: 'center',
-    paddingTop: 40,
-    paddingHorizontal: 20,
+    gap: tokens.spacing.lg,
+    paddingTop: tokens.spacing.giant,
   },
-  emptyBadge: {
-    backgroundColor: tokens.colors.accentSoft,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: tokens.radius.pill,
-    marginBottom: 16,
-  },
-  emptyBadgeText: {
-    ...tokens.type.eyebrow,
-    color: tokens.colors.accentDark,
-  },
-  emptyText: {
+  emptyTitle: {
     ...tokens.type.title,
-    fontSize: 20,
-    lineHeight: 26,
-    color: tokens.colors.textPrimary,
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    ...tokens.type.body,
-    color: tokens.colors.textMuted,
+    color: tokens.color.textPrimary,
     textAlign: 'center',
-    paddingHorizontal: 24,
   },
-  retryBtn: {
-    marginTop: tokens.spacing.lg,
-    borderRadius: tokens.radius.pill,
-    backgroundColor: tokens.colors.card,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  retryBtnText: {
+  emptyBody: {
     ...tokens.type.body,
-    fontWeight: '700',
-    color: tokens.colors.accent,
+    color: tokens.color.textSecondary,
+    textAlign: 'center',
+  },
+  retry: {
+    marginTop: tokens.spacing.md,
   },
 });

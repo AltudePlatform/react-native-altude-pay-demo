@@ -34,8 +34,8 @@ export function AscentIndicator({
   progress,
   state = 'active',
   size = 168,
-  tint = '#ffffff',
-  trackColor = 'rgba(255,255,255,0.22)',
+  tint = tokens.color.textPrimary,
+  trackColor = tokens.color.borderStrong,
 }: AscentIndicatorProps): React.JSX.Element {
   const reduceMotion = useReducedMotion();
   const strokeWidth = Math.max(6, Math.round(size * 0.05));
@@ -97,7 +97,12 @@ export function AscentIndicator({
     transform: [{scale: 0.6 + mark.value * 0.4}],
   }));
 
-  const strokeColor = state === 'error' ? tokens.colors.danger : tint;
+  const strokeColor =
+    state === 'error'
+      ? tokens.color.error
+      : state === 'success'
+        ? tokens.color.success
+        : tint;
 
   return (
     <View style={[styles.wrap, {width: size, height: size}]}>

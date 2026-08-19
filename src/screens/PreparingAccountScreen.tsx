@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {BackHandler, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import Animated, {FadeIn, FadeOut, useReducedMotion} from 'react-native-reanimated';
 
 import {AscentIndicator} from '../components/AscentIndicator';
 import {GradientBackdrop} from '../components/GradientBackdrop';
@@ -62,6 +62,10 @@ export default function PreparingAccountScreen({
 
   const handleRetry = useCallback(() => setAttempt(n => n + 1), []);
 
+  const reduceMotion = useReducedMotion();
+  const enterDuration = reduceMotion ? 0 : tokens.motion.base;
+  const exitDuration = reduceMotion ? 0 : tokens.motion.fast;
+
   return (
     <View style={styles.root}>
       <GradientBackdrop />
@@ -73,16 +77,17 @@ export default function PreparingAccountScreen({
           />
 
           {error ? (
-            <Animated.View entering={FadeIn} style={styles.copy}>
+            <Animated.View entering={FadeIn.duration(enterDuration)} style={styles.copy}>
               <Text style={styles.title}>We couldn't finish setting up</Text>
               <Text style={styles.subtitle}>{error}</Text>
             </Animated.View>
           ) : (
             <Animated.View
               key={step}
-              entering={FadeIn.duration(tokens.motion.base)}
-              exiting={FadeOut.duration(tokens.motion.fast)}
-              style={styles.copy}>
+              entering={FadeIn.duration(enterDuration)}
+              exiting={FadeOut.duration(exitDuration)}
+              style={styles.copy}
+              accessibilityLiveRegion="polite">
               <Text style={styles.title}>{REASSURANCE[step]}</Text>
               <Text style={styles.subtitle}>
                 This only happens once. Keep the app open.
@@ -126,12 +131,12 @@ const styles = StyleSheet.create({
   },
   title: {
     ...tokens.type.title,
-    color: tokens.onAccent.primary,
+    color: tokens.color.textPrimary,
     textAlign: 'center',
   },
   subtitle: {
     ...tokens.type.body,
-    color: tokens.onAccent.secondary,
+    color: tokens.color.textSecondary,
     textAlign: 'center',
   },
   footer: {
@@ -142,17 +147,17 @@ const styles = StyleSheet.create({
   footerHint: {
     ...tokens.type.eyebrow,
     letterSpacing: 3,
-    color: tokens.onAccent.muted,
+    color: tokens.color.textMuted,
   },
   retryBtn: {
     alignSelf: 'stretch',
-    backgroundColor: '#ffffff',
+    backgroundColor: tokens.color.brandSurface,
     borderRadius: tokens.radius.pill,
     paddingVertical: 16,
     alignItems: 'center',
   },
   retryBtnText: {
     ...tokens.type.action,
-    color: tokens.colors.accentDark,
+    color: tokens.color.textPrimary,
   },
 });

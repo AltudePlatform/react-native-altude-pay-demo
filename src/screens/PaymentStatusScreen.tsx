@@ -3,7 +3,7 @@ import {BackHandler, StyleSheet, Text, TouchableOpacity, View} from 'react-nativ
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import Animated, {FadeIn, FadeOut, useReducedMotion} from 'react-native-reanimated';
 
 import {AscentIndicator} from '../components/AscentIndicator';
 import {GradientBackdrop} from '../components/GradientBackdrop';
@@ -83,6 +83,11 @@ export default function PaymentStatusScreen(): React.JSX.Element {
   const failed = Boolean(error) || record?.status === 'failed';
   const pendingConfirmation = record?.status === 'pending';
 
+  // Honour the OS reduced-motion setting, as AscentIndicator already does.
+  const reduceMotion = useReducedMotion();
+  const enterDuration = reduceMotion ? 0 : tokens.motion.base;
+  const exitDuration = reduceMotion ? 0 : tokens.motion.fast;
+
   return (
     <View style={styles.root}>
       <GradientBackdrop />
@@ -95,8 +100,8 @@ export default function PaymentStatusScreen(): React.JSX.Element {
 
           <Animated.View
             key={inFlight ? 'progress' : 'result'}
-            entering={FadeIn.duration(tokens.motion.base)}
-            exiting={FadeOut.duration(tokens.motion.fast)}
+            entering={FadeIn.duration(enterDuration)}
+            exiting={FadeOut.duration(exitDuration)}
             style={styles.copy}>
             <Text style={styles.amount}>{`$${
               isNaN(parsedAmount) ? amount : parsedAmount.toFixed(2)
@@ -123,8 +128,11 @@ export default function PaymentStatusScreen(): React.JSX.Element {
             )}
           </Animated.View>
 
+          {/* Announce stage changes; previously progress was visual only. */}
           {inFlight ? (
-            <StageList stages={STAGES} activeIndex={stageIndex} />
+            <View accessibilityLiveRegion="polite">
+              <StageList stages={STAGES} activeIndex={stageIndex} />
+            </View>
           ) : null}
         </View>
 
@@ -179,22 +187,22 @@ const styles = StyleSheet.create({
     ...tokens.type.display,
     fontSize: 40,
     lineHeight: 46,
-    color: tokens.onAccent.primary,
+    color: tokens.color.textPrimary,
     fontVariant: ['tabular-nums'],
   },
   recipient: {
     ...tokens.type.label,
-    color: tokens.onAccent.muted,
+    color: tokens.color.textMuted,
   },
   title: {
     ...tokens.type.title,
     marginTop: tokens.spacing.md,
-    color: tokens.onAccent.primary,
+    color: tokens.color.textPrimary,
     textAlign: 'center',
   },
   subtitle: {
     ...tokens.type.body,
-    color: tokens.onAccent.secondary,
+    color: tokens.color.textSecondary,
     textAlign: 'center',
   },
   footer: {
@@ -206,27 +214,29 @@ const styles = StyleSheet.create({
   footerHint: {
     ...tokens.type.eyebrow,
     letterSpacing: 3,
-    color: tokens.onAccent.muted,
+    color: tokens.color.textMuted,
   },
   primaryBtn: {
     alignSelf: 'stretch',
-    backgroundColor: '#ffffff',
+    backgroundColor: tokens.color.brandSurface,
     borderRadius: tokens.radius.pill,
     paddingVertical: 16,
     alignItems: 'center',
   },
   primaryBtnText: {
     ...tokens.type.action,
-    color: tokens.colors.accentDark,
+    color: tokens.color.textPrimary,
   },
   secondaryBtn: {
     alignSelf: 'stretch',
     paddingVertical: 12,
+    minHeight: tokens.layout.touchTarget,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   secondaryBtnText: {
     ...tokens.type.body,
     fontWeight: '700',
-    color: tokens.onAccent.secondary,
+    color: tokens.color.textSecondary,
   },
 });

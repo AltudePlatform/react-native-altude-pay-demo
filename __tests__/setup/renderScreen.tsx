@@ -68,6 +68,42 @@ function sanitize(value: unknown, seen = new WeakSet<object>()): unknown {
 }
 
 /**
+ * Returns the live renderer instance for structural assertions.
+ * Callers are responsible for unmounting.
+ */
+export async function renderScreenInstance(
+  Component: React.ComponentType<any>,
+  {params, name = 'Target'}: RenderOptions = {},
+): Promise<renderer.ReactTestRenderer> {
+  const queryClient = createTestQueryClient();
+  let tree: renderer.ReactTestRenderer | undefined;
+
+  await act(async () => {
+    tree = renderer.create(
+      <QueryClientProvider client={queryClient}>
+        <SafeAreaProvider
+          initialMetrics={{
+            frame: {x: 0, y: 0, width: 390, height: 844},
+            insets: {top: 47, left: 0, right: 0, bottom: 34},
+          }}>
+          <NavigationContainer>
+            <Stack.Navigator screenOptions={{headerShown: false}}>
+              <Stack.Screen
+                name={name}
+                component={Component}
+                initialParams={params}
+              />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </QueryClientProvider>,
+    );
+  });
+
+  return tree!;
+}
+
+/**
  * Returns the serialized tree. Awaiting act() lets pending effects
  * (history preview loads, storage reads) settle before we snapshot.
  */

@@ -1,6 +1,6 @@
 import React from 'react';
 import {ActivityIndicator, StyleSheet, Text, View} from 'react-native';
-import Animated, {FadeIn} from 'react-native-reanimated';
+import Animated, {FadeIn, useReducedMotion} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 
 import {tokens} from '../theme/tokens';
@@ -21,6 +21,8 @@ export function StageList({
   activeIndex,
   failed = false,
 }: StageListProps): React.JSX.Element {
+  const reduceMotion = useReducedMotion();
+
   return (
     <View style={styles.list}>
       {stages.map((stage, index) => {
@@ -31,7 +33,7 @@ export function StageList({
         return (
           <Animated.View
             key={stage.key}
-            entering={FadeIn.delay(index * 80)}
+            entering={reduceMotion ? undefined : FadeIn.delay(index * 80)}
             style={styles.row}>
             <View
               style={[
@@ -43,7 +45,7 @@ export function StageList({
                 <Svg width={12} height={12} viewBox="0 0 24 24">
                   <Path
                     d="M5 13 L10 18 L19 6"
-                    stroke="#ffffff"
+                    stroke={tokens.color.canvas}
                     strokeWidth={3.5}
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -51,7 +53,7 @@ export function StageList({
                   />
                 </Svg>
               ) : active && !failed ? (
-                <ActivityIndicator size="small" color="#ffffff" />
+                <ActivityIndicator size="small" color={tokens.color.brand} />
               ) : null}
             </View>
 
@@ -86,25 +88,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.35)',
+    borderColor: tokens.color.borderStrong,
   },
   bulletDone: {
-    backgroundColor: tokens.colors.success,
-    borderColor: tokens.colors.success,
+    backgroundColor: tokens.color.success,
+    borderColor: tokens.color.success,
   },
   bulletFailed: {
-    backgroundColor: tokens.colors.danger,
-    borderColor: tokens.colors.danger,
+    backgroundColor: tokens.color.error,
+    borderColor: tokens.color.error,
   },
   label: {
     ...tokens.type.body,
     fontWeight: '600',
-    color: tokens.onAccent.muted,
+    color: tokens.color.textMuted,
   },
   labelOn: {
-    color: tokens.onAccent.primary,
+    color: tokens.color.textPrimary,
   },
   labelFailed: {
-    color: tokens.onAccent.primary,
+    color: tokens.color.error,
   },
 });
