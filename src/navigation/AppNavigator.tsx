@@ -30,7 +30,15 @@ type AppNavigatorProps = {
 function MainTabs({onLogout}: {onLogout: () => Promise<void>}): React.JSX.Element {
   return (
     <Tab.Navigator
-      tabBar={TabBar}
+      /*
+        Must stay an arrow that returns an element. React Navigation invokes
+        `tabBar` as a plain function, so passing TabBar directly would call a
+        hook-using component outside React's render phase ("invalid hook
+        call"). TabBar is defined at module scope, so this is not actually an
+        unstable nested component.
+      */
+      // eslint-disable-next-line react/no-unstable-nested-components
+      tabBar={props => <TabBar {...props} />}
       screenOptions={{
         headerShown: false,
         sceneStyle: {backgroundColor: tokens.color.canvas},

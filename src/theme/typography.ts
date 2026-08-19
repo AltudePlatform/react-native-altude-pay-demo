@@ -40,19 +40,25 @@ const mono = (weight: TextStyle['fontWeight']): TextStyle => ({
 });
 
 export const type = {
-  /** Oversized primary value - the one big number on a screen. */
+  /**
+   * Oversized primary value - the one big number on a screen.
+   *
+   * Sans, not mono: at display sizes the mono face gives the decimal point a
+   * full character advance, so a balance renders as "$250 . 75". Column
+   * alignment doesn't matter for a single hero value, so legibility wins.
+   */
   displayXL: {
-    ...mono('700'),
+    ...sans('800'),
     fontSize: 56,
-    lineHeight: 62,
-    letterSpacing: -1.5,
+    lineHeight: 64,
+    letterSpacing: -2,
   },
   /** Secondary large value, e.g. a receipt total. */
   displayLG: {
-    ...mono('700'),
+    ...sans('800'),
     fontSize: 40,
     lineHeight: 46,
-    letterSpacing: -1,
+    letterSpacing: -1.2,
   },
   display: {
     ...sans('800'),
