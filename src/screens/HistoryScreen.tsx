@@ -4,7 +4,7 @@ import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 
 import {getAccountPaymentHistory} from '../services/altudeHistory';
-import {truncateAddress} from '../services/solana';
+import {truncateAddress, getAccountHistory, TransactionSummary} from '../services/solana';
 import {useWalletStore} from '../store/walletStore';
 import {formatRelativeDate} from '../utils/format';
 import {
@@ -25,7 +25,7 @@ export default function HistoryScreen(): React.JSX.Element {
   const wallet = useWalletStore(s => s.wallet);
   const account = wallet?.publicKey;
 
-  const [entries, setEntries] = useState<AltudeHistoryEntry[]>([]);
+  const [entries, setEntries] = useState<TransactionSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +39,8 @@ export default function HistoryScreen(): React.JSX.Element {
     setLoading(true);
     setError(null);
     try {
-      setEntries(await getAccountPaymentHistory(account, 20, 1));
+      const history = await getAccountHistory(account, 50, 1);
+      setEntries(history);
     } catch (err) {
       setError(
         err instanceof Error && err.message
@@ -56,16 +57,19 @@ export default function HistoryScreen(): React.JSX.Element {
   }, [loadHistory]);
 
   const renderItem = useCallback(
-    ({item, index}: {item: AltudeHistoryEntry; index: number}) => (
+    ({item, index}: {item: TransactionSummary; index: number}) => (
       <ListRow
         divided={index > 0}
         leadingIcon="arrowUpRight"
-        leadingTone={item.error ? 'error' : 'success'}
+        leadingTone={item.status === 'failed' ? 'error' : 'success'}
         title="Payment"
-        subtitle={formatRelativeDate(item.createdAt)}
-        value={truncateAddress(item.signature, 4)}
+        subtitle={formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}
+        value={(item.type === "send" ? '-' : '+') + '$' + item.amount.toLocaleString('en-US', {
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 4,
+                        })}
         onPress={() => navigation.navigate('Receipt', {signature: item.signature})}
-        accessibilityLabel={`Payment, ${formatRelativeDate(item.createdAt)}`}
+        accessibilityLabel={`Payment, ${formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}`}
         accessibilityHint="Opens the receipt"
       />
     ),

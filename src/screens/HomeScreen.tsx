@@ -8,7 +8,7 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import {useBalance} from '../hooks/useBalance';
 import {getAccountPaymentHistory} from '../services/altudeHistory';
 import {useWalletStore} from '../store/walletStore';
-import {truncateAddress} from '../services/solana';
+import {truncateAddress, getAccountHistory, TransactionSummary} from '../services/solana';
 import {formatRelativeDate, formatUsd} from '../utils/format';
 import {
   BalanceDisplay,
@@ -42,7 +42,7 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
   const {showToast} = useToast();
 
   const {data: balance, isLoading, refetch} = useBalance();
-  const [historyPreview, setHistoryPreview] = useState<AltudeHistoryEntry[]>([]);
+  const [historyPreview, setHistoryPreview] = useState<TransactionSummary[]>([]);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [historyLoading, setHistoryLoading] = useState(true);
 
@@ -79,7 +79,7 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
 
     try {
       setHistoryError(null);
-      const history = await getAccountPaymentHistory(wallet.publicKey, 5,1);
+      const history = await getAccountHistory(wallet.publicKey, 5, 1);//await getAccountPaymentHistory(wallet.publicKey, 5,1);
       console.log('[HomeScreen] Loaded history preview:', history);
       setHistoryPreview(history);
     } catch (error) {
@@ -189,22 +189,29 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
                 </Text>
               </View>
             ) : (
-              historyPreview.map((item, index) => (
-                <ListRow
+              historyPreview.map((item :TransactionSummary , index: number) => {
+                
+                
+                return (
+                  <ListRow
                   key={item.signature}
                   divided={index > 0}
                   leadingIcon="arrowUpRight"
-                  leadingTone={item.error ? 'error' : 'success'}
-                  title="Payment"
-                  subtitle={formatRelativeDate(item.createdAt)}
-                  value={truncateAddress(item.signature, 4)}
+                  leadingTone={item.status === 'failed' ? 'error' : 'success'}
+                  title={item.type === "send" ? "Payment" : "Incoming Payment"}
+                  subtitle={formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}
+                  value={(item.type === "send" ? '-' : '+') + '$' + item.amount.toLocaleString('en-US', {
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 4,
+                        })}
                   onPress={() =>
                     navigation.navigate('Receipt', {signature: item.signature})
                   }
-                  accessibilityLabel={`Payment, ${formatRelativeDate(item.createdAt)}`}
+                  accessibilityLabel={`Payment, ${formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}`}
                   accessibilityHint="Opens the receipt"
-                />
-              ))
+                  />
+                );
+              })
             )}
           </View>
         </>
