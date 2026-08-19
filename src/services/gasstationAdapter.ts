@@ -1,4 +1,4 @@
-import {ALTUDE_API_KEY, ALTUDE_NETWORK} from '../config/apiConfig';
+import {ALTUDE_API_KEY} from '../config/apiConfig';
 import {stableCoinMint} from '../config/paymentConfig';
 import {runtimeConfig} from '../config/runtimeConfig';
 
@@ -17,6 +17,11 @@ type GasstationLike = {
     uiAmount?: number;
   }>;
   getConfig: () => Promise<any>;
+  getHistory: (args: {
+    account: string;
+    limit?: number;
+    offset?: number;
+  }) => Promise<any>;
   send: (args: {
     sourceSigner: {
       address: string;
@@ -49,6 +54,9 @@ function createFallbackGasstation(): GasstationLike {
     async getConfig() {
       const {getTransactionConfig} = await import('./altudeApi');
       return getTransactionConfig();
+    },
+    async getHistory() {
+      return {TransactionList: []};
     },
     async send(args) {
       if (ALLOW_FALLBACK_SEND) {
@@ -99,9 +107,12 @@ export async function getGasstation(): Promise<GasstationLike> {
       }
 
       const {AltudeGasStation} = gasstationModule;
+      // The API key's transaction config is the authoritative cluster, not an env var.
+      const {getTransactionConfig: loadConfig} = await import('./altudeApi');
+      const {RpcEnvironment} = await loadConfig();
       const sdk = new AltudeGasStation({
         apiKey: ALTUDE_API_KEY,
-        network: ALTUDE_NETWORK,
+        network: RpcEnvironment,
       }) as any;
       instance = {
         async getBalance(args) {
@@ -116,6 +127,12 @@ export async function getGasstation(): Promise<GasstationLike> {
           }
           const {getTransactionConfig} = await import('./altudeApi');
           return getTransactionConfig();
+        },
+        async getHistory(args) {
+          if (typeof sdk.getHistory === 'function') {
+            return sdk.getHistory(args);
+          }
+          throw new Error('Gas station SDK getHistory() is unavailable.');
         },
         async send(args) {
           if (typeof sdk.send === 'function') {
@@ -140,6 +157,15 @@ export async function getGasstation(): Promise<GasstationLike> {
 export async function getTransactionConfig(): Promise<any> {
   const gs = await getGasstation();
   return gs.getConfig();
+}
+
+export async function fetchAccountHistory(args: {
+  account: string;
+  limit?: number;
+  offset?: number;
+}): Promise<any> {
+  const gs = await getGasstation();
+  return gs.getHistory(args);
 }
 
 export async function sendWithSigner(
@@ -170,6 +196,7 @@ export async function sendWithSigner(
 export default {
   getGasstation,
   getTransactionConfig,
+  fetchAccountHistory,
   sendWithSigner,
 };
 

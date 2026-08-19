@@ -11,6 +11,9 @@ import HistoryScreen from '../screens/HistoryScreen';
 import QRScreen from '../screens/QRScreen';
 import ScanScreen from '../screens/ScanScreen';
 import PayAddressScreen from '../screens/PayAddressScreen';
+import PaymentStatusScreen from '../screens/PaymentStatusScreen';
+import PreparingAccountScreen from '../screens/PreparingAccountScreen';
+import ReceiptScreen from '../screens/ReceiptScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import {tokens} from '../theme/tokens';
 
@@ -47,7 +50,7 @@ function MainTabs({onLogout}: {onLogout: () => Promise<void>}): React.JSX.Elemen
           paddingTop: 6,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: tokens.type.caption.fontSize,
           fontWeight: '700',
         },
       }}>
@@ -72,17 +75,33 @@ export default function AppNavigator({
 }: AppNavigatorProps): React.JSX.Element {
   return (
     <NavigationContainer key={onboardingComplete ? 'authenticated' : 'onboarding'}>
-      <RootStack.Navigator screenOptions={{headerShown: false}}>
+      <RootStack.Navigator
+        initialRouteName={onboardingComplete ? 'MainTabs' : 'Onboarding'}
+        screenOptions={{headerShown: false}}>
         {!onboardingComplete ? (
           <RootStack.Screen name="Onboarding">
-            {() => <OnboardingScreen onComplete={onOnboardingComplete} />}
+            {() => <OnboardingScreen />}
           </RootStack.Screen>
         ) : null}
         <RootStack.Screen name="MainTabs">
           {() => <MainTabs onLogout={onLogout} />}
         </RootStack.Screen>
+        <RootStack.Screen name="Preparing" options={{gestureEnabled: false}}>
+          {({route}) => (
+            <PreparingAccountScreen
+              profile={route.params.profile}
+              onPrepare={onOnboardingComplete}
+            />
+          )}
+        </RootStack.Screen>
         <RootStack.Screen name="PayAddress" component={PayAddressScreen} />
+        <RootStack.Screen
+          name="PaymentStatus"
+          component={PaymentStatusScreen}
+          options={{gestureEnabled: false}}
+        />
         <RootStack.Screen name="History" component={HistoryScreen} />
+        <RootStack.Screen name="Receipt" component={ReceiptScreen} />
         <RootStack.Screen name="QR" component={QRScreen} />
         <RootStack.Screen name="Scan" component={ScanScreen} />
       </RootStack.Navigator>

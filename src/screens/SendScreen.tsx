@@ -13,6 +13,8 @@ import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 
+import {useBalance} from '../hooks/useBalance';
+import {InsufficientBalanceNotice} from '../components/InsufficientBalanceNotice';
 import {RootStackParamList} from '../types';
 import {tokens} from '../theme/tokens';
 
@@ -21,6 +23,14 @@ type NavProp = StackNavigationProp<RootStackParamList>;
 export default function SendScreen(): React.JSX.Element {
   const navigation = useNavigation<NavProp>();
   const [amount, setAmount] = useState('0');
+  const {data: balance} = useBalance();
+  const availableBalance = balance?.usdcBalance;
+
+  const parsedAmount = parseFloat(amount);
+  const exceedsBalance =
+    availableBalance !== undefined &&
+    !isNaN(parsedAmount) &&
+    parsedAmount > availableBalance;
 
   React.useEffect(() => {
     console.log('[screen] SendScreen mounted');
@@ -60,8 +70,16 @@ export default function SendScreen(): React.JSX.Element {
       return;
     }
 
+    if (availableBalance !== undefined && parsed > availableBalance) {
+      Alert.alert(
+        'Amount is too high',
+        `You only have $${availableBalance.toFixed(2)} available.`,
+      );
+      return;
+    }
+
     navigation.navigate('PayAddress', {amount});
-  }, [amount, navigation]);
+  }, [amount, availableBalance, navigation]);
 
   const amountDisplay = amount === '0' ? '$0' : `$${amount}`;
 
@@ -87,7 +105,11 @@ export default function SendScreen(): React.JSX.Element {
 
           <Text style={styles.kicker}>AMOUNT</Text>
           <Text style={styles.amount}>{amountDisplay}</Text>
-          <Text style={styles.tokenLabel}>How much do you want to pay?</Text>
+          <Text style={styles.tokenLabel}>
+            {availableBalance === undefined
+              ? 'How much do you want to pay?'
+              : `$${availableBalance.toFixed(2)} available`}
+          </Text>
         </View>
 
         <View style={styles.keypadWrap}>
@@ -98,7 +120,14 @@ export default function SendScreen(): React.JSX.Element {
           ))}
         </View>
 
-        <TouchableOpacity style={styles.payBtn} onPress={handlePay}>
+        {exceedsBalance && availableBalance !== undefined ? (
+          <InsufficientBalanceNotice available={availableBalance} />
+        ) : null}
+
+        <TouchableOpacity
+          style={[styles.payBtn, exceedsBalance && styles.payBtnDisabled]}
+          onPress={handlePay}
+          disabled={exceedsBalance}>
           <Text style={styles.payBtnText}>Pay</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -144,20 +173,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.16)',
   },
   kicker: {
-    color: 'rgba(255,255,255,0.92)',
-    fontWeight: '800',
-    letterSpacing: 1,
-    fontSize: 11,
+    ...tokens.type.eyebrow,
+    color: tokens.onAccent.secondary,
   },
   amount: {
-    color: '#ffffff',
+    ...tokens.type.display,
     fontSize: 62,
+    lineHeight: 70,
     fontWeight: '900',
+    color: tokens.onAccent.primary,
     marginTop: 8,
   },
   tokenLabel: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 13,
+    ...tokens.type.label,
+    color: tokens.onAccent.secondary,
   },
   keypadWrap: {
     marginTop: 6,
@@ -180,9 +209,12 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.md,
   },
   keyText: {
-    color: tokens.colors.textPrimary,
+    ...tokens.type.display,
     fontSize: 33,
+    lineHeight: 40,
     fontWeight: '500',
+    letterSpacing: 0,
+    color: tokens.colors.textPrimary,
   },
   payBtn: {
     backgroundColor: tokens.colors.accent,
@@ -190,9 +222,11 @@ const styles = StyleSheet.create({
     paddingVertical: 17,
     alignItems: 'center',
   },
+  payBtnDisabled: {
+    opacity: 0.5,
+  },
   payBtnText: {
-    color: '#ffffff',
-    fontWeight: '800',
-    fontSize: 20,
+    ...tokens.type.action,
+    color: tokens.onAccent.primary,
   },
 });

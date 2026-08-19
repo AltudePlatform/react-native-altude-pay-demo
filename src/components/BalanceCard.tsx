@@ -71,16 +71,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardTitle: {
+    ...tokens.type.eyebrow,
     color: tokens.colors.textMuted,
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom: 4,
   },
   cardHint: {
+    ...tokens.type.caption,
     color: tokens.colors.textMuted,
-    fontSize: 11,
     marginBottom: 14,
   },
   headerRow: {
@@ -98,9 +96,8 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   copyBtnText: {
+    ...tokens.type.label,
     color: tokens.colors.textPrimary,
-    fontSize: 12,
-    fontWeight: '700',
   },
   singleBalanceWrap: {
     alignItems: 'center',
@@ -108,15 +105,14 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   balanceValue: {
+    ...tokens.type.display,
     color: tokens.colors.textPrimary,
-    fontSize: 26,
-    fontWeight: '700',
     fontFamily: 'monospace',
   },
   balanceCurrency: {
-    color: tokens.colors.accent,
-    fontSize: 12,
+    ...tokens.type.caption,
     fontWeight: '600',
+    color: tokens.colors.textMuted,
     marginTop: 2,
   },
 });

@@ -8,7 +8,6 @@ import {
   Modal,
   FlatList,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
@@ -17,10 +16,6 @@ import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 import {tokens} from '../theme/tokens';
 import {hasAltudeApiKey} from '../config/apiConfig';
 import {runtimeConfig} from '../config/runtimeConfig';
-
-type OnboardingScreenProps = {
-  onComplete: (profile: UserProfile) => Promise<void> | void;
-};
 
 type CountryOption = {
   label: string;
@@ -42,9 +37,7 @@ const COUNTRY_OPTIONS: CountryOption[] = [
   {label: 'South Africa', code: '+27'},
 ];
 
-export default function OnboardingScreen({
-  onComplete,
-}: OnboardingScreenProps): React.JSX.Element {
+export default function OnboardingScreen(): React.JSX.Element {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [name, setName] = useState('');
   const [countryCode, setCountryCode] = useState('+1');
@@ -52,7 +45,6 @@ export default function OnboardingScreen({
   const [email, setEmail] = useState('');
   const [contactMethod, setContactMethod] = useState<ContactMethod>('phone');
   const [countryModalVisible, setCountryModalVisible] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   const sanitizedPhone = useMemo(
     () => phoneNumber.replace(/[^0-9]/g, ''),
@@ -86,7 +78,7 @@ export default function OnboardingScreen({
     return null;
   };
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     const error = validate();
     if (error) {
       Alert.alert('Missing information', error);
@@ -101,20 +93,7 @@ export default function OnboardingScreen({
       completedAt: new Date().toISOString(),
     };
 
-    setIsSaving(true);
-    try {
-      await onComplete(profile);
-      // After parent has completed onboarding work (including wallet creation),
-      // navigate to the main dashboard so the user does not see the Create Account flow.
-      try {
-        navigation.reset({index: 0, routes: [{name: 'MainTabs'}]});
-      } catch {
-        // ignore navigation failure — parent will also remove onboarding screen
-      }
-    } catch {
-      Alert.alert('Error', 'Could not save your profile right now.');
-      setIsSaving(false);
-    }
+    navigation.navigate('Preparing', {profile});
   };
 
   return (
@@ -149,7 +128,6 @@ export default function OnboardingScreen({
           placeholderTextColor={tokens.colors.textMuted}
           value={name}
           onChangeText={setName}
-          editable={!isSaving}
         />
 
         <Text style={styles.label}>Preferred contact method</Text>
@@ -162,7 +140,6 @@ export default function OnboardingScreen({
               key={option.value}
               style={styles.radioOption}
               onPress={() => setContactMethod(option.value)}
-              disabled={isSaving}
               accessibilityRole="radio"
               accessibilityState={{selected: contactMethod === option.value}}>
               <View style={styles.radioOuter}>
@@ -179,8 +156,7 @@ export default function OnboardingScreen({
             <View style={styles.phoneRow}>
               <TouchableOpacity
                 style={styles.countryBtn}
-                onPress={() => setCountryModalVisible(true)}
-                disabled={isSaving}>
+                onPress={() => setCountryModalVisible(true)}>
                 <Text style={styles.countryBtnText}>{countryCode}</Text>
               </TouchableOpacity>
               <TextInput
@@ -190,7 +166,6 @@ export default function OnboardingScreen({
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
                 keyboardType="phone-pad"
-                editable={!isSaving}
               />
             </View>
           </>
@@ -205,24 +180,12 @@ export default function OnboardingScreen({
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
-              editable={!isSaving}
             />
           </>
         )}
 
-        <TouchableOpacity
-          style={[styles.continueBtn, isSaving && styles.continueBtnDisabled]}
-          onPress={() => {
-            handleContinue().catch(() => {
-              Alert.alert('Error', 'Unexpected onboarding error.');
-            });
-          }}
-          disabled={isSaving}>
-          {isSaving ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.continueBtnText}>Continue</Text>
-          )}
+        <TouchableOpacity style={styles.continueBtn} onPress={handleContinue}>
+          <Text style={styles.continueBtnText}>Continue</Text>
         </TouchableOpacity>
       </View>
 
@@ -298,23 +261,18 @@ const styles = StyleSheet.create({
     bottom: -46,
   },
   kicker: {
-    color: 'rgba(255,255,255,0.92)',
-    letterSpacing: 1,
-    fontWeight: '800',
-    fontSize: 12,
+    ...tokens.type.eyebrow,
+    color: tokens.onAccent.secondary,
   },
   title: {
-    color: '#ffffff',
-    fontSize: 32,
-    lineHeight: 40,
-    fontWeight: '800',
+    ...tokens.type.display,
+    color: tokens.onAccent.primary,
     marginTop: 8,
   },
   subtitle: {
-    color: 'rgba(255,255,255,0.9)',
+    ...tokens.type.body,
+    color: tokens.onAccent.secondary,
     marginTop: 10,
-    fontSize: 15,
-    lineHeight: 22,
     maxWidth: '90%',
   },
   formCard: {
@@ -331,21 +289,21 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   label: {
-    color: tokens.colors.textPrimary,
-    fontSize: 13,
+    ...tokens.type.label,
     fontWeight: '700',
+    color: tokens.colors.textPrimary,
     marginBottom: 6,
     marginTop: 8,
   },
   input: {
+    ...tokens.type.body,
     borderWidth: 1,
     borderColor: tokens.colors.border,
     borderRadius: tokens.radius.md,
     paddingHorizontal: 14,
     paddingVertical: 13,
     color: tokens.colors.textPrimary,
-    backgroundColor: '#fff',
-    fontSize: 15,
+    backgroundColor: tokens.colors.card,
   },
   phoneRow: {
     flexDirection: 'row',
@@ -356,14 +314,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.colors.border,
     borderRadius: tokens.radius.md,
-    backgroundColor: '#fff',
+    backgroundColor: tokens.colors.card,
     justifyContent: 'center',
     alignItems: 'center',
   },
   countryBtnText: {
-    color: tokens.colors.textPrimary,
+    ...tokens.type.body,
     fontWeight: '700',
-    fontSize: 15,
+    color: tokens.colors.textPrimary,
   },
   phoneInput: {
     flex: 1,
@@ -395,9 +353,8 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.accent,
   },
   radioLabel: {
+    ...tokens.type.label,
     color: tokens.colors.textPrimary,
-    fontSize: 14,
-    fontWeight: '600',
   },
   continueBtn: {
     marginTop: 20,
@@ -406,13 +363,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 15,
   },
-  continueBtnDisabled: {
-    opacity: 0.7,
-  },
   continueBtnText: {
-    color: '#fff',
-    fontWeight: '800',
-    fontSize: 16,
+    ...tokens.type.action,
+    color: tokens.onAccent.primary,
   },
   modalBackdrop: {
     flex: 1,
@@ -427,9 +380,10 @@ const styles = StyleSheet.create({
     padding: tokens.spacing.lg,
   },
   modalTitle: {
+    ...tokens.type.title,
+    fontSize: 20,
+    lineHeight: 26,
     color: tokens.colors.textPrimary,
-    fontWeight: '800',
-    fontSize: 18,
     marginBottom: 12,
   },
   countryOption: {
@@ -440,12 +394,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   countryLabel: {
+    ...tokens.type.body,
     color: tokens.colors.textPrimary,
-    fontSize: 15,
   },
   countryCode: {
-    color: tokens.colors.accent,
+    ...tokens.type.body,
     fontWeight: '700',
+    color: tokens.colors.textMuted,
   },
   closeBtn: {
     marginTop: 14,

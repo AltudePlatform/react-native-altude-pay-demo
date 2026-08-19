@@ -44,15 +44,15 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.success,
   },
   address: {
-    color: tokens.colors.textPrimary,
+    ...tokens.type.mono,
     fontSize: 13,
-    fontFamily: 'monospace',
+    color: tokens.colors.textPrimary,
     flex: 1,
   },
   copyHint: {
-    color: tokens.colors.textMuted,
-    fontSize: 10,
+    ...tokens.type.caption,
     fontWeight: '600',
+    color: tokens.colors.textMuted,
     flexShrink: 0,
   },
 });

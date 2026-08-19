@@ -153,25 +153,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   kicker: {
-    color: tokens.colors.accent,
-    fontWeight: '800',
-    letterSpacing: 1.2,
-    fontSize: 11,
+    ...tokens.type.eyebrow,
+    color: tokens.colors.textMuted,
     marginBottom: 8,
   },
   title: {
+    ...tokens.type.title,
     color: tokens.colors.textPrimary,
-    fontSize: 24,
-    fontWeight: '800',
     textAlign: 'center',
     marginBottom: 10,
   },
   message: {
+    ...tokens.type.body,
     color: tokens.colors.textMuted,
-    fontSize: 15,
     marginBottom: 20,
     textAlign: 'center',
-    lineHeight: 21,
   },
   permBtn: {
     backgroundColor: tokens.colors.accent,
@@ -179,7 +175,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: tokens.radius.md,
   },
-  permBtnText: {color: '#fff', fontWeight: '700'},
+  permBtnText: {...tokens.type.body, fontWeight: '700', color: tokens.onAccent.primary},
   overlay: {
     flex: 1,
     justifyContent: 'space-between',
@@ -211,5 +207,5 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: tokens.radius.md,
   },
-  cancelBtnText: {color: '#fff', fontWeight: '700', fontSize: 16},
+  cancelBtnText: {...tokens.type.action, color: tokens.onAccent.primary},
 });

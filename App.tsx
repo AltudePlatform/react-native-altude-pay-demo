@@ -4,7 +4,7 @@
  * Entry point. Hydrates persisted client state on startup,
  * then delegates to the navigation tree.
  */
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {StatusBar, View, ActivityIndicator, StyleSheet, Text} from 'react-native';
@@ -136,30 +136,25 @@ function AppContent(): React.JSX.Element {
     };
   }, [hydrateWallet, setWallet]);
 
-  const handleOnboardingComplete = async (profile: UserProfile) => {
-    const existingProfile = await getUserProfile();
-    if (!existingProfile) {
-      await saveUserProfile(profile);
-    }
+  const handleOnboardingComplete = useCallback(
+    async (profile: UserProfile) => {
+      const existingProfile = await getUserProfile();
+      if (!existingProfile) {
+        await saveUserProfile(profile);
+      }
 
-    // Ensure a persisted wallet exists when the user finishes onboarding.
-    // If none is stored (e.g. storage was cleared or generation skipped earlier),
-    // generate one now, persist it, hydrate the in-memory store, and top-up.
-    try {
+      // Let failures surface so the Preparing screen can offer a retry.
       const wallet = await withTimeout(
         ensureDemoAccount(),
         12_000,
-        'Wallet generation timed out',
+        'Setting up your account took too long. Check your connection and try again.',
       );
       hydrateWallet(wallet);
 
-      // Kick off background airdrop to keep UX smooth.
-    } catch {
-      // Ignore onboarding-time wallet generation errors; still continue to dashboard.
-    }
-
-    setOnboardingComplete(true);
-  };
+      setOnboardingComplete(true);
+    },
+    [hydrateWallet],
+  );
 
   const handleLogout = async () => {
     await Promise.all([clearUserProfile(), useWalletStore.getState().removeWallet()]);

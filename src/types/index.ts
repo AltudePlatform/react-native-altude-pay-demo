@@ -5,6 +5,9 @@ export type MainTabParamList = {
 
 export type RootStackParamList = {
   Onboarding: undefined;
+  Preparing: {
+    profile: UserProfile;
+  };
   MainTabs: undefined;
   History: undefined;
   QR: undefined;
@@ -13,7 +16,22 @@ export type RootStackParamList = {
     amount: string;
     recipient?: string;
   };
+  PaymentStatus: {
+    amount: string;
+    recipient: string;
+  };
+  Receipt: {
+    signature: string;
+  };
 };
+
+export interface AltudeHistoryEntry {
+  signature: string;
+  createdAt: string | null;
+  transactionType: number;
+  transactionStatus: number | null;
+  error: string | null;
+}
 
 export interface WalletInfo {
   publicKey: string;

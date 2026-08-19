@@ -7,18 +7,17 @@ import {
   TouchableOpacity,
   RefreshControl,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 
 import {useBalance} from '../hooks/useBalance';
-import {getHistory} from '../services/storage';
+import {getAccountPaymentHistory, transactionTypeLabel} from '../services/altudeHistory';
 import {useWalletStore} from '../store/walletStore';
-import {generateDemoWallet, truncateAddress} from '../services/solana';
+import {truncateAddress} from '../services/solana';
 import BalanceCard from '../components/BalanceCard';
-import {RootStackParamList, TransactionRecord} from '../types';
+import {AltudeHistoryEntry, RootStackParamList} from '../types';
 import {tokens} from '../theme/tokens';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
@@ -30,13 +29,10 @@ type HomeScreenProps = {
 export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Element {
   const navigation = useNavigation<NavProp>();
   const wallet = useWalletStore(s => s.wallet);
-  const setWallet = useWalletStore(s => s.setWallet);
 
   const {data: balance, isLoading, refetch} = useBalance();
-  const [historyPreview, setHistoryPreview] = useState<TransactionRecord[]>([]);
-  const [isAutoCreatingWallet, setIsAutoCreatingWallet] = useState(false);
-  const [walletCreationError, setWalletCreationError] = useState<string | null>(null);
-  const [hasAttemptedAutoCreate, setHasAttemptedAutoCreate] = useState(false);
+  const [historyPreview, setHistoryPreview] = useState<AltudeHistoryEntry[]>([]);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   const hasWallet = typeof wallet?.publicKey === 'string' && wallet.publicKey.length > 0;
 
@@ -63,58 +59,24 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
     );
   }, [onLogout]);
 
-  // Best-effort wallet auto-create if startup hydration did not provide one.
-  React.useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      if (hasWallet || isAutoCreatingWallet || hasAttemptedAutoCreate) {return;}
-
-      try {
-        setHasAttemptedAutoCreate(true);
-        setIsAutoCreatingWallet(true);
-        setWalletCreationError(null);
-        const newWallet = await Promise.race([
-          generateDemoWallet(),
-          new Promise<never>((_, reject) => {
-            setTimeout(() => reject(new Error('Wallet generation timed out')), 12_000);
-          }),
-        ]);
-        if (cancelled) return;
-        await setWallet(newWallet);
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : 'Could not create account right now.';
-        if (!cancelled) {
-          setWalletCreationError(message);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsAutoCreatingWallet(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [hasAttemptedAutoCreate, hasWallet, isAutoCreatingWallet, setWallet]);
-
   const handleOpenHistory = useCallback(() => {
     navigation.navigate('History');
   }, [navigation]);
 
   const loadHistoryPreview = useCallback(async () => {
-    if (!hasWallet) {
+    if (!wallet?.publicKey) {
       setHistoryPreview([]);
       return;
     }
 
-    const history = await getHistory();
-    setHistoryPreview(history.slice(0, 5));
-  }, [hasWallet]);
+    try {
+      setHistoryError(null);
+      setHistoryPreview(await getAccountPaymentHistory(wallet.publicKey, 5));
+    } catch {
+      setHistoryError('Activity could not be loaded.');
+      setHistoryPreview([]);
+    }
+  }, [wallet?.publicKey]);
 
   useFocusEffect(
     useCallback(() => {
@@ -170,14 +132,9 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
 
       {!hasWallet && (
         <View style={styles.noWallet}>
-          <ActivityIndicator size="large" color={tokens.colors.accent} />
-          <Text style={styles.noWalletText}>
-            {isAutoCreatingWallet ? 'Creating your wallet…' : 'Preparing wallet…'}
-          </Text>
+          <Text style={styles.noWalletText}>No account on this device</Text>
           <Text style={styles.noWalletSubtext}>
-            {walletCreationError
-              ? `Wallet setup failed: ${walletCreationError}. Retrying automatically...`
-              : 'Please wait while we automatically prepare your account.'}
+            Log out and set up again to start paying.
           </Text>
         </View>
       )}
@@ -199,19 +156,29 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
             </View>
 
             {historyPreview.length === 0 ? (
-              <Text style={styles.historyEmpty}>No payments yet. Your latest activity will show here.</Text>
+              <Text style={styles.historyEmpty}>
+                {historyError ?? 'No payments yet. Your latest activity will show here.'}
+              </Text>
             ) : (
               historyPreview.map(item => (
-                <View style={styles.historyRow} key={item.id}>
+                <TouchableOpacity
+                  style={styles.historyRow}
+                  key={item.signature}
+                  onPress={() =>
+                    navigation.navigate('Receipt', {signature: item.signature})
+                  }>
                   <View style={styles.historyRowLeft}>
-                    <Text style={styles.historyPerson}>{truncateAddress(item.recipient, 6)}</Text>
-                    <Text style={styles.historyMeta}>{new Date(item.date).toLocaleDateString()}</Text>
+                    <Text style={styles.historyPerson}>
+                      {transactionTypeLabel(item.transactionType)}
+                    </Text>
+                    <Text style={styles.historyMeta}>
+                      {truncateAddress(item.signature, 8)}
+                    </Text>
                   </View>
                   <View style={styles.historyRowRight}>
-                    <Text style={styles.historyAmount}>-{`$${item.amount.toFixed(2)}`}</Text>
-                    <Text style={styles.historyStatus}>{item.status}</Text>
+                    <Text style={styles.historyStatus}>Receipt</Text>
                   </View>
-                </View>
+                </TouchableOpacity>
               ))
             )}
           </View>
@@ -268,25 +235,21 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   kicker: {
-    color: 'rgba(255,255,255,0.92)',
-    fontWeight: '800',
-    letterSpacing: 1,
-    fontSize: 11,
+    ...tokens.type.eyebrow,
+    color: tokens.onAccent.secondary,
     flexShrink: 1,
   },
   heroTitle: {
-    color: '#ffffff',
+    ...tokens.type.title,
     fontSize: 28,
     lineHeight: 34,
-    fontWeight: '800',
-    letterSpacing: 0.3,
+    color: tokens.onAccent.primary,
   },
   heroSubtitle: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 14,
+    ...tokens.type.body,
+    color: tokens.onAccent.secondary,
     marginTop: 10,
     maxWidth: '90%',
-    lineHeight: 20,
   },
   heroTopAction: {
     position: 'absolute',
@@ -301,9 +264,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.16)',
   },
   heroSecondaryActionText: {
-    color: '#ffffff',
-    fontSize: 12,
+    ...tokens.type.caption,
     fontWeight: '700',
+    color: tokens.onAccent.primary,
     textAlign: 'center',
   },
   historyCard: {
@@ -322,19 +285,18 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   historyTitle: {
+    ...tokens.type.heading,
     color: tokens.colors.textPrimary,
-    fontSize: 15,
-    fontWeight: '700',
   },
   historyViewAll: {
-    color: tokens.colors.accent,
-    fontSize: 13,
+    ...tokens.type.label,
     fontWeight: '700',
+    color: tokens.colors.accent,
   },
   historyEmpty: {
+    ...tokens.type.label,
+    fontWeight: '500',
     color: tokens.colors.textMuted,
-    fontSize: 13,
-    lineHeight: 19,
     paddingVertical: 8,
   },
   historyRow: {
@@ -351,29 +313,21 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   historyPerson: {
+    ...tokens.type.label,
     color: tokens.colors.textPrimary,
-    fontSize: 14,
-    fontWeight: '600',
-    fontFamily: 'monospace',
   },
   historyMeta: {
+    ...tokens.type.mono,
     color: tokens.colors.textMuted,
-    fontSize: 11,
     marginTop: 2,
   },
   historyRowRight: {
     alignItems: 'flex-end',
   },
-  historyAmount: {
-    color: tokens.colors.accentDark,
-    fontSize: 14,
-    fontWeight: '700',
-  },
   historyStatus: {
-    color: tokens.colors.textMuted,
-    fontSize: 11,
-    marginTop: 2,
-    textTransform: 'capitalize',
+    ...tokens.type.label,
+    fontWeight: '700',
+    color: tokens.colors.accent,
   },
   noWallet: {
     alignItems: 'center',
@@ -386,15 +340,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   noWalletText: {
-    color: tokens.colors.textPrimary,
+    ...tokens.type.title,
     fontSize: 20,
-    fontWeight: '700',
+    lineHeight: 26,
+    color: tokens.colors.textPrimary,
   },
   noWalletSubtext: {
+    ...tokens.type.body,
     color: tokens.colors.textMuted,
-    fontSize: 14,
     textAlign: 'center',
-    lineHeight: 20,
     marginBottom: 8,
   },
 });

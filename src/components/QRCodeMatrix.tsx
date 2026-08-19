@@ -8,6 +8,8 @@ import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
+import {tokens} from '../theme/tokens';
+
 interface Props {
   value: string;
   size?: number;
@@ -43,7 +45,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   placeholderText: {
-    color: '#999',
-    fontSize: 14,
+    ...tokens.type.body,
+    color: tokens.colors.textMuted,
   },
 });

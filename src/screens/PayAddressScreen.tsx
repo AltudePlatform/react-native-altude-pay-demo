@@ -7,18 +7,18 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
-  ActivityIndicator,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 
-import {usePayment} from '../hooks/usePayment';
+import {useBalance} from '../hooks/useBalance';
+import {InsufficientBalanceNotice} from '../components/InsufficientBalanceNotice';
 import {getRecentRecipients, getUserPreferences} from '../services/storage';
 import {isValidSolanaAddress, truncateAddress} from '../services/solana';
 import {useWalletStore} from '../store/walletStore';
-import {RootStackParamList, TransactionRecord} from '../types';
+import {RootStackParamList} from '../types';
 import {tokens} from '../theme/tokens';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
@@ -30,13 +30,16 @@ export default function PayAddressScreen(): React.JSX.Element {
   const route = useRoute<RouteType>();
 
   const wallet = useWalletStore(s => s.wallet);
-  const {mutate: sendPayment, isPending} = usePayment();
+  const {data: balance, isLoading: isBalanceLoading} = useBalance();
+  const availableBalance = balance?.usdcBalance;
 
   const [recipient, setRecipient] = useState(route.params.recipient ?? '');
   const [recentRecipients, setRecentRecipients] = useState<string[]>([]);
 
   const amount = route.params.amount;
   const parsedAmount = useMemo(() => parseFloat(amount), [amount]);
+  const exceedsBalance =
+    availableBalance !== undefined && parsedAmount > availableBalance;
 
   useEffect(() => {
     getRecentRecipients().then(setRecentRecipients);
@@ -61,6 +64,16 @@ export default function PayAddressScreen(): React.JSX.Element {
       return 'Amount is invalid. Return to Pay and enter a valid amount.';
     }
 
+    if (availableBalance === undefined) {
+      return 'Your balance has not loaded yet. Wait a moment and try again.';
+    }
+
+    if (parsedAmount > availableBalance) {
+      return `You only have $${availableBalance.toFixed(
+        2,
+      )} available. Enter a smaller amount.`;
+    }
+
     if (!isValidSolanaAddress(recipient)) {
       return 'Enter a valid recipient address.';
     }
@@ -74,27 +87,7 @@ export default function PayAddressScreen(): React.JSX.Element {
     }
 
     return null;
-  }, [parsedAmount, recipient, wallet]);
-
-  const handlePaymentSuccess = useCallback(
-    async (record: TransactionRecord) => {
-      if (record.status === 'confirmed') {
-        Alert.alert(
-          'Payment confirmed',
-          `Payment was confirmed.\n\nReference:\n${record.signature.slice(0, 20)}...`,
-          [{text: 'OK', onPress: () => navigation.navigate('History')}],
-        );
-        return;
-      }
-
-      Alert.alert(
-        'Payment submitted',
-        `Payment was sent successfully. Confirmation is still pending.\n\nReference:\n${record.signature.slice(0, 20)}...`,
-        [{text: 'OK', onPress: () => navigation.navigate('History')}],
-      );
-    },
-    [navigation],
-  );
+  }, [availableBalance, parsedAmount, recipient, wallet]);
 
   const handleSubmit = useCallback(async () => {
     const error = validate();
@@ -105,24 +98,8 @@ export default function PayAddressScreen(): React.JSX.Element {
 
     const preferences = await getUserPreferences();
 
-    const submit = () => {
-      sendPayment(
-        {
-          recipientAddress: recipient,
-          amount: parsedAmount,
-        },
-        {
-          onSuccess: record => {
-            handlePaymentSuccess(record).catch(() => {
-              Alert.alert('Error', 'Payment succeeded, but the UI could not update.');
-            });
-          },
-          onError: err => {
-            Alert.alert('Payment Failed', (err as Error).message);
-          },
-        },
-      );
-    };
+    const submit = () =>
+      navigation.navigate('PaymentStatus', {amount, recipient});
 
     if (!preferences.confirmBeforeSending) {
       submit();
@@ -137,7 +114,7 @@ export default function PayAddressScreen(): React.JSX.Element {
         {text: 'Send', onPress: submit},
       ],
     );
-  }, [handlePaymentSuccess, parsedAmount, recipient, sendPayment, validate]);
+  }, [amount, navigation, parsedAmount, recipient, validate]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -155,7 +132,11 @@ export default function PayAddressScreen(): React.JSX.Element {
 
         <Text style={styles.kicker}>PAY TO</Text>
         <Text style={styles.amount}>{`$${amount}`}</Text>
-        <Text style={styles.heroHint}>Who are you paying?</Text>
+        <Text style={styles.heroHint}>
+          {isBalanceLoading || availableBalance === undefined
+            ? 'Checking your balance…'
+            : `$${availableBalance.toFixed(2)} available`}
+        </Text>
       </View>
 
       <View style={styles.form}>
@@ -208,15 +189,19 @@ export default function PayAddressScreen(): React.JSX.Element {
           </TouchableOpacity>
         </View>
 
+        {exceedsBalance && availableBalance !== undefined ? (
+          <InsufficientBalanceNotice available={availableBalance} />
+        ) : null}
+
         <TouchableOpacity
-          style={[styles.payBtn, isPending && styles.payBtnDisabled]}
+          style={[styles.payBtn, exceedsBalance && styles.payBtnDisabled]}
           onPress={() => {
             handleSubmit().catch(() => {
               Alert.alert('Error', 'Could not start the payment flow.');
             });
           }}
-          disabled={isPending}>
-          {isPending ? <ActivityIndicator color="#fff" /> : <Text style={styles.payBtnText}>Pay</Text>}
+          disabled={exceedsBalance}>
+          <Text style={styles.payBtnText}>Pay</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -243,20 +228,20 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   kicker: {
-    color: 'rgba(255,255,255,0.92)',
-    fontWeight: '800',
-    letterSpacing: 1,
-    fontSize: 11,
+    ...tokens.type.eyebrow,
+    color: tokens.onAccent.secondary,
   },
   amount: {
-    color: '#ffffff',
+    ...tokens.type.display,
     fontSize: 44,
+    lineHeight: 52,
     fontWeight: '900',
+    color: tokens.onAccent.primary,
     marginTop: 6,
   },
   heroHint: {
-    color: 'rgba(255,255,255,0.92)',
-    fontSize: 13,
+    ...tokens.type.label,
+    color: tokens.onAccent.secondary,
     marginTop: 6,
   },
   form: {
@@ -268,9 +253,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   label: {
-    color: tokens.colors.textPrimary,
-    fontSize: 13,
+    ...tokens.type.label,
     fontWeight: '700',
+    color: tokens.colors.textPrimary,
     marginBottom: 6,
   },
   rowHeader: {
@@ -285,14 +270,14 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   populateText: {
-    color: tokens.colors.accent,
+    ...tokens.type.caption,
     fontWeight: '700',
-    fontSize: 12,
+    color: tokens.colors.accent,
   },
   pasteText: {
-    color: tokens.colors.accent,
+    ...tokens.type.label,
     fontWeight: '800',
-    fontSize: 13,
+    color: tokens.colors.accent,
   },
   recipientList: {
     flexDirection: 'row',
@@ -309,11 +294,11 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.card,
   },
   recipientChipText: {
+    ...tokens.type.mono,
     color: tokens.colors.textPrimary,
-    fontSize: 12,
-    fontFamily: 'monospace',
   },
   input: {
+    ...tokens.type.body,
     backgroundColor: tokens.colors.card,
     borderWidth: 1,
     borderColor: tokens.colors.border,
@@ -321,7 +306,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     color: tokens.colors.textPrimary,
-    fontSize: 15,
   },
   actionsRow: {
     flexDirection: 'row',
@@ -333,12 +317,12 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.pill,
     alignItems: 'center',
     paddingVertical: 12,
-    backgroundColor: tokens.colors.accentSoft,
+    backgroundColor: tokens.colors.page,
   },
   secondaryBtnText: {
-    color: tokens.colors.accentDark,
-    fontSize: 15,
+    ...tokens.type.body,
     fontWeight: '700',
+    color: tokens.colors.textPrimary,
   },
   payBtn: {
     backgroundColor: tokens.colors.accent,
@@ -348,11 +332,10 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   payBtnDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   payBtnText: {
-    color: '#ffffff',
-    fontWeight: '800',
-    fontSize: 20,
+    ...tokens.type.action,
+    color: tokens.onAccent.primary,
   },
 });

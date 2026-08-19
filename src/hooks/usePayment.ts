@@ -7,10 +7,13 @@ import {AltudeApiError, TransactionRecord} from '../types';
 import {generateId} from '../utils/helpers';
 import {STABLE_COIN_MINT} from '../services/solana';
 
+export type PaymentStage = 'signing' | 'sending' | 'confirming';
+
 interface SendPaymentParams {
   recipientAddress: string;
   amount: number;
   memo?: string;
+  onStage?: (stage: PaymentStage) => void;
 }
 
 function toPaymentError(error: unknown): Error {
@@ -48,17 +51,20 @@ export function usePayment() {
       recipientAddress,
       amount,
       memo: _memo,
+      onStage,
     }: SendPaymentParams): Promise<TransactionRecord> => {
       try {
         if (!wallet) {
           throw new Error('No wallet connected');
         }
 
+        onStage?.('signing');
         const sourceSigner = buildSigner(wallet);
 
         // The JS gas station SDK takes raw base units, not the UI amount. USDC has 6 decimals.
         const amountBaseUnits = Math.round(amount * 1_000_000);
 
+        onStage?.('sending');
         const {signature} = await sendWithSigner(
           sourceSigner,
           recipientAddress,
@@ -66,6 +72,7 @@ export function usePayment() {
           STABLE_COIN_MINT,
         );
 
+        onStage?.('confirming');
         const isMockSignature = signature.startsWith('MOCK_SIG_');
         const status = isMockSignature
           ? {signature, status: 'confirmed' as const, confirmed: true}

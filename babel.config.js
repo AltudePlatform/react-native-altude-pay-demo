@@ -23,9 +23,10 @@ module.exports = api => {
 
   return {
     presets: ['module:@react-native/babel-preset'],
-    plugins: isTest
-      ? []
-      : [
+    plugins: [
+      ...(isTest
+        ? []
+        : [
           ({types: t}) => ({
             visitor: {
               MemberExpression(path) {
@@ -51,6 +52,9 @@ module.exports = api => {
               },
             },
           }),
-        ],
+        ]),
+      // Reanimated 4 worklet transform; must stay last in the plugin list.
+      'react-native-worklets/plugin',
+    ],
   };
 };

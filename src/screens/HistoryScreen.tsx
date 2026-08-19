@@ -5,82 +5,69 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
 import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
-import {clearHistory, getHistory, updateHistoryRecord} from '../services/storage';
-import {getTransactionStatus} from '../services/solana';
-import {TransactionRecord, TransactionStatus} from '../types';
-import TransactionItem from '../components/TransactionItem';
+
+import {getAccountPaymentHistory, transactionTypeLabel} from '../services/altudeHistory';
+import {truncateAddress} from '../services/solana';
+import {useWalletStore} from '../store/walletStore';
+import {AltudeHistoryEntry, RootStackParamList} from '../types';
 import {tokens} from '../theme/tokens';
 
+type NavProp = StackNavigationProp<RootStackParamList>;
+
 export default function HistoryScreen(): React.JSX.Element {
-  const [history, setHistory] = useState<TransactionRecord[]>([]);
+  const navigation = useNavigation<NavProp>();
+  const wallet = useWalletStore(s => s.wallet);
+  const account = wallet?.publicKey;
+
+  const [entries, setEntries] = useState<AltudeHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const refreshPendingRecords = useCallback(
-    async (records: TransactionRecord[]): Promise<TransactionRecord[]> => {
-      const updatedRecords = await Promise.all(
-        records.map(async record => {
-          if (record.status !== 'pending') {
-            return record;
-          }
-
-          const status = await getTransactionStatus(record.signature);
-          const nextStatus: TransactionStatus =
-            status.status === 'failed'
-              ? 'failed'
-              : status.confirmed
-                ? 'confirmed'
-                : 'pending';
-
-          if (nextStatus !== record.status) {
-            await updateHistoryRecord(record.id, {status: nextStatus});
-            return {...record, status: nextStatus};
-          }
-
-          return record;
-        }),
-      );
-
-      return updatedRecords;
-    },
-    [],
-  );
+  const [error, setError] = useState<string | null>(null);
 
   const loadHistory = useCallback(async () => {
+    if (!account) {
+      setEntries([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
+    setError(null);
     try {
-      const records = await getHistory();
-      const refreshed = await refreshPendingRecords(records);
-      setHistory(refreshed);
+      setEntries(await getAccountPaymentHistory(account));
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : 'Activity could not be loaded.',
+      );
     } finally {
       setLoading(false);
     }
-  }, [refreshPendingRecords]);
+  }, [account]);
 
   useEffect(() => {
     loadHistory();
   }, [loadHistory]);
 
-  const handleClear = useCallback(() => {
-    Alert.alert(
-      'Clear History',
-      'Are you sure you want to clear all locally stored transaction history?',
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {
-          text: 'Clear',
-          style: 'destructive',
-          onPress: async () => {
-            await clearHistory();
-            setHistory([]);
-          },
-        },
-      ],
-    );
-  }, []);
+  const renderItem = useCallback(
+    ({item}: {item: AltudeHistoryEntry}) => (
+      <TouchableOpacity
+        style={styles.row}
+        onPress={() => navigation.navigate('Receipt', {signature: item.signature})}>
+        <View style={styles.rowLeft}>
+          <Text style={styles.rowType}>{transactionTypeLabel(item.transactionType)}</Text>
+          <Text style={styles.rowSignature}>{truncateAddress(item.signature, 8)}</Text>
+        </View>
+        <Text style={styles.rowAction}>Solscan</Text>
+      </TouchableOpacity>
+    ),
+    [navigation],
+  );
 
   if (loading) {
     return (
@@ -96,9 +83,9 @@ export default function HistoryScreen(): React.JSX.Element {
         <Svg style={StyleSheet.absoluteFill} width="110%" height="110%">
           <Defs>
             <LinearGradient id="historyHeroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <Stop offset="0%" stopColor="#3f8cff" />
-              <Stop offset="55%" stopColor="#4f7ef4" />
-              <Stop offset="100%" stopColor="#6d5ce8" />
+              <Stop offset="0%" stopColor={tokens.gradient.heroFrom} />
+              <Stop offset="55%" stopColor={tokens.gradient.heroMid} />
+              <Stop offset="100%" stopColor={tokens.gradient.heroTo} />
             </LinearGradient>
           </Defs>
           <Rect x="0" y="0" width="100%" height="100%" fill="url(#historyHeroGradient)" />
@@ -107,36 +94,31 @@ export default function HistoryScreen(): React.JSX.Element {
         <View style={styles.heroGlowTop} />
         <View style={styles.heroGlowBottom} />
 
-        <View style={styles.heroHeaderRow}>
-          <View>
-            <Text style={styles.kicker}>ACTIVITY</Text>
-            <Text style={styles.title}>Recent Payments</Text>
-          </View>
-          {history.length > 0 && (
-            <TouchableOpacity onPress={handleClear} style={styles.clearBtnWrap}>
-              <Text style={styles.clearBtn}>Clear</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <Text style={styles.subtitle}>Your recent payment activity on this device.</Text>
+        <Text style={styles.kicker}>ACTIVITY</Text>
+        <Text style={styles.title}>Recent Payments</Text>
+        <Text style={styles.subtitle}>Tap a payment to see its details on Solscan.</Text>
       </View>
 
-      {history.length === 0 ? (
+      {entries.length === 0 ? (
         <View style={styles.empty}>
           <View style={styles.emptyBadge}>
             <Text style={styles.emptyBadgeText}>PAY</Text>
           </View>
-          <Text style={styles.emptyText}>No activity yet</Text>
-          <Text style={styles.emptySubtext}>
-            Your confirmed and pending payments will appear here.
+          <Text style={styles.emptyText}>
+            {error ? 'Activity unavailable' : 'No activity yet'}
           </Text>
+          <Text style={styles.emptySubtext}>
+            {error ?? 'Your payments will appear here once you send one.'}
+          </Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={loadHistory}>
+            <Text style={styles.retryBtnText}>Refresh</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
-          data={history}
-          keyExtractor={item => item.id}
-          renderItem={({item}) => <TransactionItem record={item} />}
+          data={entries}
+          keyExtractor={item => item.signature}
+          renderItem={renderItem}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           onRefresh={loadHistory}
@@ -169,6 +151,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     overflow: 'hidden',
     position: 'relative',
+    justifyContent: 'center',
   },
   heroGlowTop: {
     position: 'absolute',
@@ -188,57 +171,59 @@ const styles = StyleSheet.create({
     left: -18,
     backgroundColor: 'rgba(255,255,255,0.18)',
   },
-  heroHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-    gap: 10,
-  },
   kicker: {
-    color: 'rgba(255,255,255,0.92)',
-    letterSpacing: 1,
-    fontWeight: '800',
-    fontSize: 11,
+    ...tokens.type.eyebrow,
+    color: tokens.onAccent.secondary,
     marginBottom: 6,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#ffffff',
+    ...tokens.type.display,
+    color: tokens.onAccent.primary,
   },
   subtitle: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 14,
-    lineHeight: 20,
+    ...tokens.type.body,
+    color: tokens.onAccent.secondary,
     marginTop: 10,
-  },
-  clearBtnWrap: {
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.45)',
-    borderRadius: tokens.radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-  },
-  clearBtn: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '700',
   },
   list: {
     paddingBottom: 32,
   },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: tokens.colors.card,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
+    borderRadius: tokens.radius.md,
+    padding: 16,
+    marginBottom: 12,
+    gap: tokens.spacing.sm,
+  },
+  rowLeft: {
+    gap: 4,
+    flexShrink: 1,
+  },
+  rowType: {
+    ...tokens.type.heading,
+    color: tokens.colors.textPrimary,
+  },
+  rowSignature: {
+    ...tokens.type.mono,
+    color: tokens.colors.textMuted,
+  },
+  rowAction: {
+    ...tokens.type.label,
+    fontWeight: '700',
+    color: tokens.colors.accent,
+  },
   empty: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 80,
+    paddingTop: 40,
     paddingHorizontal: 20,
   },
   emptyBadge: {
-    borderWidth: 1,
-    borderColor: tokens.colors.accent,
     backgroundColor: tokens.colors.accentSoft,
     paddingHorizontal: 18,
     paddingVertical: 10,
@@ -246,21 +231,32 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyBadgeText: {
+    ...tokens.type.eyebrow,
     color: tokens.colors.accentDark,
-    fontWeight: '800',
-    letterSpacing: 0.8,
   },
   emptyText: {
+    ...tokens.type.title,
+    fontSize: 20,
+    lineHeight: 26,
     color: tokens.colors.textPrimary,
-    fontSize: 18,
-    fontWeight: '700',
     marginBottom: 8,
   },
   emptySubtext: {
+    ...tokens.type.body,
     color: tokens.colors.textMuted,
-    fontSize: 14,
     textAlign: 'center',
     paddingHorizontal: 24,
-    lineHeight: 20,
+  },
+  retryBtn: {
+    marginTop: tokens.spacing.lg,
+    borderRadius: tokens.radius.pill,
+    backgroundColor: tokens.colors.card,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  retryBtnText: {
+    ...tokens.type.body,
+    fontWeight: '700',
+    color: tokens.colors.accent,
   },
 });
