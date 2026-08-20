@@ -1,0 +1,29 @@
+# App dependencies and build artifacts
+node_modules/
+ios/build/
+android/build/
+android/.gradle/
+android/app/build/
+android/app/.cxx/
+.gradle/
+ios/Pods/
+ios/Podfile.lock
+.expo/
+
+# Generated files
+android/local.properties
+*.keystore
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+*.swp
+*.swo
