@@ -1,6 +1,23 @@
 import {generateMnemonic, deriveSolanaKeypair} from '@altude/core';
-import {Keypair, Connection, PublicKey} from '@solana/web3.js';
-import {getOrCreateAssociatedTokenAccount} from '@solana/spl-token';
+import {
+  address,
+  appendTransactionMessageInstruction,
+  createKeyPairSignerFromPrivateKeyBytes,
+  createSolanaRpc,
+  createTransactionMessage,
+  getBase64EncodedWireTransaction,
+  getSignatureFromTransaction,
+  lamports,
+  pipe,
+  setTransactionMessageFeePayerSigner,
+  setTransactionMessageLifetimeUsingBlockhash,
+  signTransactionMessageWithSigners,
+} from '@solana/kit';
+import {
+  findAssociatedTokenPda,
+  getCreateAssociatedTokenIdempotentInstruction,
+  TOKEN_PROGRAM_ADDRESS,
+} from '@solana-program/token';
 
 const DEVNET_RPC_URLS = [
   process.env.SOLANA_RPC_URL,
@@ -10,12 +27,40 @@ const DEVNET_RPC_URLS = [
 const USDC_DEVNET_MINT = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
 const COMMITMENT = 'confirmed';
 
-async function ensureDevnetFunding(connection, publicKey) {
-  const balance = await connection.getBalance(publicKey, COMMITMENT);
-  const minimumLamports = 0.05 * 1_000_000_000;
+async function confirmSignature(rpc, signature, attempts = 30, delayMs = 1000) {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const {value} = await rpc
+      .getSignatureStatuses([signature], {searchTransactionHistory: true})
+      .send();
+    const status = value?.[0];
 
-  if (balance >= minimumLamports) {
-    return balance;
+    if (status?.err) {
+      throw new Error(
+        `Transaction ${signature} failed: ${JSON.stringify(status.err)}`,
+      );
+    }
+
+    if (
+      status?.confirmationStatus === 'confirmed' ||
+      status?.confirmationStatus === 'finalized'
+    ) {
+      return;
+    }
+
+    await new Promise(resolve => setTimeout(resolve, delayMs));
+  }
+
+  throw new Error(`Timed out waiting for confirmation of ${signature}`);
+}
+
+async function ensureDevnetFunding(rpc, payerAddress) {
+  const {value: balance} = await rpc
+    .getBalance(payerAddress, {commitment: COMMITMENT})
+    .send();
+  const minimumLamports = 50_000_000n;
+
+  if (BigInt(balance) >= minimumLamports) {
+    return BigInt(balance);
   }
 
   const attempts = 4;
@@ -23,18 +68,18 @@ async function ensureDevnetFunding(connection, publicKey) {
 
   for (let i = 1; i <= attempts; i += 1) {
     try {
-      const sig = await connection.requestAirdrop(publicKey, 1_000_000_000);
-      const latest = await connection.getLatestBlockhash(COMMITMENT);
-      await connection.confirmTransaction(
-        {
-          signature: sig,
-          blockhash: latest.blockhash,
-          lastValidBlockHeight: latest.lastValidBlockHeight,
-        },
-        COMMITMENT,
-      );
+      const signature = await rpc
+        .requestAirdrop(payerAddress, lamports(1_000_000_000n), {
+          commitment: COMMITMENT,
+        })
+        .send();
 
-      return connection.getBalance(publicKey, COMMITMENT);
+      await confirmSignature(rpc, signature);
+
+      const {value: funded} = await rpc
+        .getBalance(payerAddress, {commitment: COMMITMENT})
+        .send();
+      return BigInt(funded);
     } catch (error) {
       lastError = error;
       await new Promise(resolve => setTimeout(resolve, 1000 * i));
@@ -44,13 +89,59 @@ async function ensureDevnetFunding(connection, publicKey) {
   throw lastError ?? new Error('Airdrop failed after retries');
 }
 
-async function withWorkingConnection(run) {
+async function createAssociatedTokenAccount(rpc, payer, mint) {
+  const [ata] = await findAssociatedTokenPda({
+    mint,
+    owner: payer.address,
+    tokenProgram: TOKEN_PROGRAM_ADDRESS,
+  });
+
+  const {value: latestBlockhash} = await rpc
+    .getLatestBlockhash({commitment: COMMITMENT})
+    .send();
+
+  const transactionMessage = pipe(
+    createTransactionMessage({version: 0}),
+    message => setTransactionMessageFeePayerSigner(payer, message),
+    message =>
+      setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, message),
+    message =>
+      appendTransactionMessageInstruction(
+        getCreateAssociatedTokenIdempotentInstruction({
+          payer,
+          ata,
+          owner: payer.address,
+          mint,
+          tokenProgram: TOKEN_PROGRAM_ADDRESS,
+        }),
+        message,
+      ),
+  );
+
+  const signedTransaction = await signTransactionMessageWithSigners(
+    transactionMessage,
+  );
+  const signature = getSignatureFromTransaction(signedTransaction);
+
+  await rpc
+    .sendTransaction(getBase64EncodedWireTransaction(signedTransaction), {
+      encoding: 'base64',
+      preflightCommitment: COMMITMENT,
+    })
+    .send();
+
+  await confirmSignature(rpc, signature);
+
+  return ata;
+}
+
+async function withWorkingRpc(run) {
   let lastError = null;
 
   for (const rpcUrl of DEVNET_RPC_URLS) {
     try {
-      const connection = new Connection(rpcUrl, COMMITMENT);
-      const result = await run(connection, rpcUrl);
+      const rpc = createSolanaRpc(rpcUrl);
+      const result = await run(rpc, rpcUrl);
       return result;
     } catch (error) {
       lastError = error;
@@ -66,30 +157,25 @@ async function main() {
   }
 
   const mnemonic = generateMnemonic(12);
-  const {privateKey, publicKey} = await deriveSolanaKeypair(mnemonic, 0);
+  const {privateKey} = await deriveSolanaKeypair(mnemonic, 0);
 
-  const payer = Keypair.fromSeed(privateKey);
-  const payerAddress = new PublicKey(publicKey).toBase58();
-  const mint = new PublicKey(USDC_DEVNET_MINT);
+  const payer = await createKeyPairSignerFromPrivateKeyBytes(privateKey);
+  const mint = address(USDC_DEVNET_MINT);
 
-  const result = await withWorkingConnection(async (connection, rpcUrl) => {
-    const lamports = await ensureDevnetFunding(connection, payer.publicKey);
-    const ata = await getOrCreateAssociatedTokenAccount(
-      connection,
-      payer,
-      mint,
-      payer.publicKey,
-    );
+  const result = await withWorkingRpc(async (rpc, rpcUrl) => {
+    const balance = await ensureDevnetFunding(rpc, payer.address);
+    const tokenAccount = await createAssociatedTokenAccount(rpc, payer, mint);
+
     return {
-      lamports,
-      tokenAccount: ata.address.toBase58(),
+      lamports: balance,
+      tokenAccount,
       rpcUrl,
     };
   });
 
   console.log('Devnet integration success');
   console.log(`rpc: ${result.rpcUrl}`);
-  console.log(`wallet: ${payerAddress}`);
+  console.log(`wallet: ${payer.address}`);
   console.log(`mint: ${USDC_DEVNET_MINT}`);
   console.log(`tokenAccount: ${result.tokenAccount}`);
   console.log(`lamports: ${result.lamports}`);

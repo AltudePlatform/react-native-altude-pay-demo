@@ -2,7 +2,7 @@
  * @format
  */
 
-// Must come before any module that touches crypto.getRandomValues (uuid, @solana/web3.js).
+// Must come before any module that touches crypto.getRandomValues (uuid, @solana/kit).
 import 'react-native-get-random-values';
 import {Buffer} from 'buffer';
 import {sha256} from '@noble/hashes/sha256';

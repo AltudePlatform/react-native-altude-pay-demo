@@ -18,9 +18,11 @@ describe('altudeApi service', () => {
       },
     }));
 
-    jest.doMock('@solana/web3.js', () => ({
-      Connection: jest.fn().mockImplementation(() => ({
-        getLatestBlockhash: mockGetLatestBlockhash,
+    jest.doMock('@solana/kit', () => ({
+      createSolanaRpc: jest.fn(() => ({
+        getLatestBlockhash: (...args: unknown[]) => ({
+          send: () => mockGetLatestBlockhash(...args),
+        }),
       })),
     }));
 
@@ -81,8 +83,8 @@ describe('altudeApi service', () => {
     });
 
     mockGetLatestBlockhash
-      .mockResolvedValueOnce({blockhash: 'lower_hash'})
-      .mockResolvedValueOnce({blockhash: 'upper_hash'});
+      .mockResolvedValueOnce({value: {blockhash: 'lower_hash'}})
+      .mockResolvedValueOnce({value: {blockhash: 'upper_hash'}});
 
     await expect(getTransactionBlockhash()).resolves.toBe('lower_hash');
     await expect(getTransactionBlockhash()).resolves.toBe('upper_hash');

@@ -23,26 +23,26 @@ const CONFIG_CACHE_TTL_MS = 30_000;
 let cachedConfig: AltudeTransactionConfig | null = null;
 let cachedConfigAt = 0;
 const COMMITMENT: Commitment = 'confirmed';
-const connectionByRpcUrl = new Map<string, any>();
+const rpcByUrl = new Map<string, any>();
 
-async function getConnection(rpcUrl: string): Promise<any> {
-  const cached = connectionByRpcUrl.get(rpcUrl);
+async function getRpc(rpcUrl: string): Promise<any> {
+  const cached = rpcByUrl.get(rpcUrl);
   if (cached) {
     return cached;
   }
 
-  async function loadWeb3(): Promise<{Connection: new (rpcUrl: string, commitment: Commitment) => any}> {
+  async function loadKit(): Promise<{createSolanaRpc: (rpcUrl: string) => any}> {
     try {
       // Jest's CommonJS runtime handles require() here more reliably than import().
-      return require('@solana/web3.js');
+      return require('@solana/kit');
     } catch {
-      return await import('@solana/web3.js');
+      return await import('@solana/kit');
     }
   }
 
-  const {Connection} = await loadWeb3();
-  const next = new Connection(rpcUrl, COMMITMENT);
-  connectionByRpcUrl.set(rpcUrl, next);
+  const {createSolanaRpc} = await loadKit();
+  const next = createSolanaRpc(rpcUrl);
+  rpcByUrl.set(rpcUrl, next);
   return next;
 }
 
@@ -251,9 +251,9 @@ export async function getTransactionBlockhash(): Promise<string> {
   validateApiKey();
 
   const config = await getTransactionConfig();
-  const connection = await getConnection(config.RpcUrl);
-  const payload = await connection.getLatestBlockhash(COMMITMENT);
-  return parseBlockhash(payload);
+  const rpc = await getRpc(config.RpcUrl);
+  const response = await rpc.getLatestBlockhash({commitment: COMMITMENT}).send();
+  return parseBlockhash(response?.value ?? response);
 }
 
 export async function sendTransactionToAltude(

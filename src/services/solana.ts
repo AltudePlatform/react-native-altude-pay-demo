@@ -31,7 +31,7 @@ export const USDC_DEVNET_MINT = STABLE_COIN_MINT;
 const SOLANA_DERIVATION_PATH = "m/44'/501'/0'/0'";
 const COMMITMENT: Commitment = 'confirmed';
 const DEFAULT_RPC_URL = 'https://api.devnet.solana.com';
-const connectionByRpcUrl = new Map<string, any>();
+const rpcByUrl = new Map<string, any>();
 type CryptoWithRandomValues = {
   getRandomValues?: (...args: any[]) => unknown;
 };
@@ -42,27 +42,17 @@ export async function getAccountHistory(
   limit: number,
   page: number,
 ): Promise<TransactionSummary[]> {
-  const connection = await getConnection(DEFAULT_RPC_URL);
-  const {PublicKey} = await loadWeb3();
-  const publicKey = new PublicKey(walletAddress);
+  const rpc = await getRpc(DEFAULT_RPC_URL);
+  const {address} = await loadKit();
 
-  const signatures = await connection.getSignaturesForAddress(
-    publicKey,
-    {
-      limit,
-    },
-  );
+  const signatures: Array<{signature: string}> = await rpc
+    .getSignaturesForAddress(address(walletAddress), {limit})
+    .send();
 
   const transactions = await Promise.all(
     signatures.map(async sigInfo => {
       try {
-        const tx = await connection.getTransaction(
-          sigInfo.signature,
-          {
-            commitment: 'confirmed',
-            maxSupportedTransactionVersion: 0,
-          },
-        );
+        const tx = await fetchTransaction(rpc, sigInfo.signature);
 
         if (!tx) {
           return null;
@@ -93,16 +83,10 @@ export async function getSignatureHistory(
   walletAddress: string,
   signature: string,
 ): Promise<TransactionSummary | null> {
-  const connection = await getConnection(DEFAULT_RPC_URL);
+  const rpc = await getRpc(DEFAULT_RPC_URL);
 
   try {
-    const tx = await connection.getTransaction(
-      signature,
-      {
-        commitment: 'confirmed',
-        maxSupportedTransactionVersion: 0,
-      },
-    );
+    const tx = await fetchTransaction(rpc, signature);
 
     if (!tx) {
       return null;
@@ -142,19 +126,17 @@ function getWalletBalanceChange(
     return 0;
   }
 
-  const accountKeys = tx.transaction.message.staticAccountKeys;
+  const accountKeys: string[] = tx.transaction?.message?.accountKeys ?? [];
 
-  const index = accountKeys.findIndex(
-    (key: { toBase58: () => string }) => key.toBase58() === walletAddress,
-  );
+  const index = accountKeys.indexOf(walletAddress);
 
   if (index === -1) {
     return 0;
   }
 
   return (
-    (meta.postBalances[index] ?? 0) -
-    (meta.preBalances[index] ?? 0)
+    Number(meta.postBalances?.[index] ?? 0) -
+    Number(meta.preBalances?.[index] ?? 0)
   );
 }
 
@@ -317,8 +299,10 @@ function summarizeTransaction(
   if (tokenTransfer) {
     return {
       signature,
-      slot: tx.slot,
-      blockTime: tx.blockTime ?? null,
+      slot: Number(tx.slot),
+      blockTime: tx.blockTime === null || tx.blockTime === undefined
+        ? null
+        : Number(tx.blockTime),
       status: meta?.err
         ? 'failed'
         : 'success',
@@ -349,8 +333,10 @@ function summarizeTransaction(
 
   return {
     signature,
-    slot: tx.slot,
-    blockTime: tx.blockTime ?? null,
+    slot: Number(tx.slot),
+    blockTime: tx.blockTime === null || tx.blockTime === undefined
+      ? null
+      : Number(tx.blockTime),
     status: meta?.err
       ? 'failed'
       : 'success',
@@ -451,32 +437,39 @@ async function loadNobleEd25519(): Promise<any> {
   }
 }
 
-async function loadWeb3(): Promise<any> {
-  if (typeof process !== 'undefined' && process.env.JEST_WORKER_ID) {
-    return require('@solana/web3.js/lib/index.cjs.js');
-  }
+async function loadKit(): Promise<any> {
   try {
-    return require('@solana/web3.js');
+    return require('@solana/kit');
   } catch {
-    return await import('@solana/web3.js');
+    return await import('@solana/kit');
   }
 }
 
-async function loadSplToken(): Promise<any> {
+async function loadTokenProgram(): Promise<any> {
   try {
-    return require('@solana/spl-token');
+    return require('@solana-program/token');
   } catch {
-    return await import('@solana/spl-token');
+    return await import('@solana-program/token');
   }
 }
 
-async function getConnection(rpcUrl = DEFAULT_RPC_URL): Promise<any> {
-  const cached = connectionByRpcUrl.get(rpcUrl);
+async function getRpc(rpcUrl = DEFAULT_RPC_URL): Promise<any> {
+  const cached = rpcByUrl.get(rpcUrl);
   if (cached) {return cached;}
-  const {Connection} = await loadWeb3();
-  const next = new Connection(rpcUrl, COMMITMENT);
-  connectionByRpcUrl.set(rpcUrl, next);
+  const {createSolanaRpc} = await loadKit();
+  const next = createSolanaRpc(rpcUrl);
+  rpcByUrl.set(rpcUrl, next);
   return next;
+}
+
+async function fetchTransaction(rpc: any, txSignature: string): Promise<any> {
+  return rpc
+    .getTransaction(txSignature, {
+      commitment: COMMITMENT,
+      encoding: 'json',
+      maxSupportedTransactionVersion: 0,
+    })
+    .send();
 }
 
 export function bytesToHex(bytes: Uint8Array): string {
@@ -564,31 +557,60 @@ export interface DevnetTokenAccountOptions {
   strict?: boolean;
 }
 
-async function ensureDevnetFunding(
-  connection: any,
-  payerPublicKey: any,
+async function confirmSignature(
+  rpc: any,
+  txSignature: string,
+  attempts = 20,
+  delayMs = 1_000,
 ): Promise<void> {
-  const balance = await connection.getBalance(payerPublicKey);
-  const minimumBalanceLamports = 0.05 * 1_000_000_000;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const {value} = await rpc
+      .getSignatureStatuses([txSignature], {searchTransactionHistory: true})
+      .send();
+    const status = value?.[0];
 
-  if (balance >= minimumBalanceLamports) {
+    if (status?.err) {
+      throw new Error(
+        `Transaction ${txSignature} failed: ${JSON.stringify(status.err)}`,
+      );
+    }
+
+    if (
+      status?.confirmationStatus === 'confirmed' ||
+      status?.confirmationStatus === 'finalized'
+    ) {
+      return;
+    }
+
+    await new Promise<void>(resolve => {
+      setTimeout(() => resolve(), delayMs);
+    });
+  }
+
+  throw new Error(`Timed out waiting for confirmation of ${txSignature}`);
+}
+
+async function ensureDevnetFunding(
+  rpc: any,
+  payerAddress: string,
+): Promise<void> {
+  const {lamports} = await loadKit();
+  const {value: balance} = await rpc
+    .getBalance(payerAddress, {commitment: COMMITMENT})
+    .send();
+  const minimumBalanceLamports = 50_000_000n;
+
+  if (BigInt(balance) >= minimumBalanceLamports) {
     return;
   }
 
-  const airdropLamports = 1_000_000_000;
-  const signature = await connection.requestAirdrop(
-    payerPublicKey,
-    airdropLamports,
-  );
-  const latest = await connection.getLatestBlockhash(COMMITMENT);
-  await connection.confirmTransaction(
-    {
-      signature,
-      blockhash: latest.blockhash,
-      lastValidBlockHeight: latest.lastValidBlockHeight,
-    },
-    COMMITMENT,
-  );
+  const airdropSignature = await rpc
+    .requestAirdrop(payerAddress, lamports(1_000_000_000n), {
+      commitment: COMMITMENT,
+    })
+    .send();
+
+  await confirmSignature(rpc, airdropSignature);
 }
 
 export async function createDevnetTokenAccount(
@@ -600,36 +622,82 @@ export async function createDevnetTokenAccount(
     throw new Error('Devnet token account creation is only supported on devnet');
   }
 
-  const {Keypair, PublicKey} = await loadWeb3();
   const {
-    getOrCreateAssociatedTokenAccount,
-    getAssociatedTokenAddress,
-  } = await loadSplToken();
-  const connection = await getConnection(DEFAULT_RPC_URL);
-  const payer = Keypair.fromSeed(hexToBytes(wallet.privateKey));
-  const mintPublicKey = new PublicKey(mint);
+    address,
+    appendTransactionMessageInstruction,
+    createKeyPairSignerFromPrivateKeyBytes,
+    createTransactionMessage,
+    getBase64EncodedWireTransaction,
+    getSignatureFromTransaction,
+    pipe,
+    setTransactionMessageFeePayerSigner,
+    setTransactionMessageLifetimeUsingBlockhash,
+    signTransactionMessageWithSigners,
+  } = await loadKit();
+  const {
+    findAssociatedTokenPda,
+    getCreateAssociatedTokenIdempotentInstruction,
+    TOKEN_PROGRAM_ADDRESS,
+  } = await loadTokenProgram();
+
+  const rpc = await getRpc(DEFAULT_RPC_URL);
+  const payer = await createKeyPairSignerFromPrivateKeyBytes(
+    hexToBytes(wallet.privateKey),
+  );
+  const mintAddress = address(mint);
   const strict = options?.strict ?? false;
 
-  if (!options?.skipFunding) {
-    await ensureDevnetFunding(connection, payer.publicKey);
-  }
-
-  const ataAddress = await getAssociatedTokenAddress(
-    mintPublicKey,
-    payer.publicKey,
-  );
+  const [ataAddress] = await findAssociatedTokenPda({
+    mint: mintAddress,
+    owner: payer.address,
+    tokenProgram: TOKEN_PROGRAM_ADDRESS,
+  });
 
   try {
-    const tokenAccount = await getOrCreateAssociatedTokenAccount(
-      connection,
-      payer,
-      mintPublicKey,
-      payer.publicKey,
+    if (!options?.skipFunding) {
+      await ensureDevnetFunding(rpc, payer.address);
+    }
+
+    const {value: latestBlockhash} = await rpc
+      .getLatestBlockhash({commitment: COMMITMENT})
+      .send();
+
+    // Idempotent: succeeds whether or not the associated token account exists.
+    const transactionMessage = pipe(
+      createTransactionMessage({version: 0}),
+      (message: any) => setTransactionMessageFeePayerSigner(payer, message),
+      (message: any) =>
+        setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, message),
+      (message: any) =>
+        appendTransactionMessageInstruction(
+          getCreateAssociatedTokenIdempotentInstruction({
+            payer,
+            ata: ataAddress,
+            owner: payer.address,
+            mint: mintAddress,
+            tokenProgram: TOKEN_PROGRAM_ADDRESS,
+          }),
+          message,
+        ),
     );
+
+    const signedTransaction = await signTransactionMessageWithSigners(
+      transactionMessage,
+    );
+    const txSignature = getSignatureFromTransaction(signedTransaction);
+
+    await rpc
+      .sendTransaction(getBase64EncodedWireTransaction(signedTransaction), {
+        encoding: 'base64',
+        preflightCommitment: COMMITMENT,
+      })
+      .send();
+
+    await confirmSignature(rpc, txSignature);
 
     return {
       wallet,
-      tokenAccountAddress: tokenAccount.address.toBase58(),
+      tokenAccountAddress: ataAddress,
       mint,
       created: true,
     };
@@ -643,7 +711,7 @@ export async function createDevnetTokenAccount(
 
     return {
       wallet,
-      tokenAccountAddress: ataAddress.toBase58(),
+      tokenAccountAddress: ataAddress,
       mint,
       created: false,
       error: message,
@@ -727,11 +795,11 @@ export async function getTransactionStatus(
     };
   }
 
-  const connection = await getConnection(rpcUrl ?? DEFAULT_RPC_URL);
-  const statuses = await connection.getSignatureStatuses([signature], {
-    searchTransactionHistory: true,
-  });
-  const status = statuses.value[0];
+  const rpc = await getRpc(rpcUrl ?? DEFAULT_RPC_URL);
+  const statuses = await rpc
+    .getSignatureStatuses([signature], {searchTransactionHistory: true})
+    .send();
+  const status = statuses.value?.[0];
 
   if (!status) {
     return {signature, status: 'pending', confirmed: false};
@@ -742,7 +810,7 @@ export async function getTransactionStatus(
       signature,
       status: 'failed',
       confirmed: false,
-      slot: status.slot,
+      slot: Number(status.slot),
       error: JSON.stringify(status.err),
     };
   }
@@ -755,7 +823,7 @@ export async function getTransactionStatus(
     signature,
     status: confirmed ? 'confirmed' : 'pending',
     confirmed,
-    slot: status.slot,
+    slot: Number(status.slot),
   };
 }
 

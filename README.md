@@ -18,8 +18,8 @@ A standalone React Native app that demonstrates USDC payments on Solana Devnet u
 | React Navigation | Screen navigation |
 | Zustand | Local wallet state |
 | TanStack Query | Solana RPC caching |
-| `@solana/web3.js` | Solana RPC and signing |
-| `@solana/spl-token` | SPL token transfers |
+| `@solana/kit` | Solana RPC, transactions and signing |
+| `@solana-program/token` | SPL token / associated token accounts |
 | `react-native-vision-camera` | QR code scanning |
 | `react-native-svg` / `react-native-qrcode-svg` | QR rendering |
 | AsyncStorage | Local persistence |
