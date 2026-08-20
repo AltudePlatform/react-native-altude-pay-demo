@@ -36,9 +36,23 @@ const config = {
 		},
 		// Keep Metro from indexing huge generated native build directories.
 		blockList: [
-			new RegExp(`${path.resolve(__dirname, 'android', 'build').replace(/[/\\]/g, '[/\\\\]')}.*`),
-			new RegExp(`${path.resolve(__dirname, 'android', 'app', 'build').replace(/[/\\]/g, '[/\\\\]')}.*`),
+			new RegExp(
+				`${path
+				.resolve(__dirname, 'android', 'build')
+				.replace(/[/\\]/g, '[/\\\\]')}.*`,
+			),
+			new RegExp(
+				`${path
+				.resolve(__dirname, 'android', 'app', 'build')
+				.replace(/[/\\]/g, '[/\\\\]')}.*`,
+			),
+
+			// Don't let Metro watch generated Android build directories.
 			/.*[\\/]node_modules[\\/].*[\\/]android[\\/]build[\\/].*/,
+
+			// Don't let Metro watch CMake's temporary directories.
+			/.*[\\/]node_modules[\\/].*[\\/]android[\\/]\.cxx[\\/].*/,
+			/.*[\\/]android[\\/]\.cxx[\\/].*/,
 		],
 	},
 };
