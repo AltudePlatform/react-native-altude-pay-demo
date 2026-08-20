@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="t d">
+  <title id="t">What the user has to do, with and without Altude</title>
+  <desc id="d">Two columns. A typical crypto payment requires five things joined by a broken dashed line: create a wallet, buy SOL to pay network fees, wait for the SOL to arrive, approve the transaction, and keep a SOL balance topped up. With Altude Pay there are two, joined by one unbroken line: enter an amount and approve the payment, ending in a confirmed payment.</desc>
+
+  <rect x="0" y="0" width="1600" height="900" rx="24" fill="#071922"/>
+  <rect x="0.75" y="0.75" width="1598.5" height="898.5" rx="23.25" fill="none" stroke="#24454F" stroke-width="1.5"/>
+
+  <g font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+
+    <text x="88" y="96" font-size="12" font-weight="700" letter-spacing="2.2" fill="#8FA3AD">WHAT THE USER HAS TO DO</text>
+
+    <line x1="800" y1="212" x2="800" y2="764" stroke="#17323C" stroke-width="1.5"/>
+
+    <text x="88" y="164" font-size="28" font-weight="800" letter-spacing="-0.4" fill="#F2EFE9">Typical crypto payment</text>
+    <text x="880" y="164" font-size="28" font-weight="800" letter-spacing="-0.4" fill="#F2EFE9">With Altude Pay</text>
+
+    <path d="M120 280 L120 728" fill="none" stroke="#E8B96B" stroke-width="3" stroke-linecap="round" stroke-dasharray="4 16"/>
+    <g fill="#071922" stroke="#E8B96B" stroke-width="2.5">
+      <circle cx="120" cy="280" r="9"/>
+      <circle cx="120" cy="392" r="9"/>
+      <circle cx="120" cy="504" r="9"/>
+      <circle cx="120" cy="616" r="9"/>
+      <circle cx="120" cy="728" r="9"/>
+    </g>
+    <g font-size="20" font-weight="600" fill="#F2EFE9">
+      <text x="164" y="287">Create a wallet</text>
+      <text x="164" y="399">Buy SOL to pay network fees</text>
+      <text x="164" y="511">Wait for the SOL to arrive</text>
+      <text x="164" y="623">Approve the transaction</text>
+      <text x="164" y="735">Keep a SOL balance topped up</text>
+    </g>
+
+    <path d="M912 280 L912 560" fill="none" stroke="#F2EFE9" stroke-width="3.5" stroke-linecap="round"/>
+    <g fill="#071922" stroke="#3DBFF2" stroke-width="3">
+      <circle cx="912" cy="280" r="10"/>
+      <circle cx="912" cy="392" r="10"/>
+    </g>
+    <g fill="none" stroke="#3DBFF2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M907 282.5 L912 277.5 L917 282.5"/>
+      <path d="M907 394.5 L912 389.5 L917 394.5"/>
+    </g>
+    <g font-size="20" font-weight="600" fill="#F2EFE9">
+      <text x="956" y="287">Enter an amount</text>
+      <text x="956" y="399">Approve the payment</text>
+    </g>
+
+    <circle cx="912" cy="560" r="22" fill="#071922" stroke="#87CA9D" stroke-width="3"/>
+    <path d="M904.6 561 L909.6 566 L918.6 554" fill="none" stroke="#87CA9D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="956" y="567" font-size="20" font-weight="700" fill="#F2EFE9">Payment confirmed</text>
+
+    <g font-size="14" fill="#8FA3AD">
+      <text x="88" y="816">Network fees must be funded and maintained by the user.</text>
+      <text x="880" y="816">Altude sponsors the network fee. The private key never leaves the device.</text>
+    </g>
+
+  </g>
+</svg>

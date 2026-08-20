@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 640" role="img" aria-labelledby="t d">
+  <title id="t">A payment leaving a phone, rising through Altude's sponsored relay, and arriving confirmed</title>
+  <desc id="d">A phone shows a 24 dollar USDC amount. A single unbroken line rises from it across the frame, passing three chevron waypoints, and ends at a green confirmation tick. Beneath the line, dimmed contour lines and a label read: network fee sponsored by Altude.</desc>
+
+  <rect x="0" y="0" width="1600" height="640" rx="24" fill="#071922"/>
+  <rect x="0.75" y="0.75" width="1598.5" height="638.5" rx="23.25" fill="none" stroke="#24454F" stroke-width="1.5"/>
+
+  <g font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+
+    <text x="88" y="88" font-size="12" font-weight="700" letter-spacing="2.2" fill="#8FA3AD">ALTUDE PAY · SOLANA DEVNET</text>
+    <text x="88" y="141" font-size="42" font-weight="800" letter-spacing="-1" fill="#F2EFE9">Send USDC without holding SOL.</text>
+
+    <g stroke="#17323C" stroke-width="1.5" fill="none" stroke-linecap="round">
+      <path d="M88 534 C380 512 660 530 940 510 C1180 493 1340 506 1512 498"/>
+      <path d="M88 570 C400 548 680 568 960 546 C1200 530 1360 542 1512 534"/>
+      <path d="M88 602 C420 582 700 602 980 580 C1220 566 1380 576 1512 570"/>
+    </g>
+
+    <rect x="88" y="210" width="208" height="300" rx="28" fill="#0E262F" stroke="#24454F" stroke-width="2"/>
+    <rect x="160" y="228" width="64" height="6" rx="3" fill="#24454F"/>
+    <text x="192" y="336" font-size="11" font-weight="700" letter-spacing="1.8" fill="#8FA3AD" text-anchor="middle">YOU SEND</text>
+    <text x="192" y="396" font-size="44" font-weight="800" letter-spacing="-1.5" fill="#F2EFE9" text-anchor="middle">$24.00</text>
+    <text x="192" y="430" font-size="13" fill="#9BB0BA" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">USDC · DEVNET</text>
+
+    <path d="M296 400 C384 400 442 378 520 372 C604 365 700 344 780 332 C866 319 958 302 1040 290 C1148 274 1276 256 1378 246"
+          fill="none" stroke="#F2EFE9" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <circle cx="296" cy="400" r="5.5" fill="#048ABF"/>
+
+    <g stroke="#3DBFF2" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M509 343 L520 333 L531 343"/>
+      <path d="M769 303 L780 293 L791 303"/>
+      <path d="M1029 261 L1040 251 L1051 261"/>
+    </g>
+    <g fill="#071922" stroke="#3DBFF2" stroke-width="3">
+      <circle cx="520" cy="372" r="6.5"/>
+      <circle cx="780" cy="332" r="6.5"/>
+      <circle cx="1040" cy="290" r="6.5"/>
+    </g>
+
+    <circle cx="1420" cy="246" r="30" fill="#071922" stroke="#87CA9D" stroke-width="3.5"/>
+    <path d="M1410.2 247.4 L1417.2 254.4 L1429.8 237.6" fill="none" stroke="#87CA9D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="1420" y="312" font-size="12" font-weight="700" letter-spacing="2.2" fill="#F2EFE9" text-anchor="middle">CONFIRMED</text>
+
+    <circle cx="338" cy="482" r="3" fill="#048ABF"/>
+    <text x="352" y="486" font-size="12" font-weight="700" letter-spacing="2" fill="#8FA3AD">NETWORK FEE SPONSORED BY ALTUDE</text>
+
+  </g>
+</svg>

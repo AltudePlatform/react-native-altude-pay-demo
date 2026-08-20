@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="t d">
+  <title id="t">How a payment moves, and where the private key stops</title>
+  <desc id="d">Four lanes left to right. The Altude Pay app collects the amount and the recipient. Your device signs the transaction with the private key. The Altude Gas Station adds the fee payer signature and relays. Solana Devnet confirms and returns the signature. A dashed vertical boundary sits between your device and the Gas Station, labelled: private key does not cross. Only a signed transaction crosses it. The three stages shown in the app are Approving payment, Sending, and Confirming.</desc>
+
+  <rect x="0" y="0" width="1600" height="1000" rx="24" fill="#071922"/>
+  <rect x="0.75" y="0.75" width="1598.5" height="998.5" rx="23.25" fill="none" stroke="#24454F" stroke-width="1.5"/>
+
+  <g font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+
+    <text x="88" y="100" font-size="12" font-weight="700" letter-spacing="2.2" fill="#8FA3AD">HOW A PAYMENT MOVES</text>
+    <text x="88" y="156" font-size="34" font-weight="800" letter-spacing="-0.7" fill="#F2EFE9">You sign it. Altude pays the fee. Solana confirms it.</text>
+
+    <line x1="799" y1="254" x2="799" y2="780" stroke="#24454F" stroke-width="2" stroke-dasharray="8 10"/>
+    <text x="799" y="236" font-size="12" font-weight="700" letter-spacing="2.2" fill="#F2EFE9" text-anchor="middle">PRIVATE KEY DOES NOT CROSS</text>
+
+    <g font-size="12" font-weight="700" letter-spacing="1.8" fill="#8FA3AD" text-anchor="middle">
+      <text x="238" y="318">ALTUDE PAY APP</text>
+      <text x="612" y="318">YOUR DEVICE</text>
+      <text x="986" y="318">ALTUDE GAS STATION</text>
+      <text x="1360" y="318">SOLANA DEVNET</text>
+    </g>
+
+    <g fill="#0E262F" stroke="#24454F" stroke-width="2">
+      <rect x="88" y="344" width="300" height="236" rx="16"/>
+      <rect x="462" y="344" width="300" height="236" rx="16"/>
+      <rect x="836" y="344" width="300" height="236" rx="16"/>
+      <rect x="1210" y="344" width="300" height="236" rx="16"/>
+    </g>
+
+    <g transform="translate(218.8 394.8) scale(1.6)">
+      <path d="M4 12 L20 5 L13 20 L11 13 Z" fill="none" stroke="#F2EFE9" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <g fill="none" stroke="#F2EFE9" stroke-width="2.5" stroke-linecap="round">
+      <circle cx="600" cy="414" r="8"/>
+      <path d="M608 414 L634 414"/>
+      <path d="M626 414 L626 424"/>
+      <path d="M634 414 L634 422"/>
+    </g>
+
+    <g fill="none" stroke="#3DBFF2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M974 433 L986 423 L998 433" opacity="0.45"/>
+      <path d="M974 419 L986 409 L998 419" opacity="0.7"/>
+      <path d="M974 405 L986 395 L998 405"/>
+    </g>
+
+    <circle cx="1360" cy="414" r="18" fill="none" stroke="#87CA9D" stroke-width="2.5"/>
+    <path d="M1351.6 415.2 L1357.6 421.2 L1368.4 406.8" fill="none" stroke="#87CA9D" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <g font-size="16" fill="#9BB0BA" text-anchor="middle">
+      <text x="238" y="488">Collects the amount</text>
+      <text x="238" y="512">and the recipient</text>
+      <text x="612" y="488">Signs the transaction</text>
+      <text x="612" y="512">with the private key</text>
+      <text x="986" y="488">Adds the fee payer</text>
+      <text x="986" y="512">signature and relays</text>
+      <text x="1360" y="488">Confirms and returns</text>
+      <text x="1360" y="512">the signature</text>
+    </g>
+
+    <g fill="none" stroke="#F2EFE9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M400 462 L446 462"/>
+      <path d="M442 456 L450 462 L442 468"/>
+      <path d="M774 462 L820 462"/>
+      <path d="M816 456 L824 462 L816 468"/>
+      <path d="M1148 462 L1194 462"/>
+      <path d="M1190 456 L1198 462 L1190 468"/>
+    </g>
+
+    <g fill="#132E38" stroke="#24454F" stroke-width="1.5">
+      <rect x="517" y="614" width="190" height="38" rx="19"/>
+      <rect x="891" y="614" width="190" height="38" rx="19"/>
+      <rect x="1265" y="614" width="190" height="38" rx="19"/>
+    </g>
+    <g font-size="13" font-weight="700" fill="#F2EFE9" text-anchor="middle">
+      <text x="612" y="639">Approving payment</text>
+      <text x="986" y="639">Sending</text>
+      <text x="1360" y="639">Confirming</text>
+    </g>
+
+    <g fill="none" stroke="#F2EFE9" stroke-width="2.5" stroke-linecap="round">
+      <circle cx="500" cy="742" r="7"/>
+      <path d="M507 742 L528 742"/>
+      <path d="M521 742 L521 750"/>
+      <path d="M528 742 L528 749"/>
+    </g>
+    <text x="770" y="749" font-size="18" font-weight="600" fill="#F2EFE9" text-anchor="end">Private key stays here</text>
+
+    <g fill="none" stroke="#3DBFF2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M816 742 L848 742"/>
+      <path d="M844 736 L852 742 L844 748"/>
+    </g>
+    <text x="868" y="749" font-size="18" font-weight="600" fill="#F2EFE9">Only a signed transaction crosses</text>
+
+    <line x1="88" y1="812" x2="1512" y2="812" stroke="#17323C" stroke-width="1.5"/>
+    <g font-size="14" fill="#8FA3AD">
+      <text x="88" y="862">The fee payer, RPC endpoint and cluster are resolved from your API key.</text>
+      <text x="88" y="888">The three pills are the stage labels the app shows while a payment is in flight.</text>
+    </g>
+
+  </g>
+</svg>
