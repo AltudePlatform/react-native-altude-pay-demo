@@ -97,6 +97,47 @@ export async function getAccountHistory(
   );
 }
 
+export async function getSignatureHistory( 
+  walletAddress: string,
+  signature: string,
+): Promise<TransactionSummary | null> {
+  const connection = new Connection(
+    DEFAULT_RPC_URL,
+    'confirmed',
+  );
+
+;
+
+ try {
+    const tx = await connection.getTransaction(
+      signature,
+      {
+        commitment: 'confirmed',
+        maxSupportedTransactionVersion: 0,
+      },
+    );
+
+    if (!tx) {
+      return null;
+    }
+
+    return summarizeTransaction(
+      tx,
+      signature,
+      walletAddress,
+    );
+  } catch (error) {
+    console.error(
+      `[solana] Error fetching ${signature}:`,
+      error,
+    );
+
+    return null;
+  }
+
+ 
+}
+
 /**
  * Gets the SOL balance change for the wallet.
  *
