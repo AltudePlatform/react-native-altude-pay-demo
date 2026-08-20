@@ -36,10 +36,14 @@ Create a `.env` file in the repository root using `.env.example` as a template:
 
 ```bash
 ALTUDE_API_KEY=replace_with_your_key
-ALTUDE_NETWORK=devnet
 ```
 
 Restart Metro after changing `.env`. The app checks for this key before allowing onboarding to continue when real services are enabled (`useMockData: false`). The default mock mode does not require an API key.
+
+For Altude configuration, the API key is the only required value. The API key's
+`/api/transaction/config` response determines the cluster, RPC URL, JWT, and
+fee payer. Users should not need to enter a fee payer address or choose a
+network manually.
 
 Install dependencies from repository root:
 
