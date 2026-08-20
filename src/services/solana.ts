@@ -8,8 +8,20 @@ import {WalletInfo, BalanceResponse, TransactionStatusResponse} from '../types';
 import {stableCoinMint} from '../config/paymentConfig';
 import {ALTUDE_NETWORK} from '../config/apiConfig';
 import {runtimeConfig} from '../config/runtimeConfig';
-
 type Commitment = 'processed' | 'confirmed' | 'finalized';
+
+
+export interface TransactionSummary {
+  signature: string;
+  slot: number;
+  blockTime: number | null;
+  status: 'success' | 'failed';
+  type: 'send' | 'receive' | 'unknown';
+  amount: number;
+  mint?: string;
+  from?: string;
+  to?: string;
+}
 
 export {isValidSolanaAddress, truncateAddress} from '../utils/helpers';
 
@@ -24,6 +36,339 @@ type CryptoWithRandomValues = {
   getRandomValues?: (...args: any[]) => unknown;
 };
 let cryptoRandomValuesPromise: Promise<void> | null = null;
+
+export async function getAccountHistory(
+  walletAddress: string,
+  limit: number,
+  page: number,
+): Promise<TransactionSummary[]> {
+  const connection = await getConnection(DEFAULT_RPC_URL);
+  const {PublicKey} = await loadWeb3();
+  const publicKey = new PublicKey(walletAddress);
+
+  const signatures = await connection.getSignaturesForAddress(
+    publicKey,
+    {
+      limit,
+    },
+  );
+
+  const transactions = await Promise.all(
+    signatures.map(async sigInfo => {
+      try {
+        const tx = await connection.getTransaction(
+          sigInfo.signature,
+          {
+            commitment: 'confirmed',
+            maxSupportedTransactionVersion: 0,
+          },
+        );
+
+        if (!tx) {
+          return null;
+        }
+
+        return summarizeTransaction(
+          tx,
+          sigInfo.signature,
+          walletAddress,
+        );
+      } catch (error) {
+        console.error(
+          `[solana] Error fetching ${sigInfo.signature}:`,
+          error,
+        );
+
+        return null;
+      }
+    }),
+  );
+
+  return transactions.filter(
+    (tx): tx is TransactionSummary => tx !== null,
+  );
+}
+
+export async function getSignatureHistory( 
+  walletAddress: string,
+  signature: string,
+): Promise<TransactionSummary | null> {
+  const connection = await getConnection(DEFAULT_RPC_URL);
+
+  try {
+    const tx = await connection.getTransaction(
+      signature,
+      {
+        commitment: 'confirmed',
+        maxSupportedTransactionVersion: 0,
+      },
+    );
+
+    if (!tx) {
+      return null;
+    }
+
+    return summarizeTransaction(
+      tx,
+      signature,
+      walletAddress,
+    );
+  } catch (error) {
+    console.error(
+      `[solana] Error fetching ${signature}:`,
+      error,
+    );
+
+    return null;
+  }
+
+ 
+}
+
+/**
+ * Gets the SOL balance change for the wallet.
+ *
+ * This is only used as a fallback for SOL transactions.
+ * SPL token transfers are handled separately using
+ * preTokenBalances/postTokenBalances.
+ */
+function getWalletBalanceChange(
+  tx: any,
+  walletAddress: string,
+): number {
+  const { meta } = tx;
+
+  if (!meta) {
+    return 0;
+  }
+
+  const accountKeys = tx.transaction.message.staticAccountKeys;
+
+  const index = accountKeys.findIndex(
+    (key: { toBase58: () => string }) => key.toBase58() === walletAddress,
+  );
+
+  if (index === -1) {
+    return 0;
+  }
+
+  return (
+    (meta.postBalances[index] ?? 0) -
+    (meta.preBalances[index] ?? 0)
+  );
+}
+
+/**
+ * Finds an SPL token balance change involving the wallet.
+ */
+function getTokenTransfer(
+  tx: any,
+  walletAddress: string,
+): {
+  amount: number;
+  mint: string;
+  type: 'send' | 'receive';
+  from?: string;
+  to?: string;
+} | null {
+  const meta = tx.meta;
+
+  if (!meta) {
+    return null;
+  }
+
+  const preTokenBalances = meta.preTokenBalances ?? [];
+  const postTokenBalances = meta.postTokenBalances ?? [];
+
+  if (
+    preTokenBalances.length === 0 &&
+    postTokenBalances.length === 0
+  ) {
+    return null;
+  }
+
+  /**
+   * Combine pre/post balances using:
+   *
+   * accountIndex + mint
+   *
+   * because a token account may only appear in pre OR post
+   * when it was created during this transaction.
+   */
+  const balances = new Map<
+    string,
+    {
+      accountIndex: number;
+      mint: string;
+      owner: string;
+      preAmount: number;
+      postAmount: number;
+    }
+  >();
+
+  for (const item of preTokenBalances) {
+    const key = `${item.accountIndex}:${item.mint}`;
+
+    balances.set(key, {
+      accountIndex: item.accountIndex,
+      mint: item.mint,
+      owner: item.owner ?? '',
+      preAmount: Number(item.uiTokenAmount.uiAmount ?? 0),
+      postAmount: 0,
+    });
+  }
+
+  for (const item of postTokenBalances) {
+    const key = `${item.accountIndex}:${item.mint}`;
+
+    const existing = balances.get(key);
+
+    if (existing) {
+      existing.postAmount = Number(
+        item.uiTokenAmount.uiAmount ?? 0,
+      );
+    } else {
+      balances.set(key, {
+        accountIndex: item.accountIndex,
+        mint: item.mint,
+        owner: item.owner ?? '',
+        preAmount: 0,
+        postAmount: Number(
+          item.uiTokenAmount.uiAmount ?? 0,
+        ),
+      });
+    }
+  }
+
+  const changes = Array.from(balances.values())
+    .map(item => ({
+      ...item,
+      change: item.postAmount - item.preAmount,
+    }))
+    .filter(item => item.change !== 0);
+
+  /**
+   * Find the token balance belonging to our wallet.
+   */
+  const walletChange = changes.find(
+    item => item.owner === walletAddress,
+  );
+
+  if (!walletChange) {
+    return null;
+  }
+
+  /**
+   * Find the opposite token movement.
+   *
+   * Example:
+   *
+   * Wallet A: -10 USDC
+   * Wallet B: +10 USDC
+   */
+  const counterparty = changes.find(
+    item =>
+      item.mint === walletChange.mint &&
+      item.owner !== walletAddress &&
+      Math.sign(item.change) !==
+        Math.sign(walletChange.change),
+  );
+
+  const isSend = walletChange.change < 0;
+
+  return {
+    amount: Math.abs(walletChange.change),
+    mint: walletChange.mint,
+    type: isSend ? 'send' : 'receive',
+
+    from: isSend
+      ? walletAddress
+      : counterparty?.owner,
+
+    to: isSend
+      ? counterparty?.owner
+      : walletAddress,
+  };
+}
+
+/**
+ * Creates the UI-friendly transaction summary.
+ *
+ * Priority:
+ *
+ * 1. SPL token transfer
+ * 2. SOL balance change
+ */
+function summarizeTransaction(
+  tx: any,
+  signature: string,
+  walletAddress: string,
+): TransactionSummary {
+  const meta = tx.meta;
+  console.log('[solana] Summarizing transaction:', signature, tx);
+  /**
+   * First check for an SPL token transfer.
+   */
+  const tokenTransfer = getTokenTransfer(
+    tx,
+    walletAddress,
+  );
+
+  if (tokenTransfer) {
+    return {
+      signature,
+      slot: tx.slot,
+      blockTime: tx.blockTime ?? null,
+      status: meta?.err
+        ? 'failed'
+        : 'success',
+
+      type: tokenTransfer.type,
+      amount: tokenTransfer.amount,
+      mint: tokenTransfer.mint,
+      from: tokenTransfer.from,
+      to: tokenTransfer.to,
+    };
+  }
+
+  /**
+   * Otherwise treat it as a SOL transaction.
+   */
+  const change = getWalletBalanceChange(
+    tx,
+    walletAddress,
+  );
+
+  let type: TransactionSummary['type'] = 'unknown';
+
+  if (change > 0) {
+    type = 'receive';
+  } else if (change < 0) {
+    type = 'send';
+  }
+
+  return {
+    signature,
+    slot: tx.slot,
+    blockTime: tx.blockTime ?? null,
+    status: meta?.err
+      ? 'failed'
+      : 'success',
+
+    type,
+    amount: Math.abs(change) / 1_000_000_000,
+
+    from:
+      type === 'send'
+        ? walletAddress
+        : undefined,
+
+    to:
+      type === 'receive'
+        ? walletAddress
+        : undefined,
+  };
+}
 
 async function ensureCryptoRandomValues(): Promise<void> {
   const crypto = (globalThis as typeof globalThis & {

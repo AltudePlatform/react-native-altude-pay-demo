@@ -1,18 +1,10 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  Modal,
-  FlatList,
-  Alert,
-} from 'react-native';
+import React, {useMemo, useState} from 'react';
+import {View, Text, StyleSheet, Pressable, FlatList, Alert} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
+
 import {RootStackParamList, UserProfile} from '../types';
-import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
+import {Button, Field, Icon, Screen, Sheet} from '../components/ui';
 import {tokens} from '../theme/tokens';
 import {hasAltudeApiKey} from '../config/apiConfig';
 import {runtimeConfig} from '../config/runtimeConfig';
@@ -37,6 +29,11 @@ const COUNTRY_OPTIONS: CountryOption[] = [
   {label: 'South Africa', code: '+27'},
 ];
 
+const CONTACT_METHODS: {value: ContactMethod; label: string}[] = [
+  {value: 'phone', label: 'Phone number'},
+  {value: 'email', label: 'Email'},
+];
+
 export default function OnboardingScreen(): React.JSX.Element {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [name, setName] = useState('');
@@ -44,16 +41,12 @@ export default function OnboardingScreen(): React.JSX.Element {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [contactMethod, setContactMethod] = useState<ContactMethod>('phone');
-  const [countryModalVisible, setCountryModalVisible] = useState(false);
+  const [countrySheetVisible, setCountrySheetVisible] = useState(false);
 
   const sanitizedPhone = useMemo(
     () => phoneNumber.replace(/[^0-9]/g, ''),
     [phoneNumber],
   );
-
-  useEffect(() => {
-    console.log('[screen] OnboardingScreen mounted');
-  }, []);
 
   const validate = (): string | null => {
     const trimmedEmail = email.trim();
@@ -69,7 +62,10 @@ export default function OnboardingScreen(): React.JSX.Element {
     if (contactMethod === 'email' && !hasEmail) {
       return 'Please enter an email address.';
     }
-    if (contactMethod === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+    if (
+      contactMethod === 'email' &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)
+    ) {
       return 'Please enter a valid email address.';
     }
     if (!runtimeConfig.useMockData && !hasAltudeApiKey()) {
@@ -97,321 +93,247 @@ export default function OnboardingScreen(): React.JSX.Element {
   };
 
   return (
-    <View style={styles.page}>
-      <View style={styles.hero}>
-        <Svg style={StyleSheet.absoluteFill} width="110%" height="110%">
-          <Defs>
-            <LinearGradient id="onboardingHeroGradient" x1="0%" y1="0%" x2="100%" y2="110%">
-              <Stop offset="0%" stopColor="#3f8cff" />
-              <Stop offset="55%" stopColor="#4f7ef4" />
-              <Stop offset="100%" stopColor="#6d5ce8" />
-            </LinearGradient>
-          </Defs>
-          <Rect x="0" y="0" width="100%" height="100%" fill="url(#onboardingHeroGradient)" />
-        </Svg>
-
-        <View style={styles.heroGlowTop} />
-        <View style={styles.heroGlowBottom} />
-
-        <Text style={styles.kicker}>WELCOME</Text>
+    /*
+      Scroll + keyboard avoidance: the root was previously a plain View, so on
+      a small device the keyboard covered the Continue button entirely.
+    */
+    <Screen scroll avoidKeyboard>
+      <View style={styles.intro}>
+        <Text style={styles.eyebrow}>WELCOME</Text>
         <Text style={styles.title}>Set up your payment profile</Text>
         <Text style={styles.subtitle}>
           This information helps personalize your dashboard on this device.
         </Text>
       </View>
 
-      <View style={styles.formCard}>
-        <Text style={styles.label}>Name (optional)</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Your name"
-          placeholderTextColor={tokens.colors.textMuted}
+      <View style={styles.form}>
+        <Field
+          label="Name (optional)"
           value={name}
           onChangeText={setName}
+          placeholder="Your name"
+          autoCapitalize="words"
         />
 
-        <Text style={styles.label}>Preferred contact method</Text>
-        <View style={styles.radioRow}>
-          {([
-            {value: 'phone' as const, label: 'Phone number'},
-            {value: 'email' as const, label: 'Email'},
-          ]).map(option => (
-            <TouchableOpacity
-              key={option.value}
-              style={styles.radioOption}
-              onPress={() => setContactMethod(option.value)}
-              accessibilityRole="radio"
-              accessibilityState={{selected: contactMethod === option.value}}>
-              <View style={styles.radioOuter}>
-                {contactMethod === option.value ? <View style={styles.radioInner} /> : null}
-              </View>
-              <Text style={styles.radioLabel}>{option.label}</Text>
-            </TouchableOpacity>
-          ))}
+        <View style={styles.group}>
+          <Text style={styles.label}>Preferred contact method</Text>
+          <View style={styles.radioRow}>
+            {CONTACT_METHODS.map(option => {
+              const selected = contactMethod === option.value;
+              return (
+                <Pressable
+                  key={option.value}
+                  onPress={() => setContactMethod(option.value)}
+                  accessibilityRole="radio"
+                  accessibilityState={{selected}}
+                  accessibilityLabel={option.label}
+                  style={({pressed}) => [
+                    styles.radioOption,
+                    selected && styles.radioOptionSelected,
+                    pressed && styles.pressed,
+                  ]}>
+                  <View style={[styles.radioOuter, selected && styles.radioOuterOn]}>
+                    {selected ? <View style={styles.radioInner} /> : null}
+                  </View>
+                  <Text
+                    style={[styles.radioLabel, selected && styles.radioLabelOn]}
+                    numberOfLines={1}>
+                    {option.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
 
         {contactMethod === 'phone' ? (
-          <>
-            <Text style={styles.label}>Mobile Number</Text>
+          <View style={styles.group}>
+            <Text style={styles.label}>Mobile number</Text>
             <View style={styles.phoneRow}>
-              <TouchableOpacity
-                style={styles.countryBtn}
-                onPress={() => setCountryModalVisible(true)}>
+              <Pressable
+                onPress={() => setCountrySheetVisible(true)}
+                accessibilityRole="button"
+                accessibilityLabel={`Country code ${countryCode}. Change`}
+                style={({pressed}) => [styles.countryBtn, pressed && styles.pressed]}>
                 <Text style={styles.countryBtnText}>{countryCode}</Text>
-              </TouchableOpacity>
-              <TextInput
-                style={[styles.input, styles.phoneInput]}
-                placeholder="Enter mobile number"
-                placeholderTextColor={tokens.colors.textMuted}
+                <Icon
+                  name="chevronRight"
+                  size={tokens.icon.sm}
+                  color={tokens.color.textMuted}
+                />
+              </Pressable>
+              <Field
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
+                placeholder="Enter mobile number"
                 keyboardType="phone-pad"
+                style={styles.phoneField}
               />
             </View>
-          </>
+          </View>
         ) : (
-          <>
-            <Text style={styles.label}>Email Address</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="you@example.com"
-              placeholderTextColor={tokens.colors.textMuted}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-          </>
+          <Field
+            label="Email address"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="you@example.com"
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="email-address"
+          />
         )}
 
-        <TouchableOpacity style={styles.continueBtn} onPress={handleContinue}>
-          <Text style={styles.continueBtnText}>Continue</Text>
-        </TouchableOpacity>
+        <Button label="Continue" onPress={handleContinue} style={styles.continue} />
       </View>
 
-      <Modal
-        visible={countryModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setCountryModalVisible(false)}>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Select Country Code</Text>
-            <FlatList
-              data={COUNTRY_OPTIONS}
-              keyExtractor={item => `${item.label}-${item.code}`}
-              renderItem={({item}) => (
-                <TouchableOpacity
-                  style={styles.countryOption}
-                  onPress={() => {
-                    setCountryCode(item.code);
-                    setCountryModalVisible(false);
-                  }}>
-                  <Text style={styles.countryLabel}>{item.label}</Text>
-                  <Text style={styles.countryCode}>{item.code}</Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity
-              style={styles.closeBtn}
-              onPress={() => setCountryModalVisible(false)}>
-              <Text style={styles.closeBtnText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </View>
+      <Sheet
+        visible={countrySheetVisible}
+        onClose={() => setCountrySheetVisible(false)}
+        title="Select country code">
+        <FlatList
+          data={COUNTRY_OPTIONS}
+          keyExtractor={item => `${item.label}-${item.code}`}
+          renderItem={({item}) => {
+            const selected = item.code === countryCode;
+            return (
+              <Pressable
+                onPress={() => {
+                  setCountryCode(item.code);
+                  setCountrySheetVisible(false);
+                }}
+                accessibilityRole="button"
+                accessibilityState={{selected}}
+                accessibilityLabel={`${item.label} ${item.code}`}
+                style={({pressed}) => [styles.countryOption, pressed && styles.pressed]}>
+                <Text style={styles.countryLabel}>{item.label}</Text>
+                <Text style={styles.countryCode}>{item.code}</Text>
+              </Pressable>
+            );
+          }}
+        />
+      </Sheet>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  page: {
-    flex: 1,
-    backgroundColor: tokens.colors.page,
-    paddingHorizontal: 20,
-    paddingTop: 24,
+  intro: {
+    paddingTop: tokens.spacing.xxxl,
+    gap: tokens.spacing.md,
   },
-  hero: {
-    minHeight: 188,
-    borderRadius: tokens.radius.lg,
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 18,
-    marginBottom: 20,
-    overflow: 'hidden',
-    position: 'relative',
-    justifyContent: 'center',
-  },
-  heroGlowTop: {
-    position: 'absolute',
-    width: 170,
-    height: 170,
-    borderRadius: tokens.radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    right: -56,
-    top: -58,
-  },
-  heroGlowBottom: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: tokens.radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.16)',
-    left: -34,
-    bottom: -46,
-  },
-  kicker: {
+  eyebrow: {
     ...tokens.type.eyebrow,
-    color: tokens.onAccent.secondary,
+    color: tokens.color.textMuted,
   },
   title: {
     ...tokens.type.display,
-    color: tokens.onAccent.primary,
-    marginTop: 8,
+    color: tokens.color.textPrimary,
   },
   subtitle: {
     ...tokens.type.body,
-    color: tokens.onAccent.secondary,
-    marginTop: 10,
-    maxWidth: '90%',
+    color: tokens.color.textSecondary,
   },
-  formCard: {
-    marginTop: 0,
-    backgroundColor: tokens.colors.card,
-    borderRadius: tokens.radius.lg,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-    padding: tokens.spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 10},
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
+  form: {
+    marginTop: tokens.spacing.huge,
+    gap: tokens.spacing.xl,
+  },
+  group: {
+    gap: tokens.spacing.md,
   },
   label: {
     ...tokens.type.label,
-    fontWeight: '700',
-    color: tokens.colors.textPrimary,
-    marginBottom: 6,
-    marginTop: 8,
-  },
-  input: {
-    ...tokens.type.body,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-    borderRadius: tokens.radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    color: tokens.colors.textPrimary,
-    backgroundColor: tokens.colors.card,
-  },
-  phoneRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  countryBtn: {
-    minWidth: 86,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-    borderRadius: tokens.radius.md,
-    backgroundColor: tokens.colors.card,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  countryBtnText: {
-    ...tokens.type.body,
-    fontWeight: '700',
-    color: tokens.colors.textPrimary,
-  },
-  phoneInput: {
-    flex: 1,
+    color: tokens.color.textSecondary,
   },
   radioRow: {
     flexDirection: 'row',
-    gap: 20,
-    marginBottom: 4,
+    gap: tokens.spacing.md,
   },
   radioOption: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
+    gap: tokens.spacing.md,
+    minHeight: tokens.layout.touchTarget + tokens.spacing.sm,
+    paddingHorizontal: tokens.spacing.lg,
+    borderRadius: tokens.radius.md,
+    borderWidth: tokens.border.strong,
+    borderColor: tokens.color.borderHairline,
+    backgroundColor: tokens.color.surface,
+  },
+  radioOptionSelected: {
+    borderColor: tokens.color.brand,
+    backgroundColor: tokens.color.surfaceElevated,
   },
   radioOuter: {
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: tokens.radius.pill,
     borderWidth: 2,
-    borderColor: tokens.colors.accent,
+    borderColor: tokens.color.borderStrong,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
+  },
+  radioOuterOn: {
+    borderColor: tokens.color.brand,
   },
   radioInner: {
     width: 10,
     height: 10,
-    borderRadius: 5,
-    backgroundColor: tokens.colors.accent,
+    borderRadius: tokens.radius.pill,
+    backgroundColor: tokens.color.brand,
   },
   radioLabel: {
     ...tokens.type.label,
-    color: tokens.colors.textPrimary,
+    color: tokens.color.textSecondary,
+    flexShrink: 1,
   },
-  continueBtn: {
-    marginTop: 20,
-    backgroundColor: tokens.colors.accent,
-    borderRadius: tokens.radius.md,
+  radioLabelOn: {
+    color: tokens.color.textPrimary,
+  },
+  phoneRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: tokens.spacing.md,
+  },
+  countryBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 15,
+    gap: tokens.spacing.sm,
+    minHeight: tokens.layout.touchTarget + tokens.spacing.md,
+    paddingHorizontal: tokens.spacing.lg,
+    borderRadius: tokens.radius.md,
+    borderWidth: tokens.border.strong,
+    borderColor: tokens.color.borderHairline,
+    backgroundColor: tokens.color.surface,
   },
-  continueBtnText: {
-    ...tokens.type.action,
-    color: tokens.onAccent.primary,
+  countryBtnText: {
+    ...tokens.type.body,
+    fontWeight: '700',
+    color: tokens.color.textPrimary,
   },
-  modalBackdrop: {
+  phoneField: {
     flex: 1,
-    backgroundColor: 'rgba(22, 18, 13, 0.42)',
-    justifyContent: 'flex-end',
   },
-  modalCard: {
-    maxHeight: '65%',
-    backgroundColor: tokens.colors.card,
-    borderTopLeftRadius: 26,
-    borderTopRightRadius: 26,
-    padding: tokens.spacing.lg,
-  },
-  modalTitle: {
-    ...tokens.type.title,
-    fontSize: 20,
-    lineHeight: 26,
-    color: tokens.colors.textPrimary,
-    marginBottom: 12,
+  continue: {
+    marginTop: tokens.spacing.md,
   },
   countryOption: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderBottomColor: tokens.colors.border,
-    paddingVertical: 14,
+    minHeight: tokens.layout.touchTarget + tokens.spacing.md,
+    paddingHorizontal: tokens.spacing.md,
+    borderRadius: tokens.radius.md,
   },
   countryLabel: {
     ...tokens.type.body,
-    color: tokens.colors.textPrimary,
+    color: tokens.color.textPrimary,
   },
   countryCode: {
-    ...tokens.type.body,
-    fontWeight: '700',
-    color: tokens.colors.textMuted,
+    ...tokens.type.monoValue,
+    color: tokens.color.textMuted,
   },
-  closeBtn: {
-    marginTop: 14,
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderRadius: tokens.radius.md,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-  },
-  closeBtnText: {
-    color: tokens.colors.textMuted,
-    fontWeight: '700',
+  pressed: {
+    opacity: 0.7,
   },
 });

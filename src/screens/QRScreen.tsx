@@ -9,19 +9,11 @@
  * For production quality, swap in react-native-qrcode-svg.
  */
 import React, {useMemo} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Share,
-  Alert,
-  ScrollView,
-} from 'react-native';
-import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
+import {View, Text, StyleSheet, Share, Alert} from 'react-native';
 import {useWalletStore} from '../store/walletStore';
 import {truncateAddress} from '../services/solana';
 import QRCodeMatrix from '../components/QRCodeMatrix';
+import {Button, Screen, ScreenHeader, Surface} from '../components/ui';
 import {stableCoinMint} from '../config/paymentConfig';
 import {tokens} from '../theme/tokens';
 
@@ -55,188 +47,105 @@ export default function QRScreen(): React.JSX.Element {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.hero}>
-        <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
-          <Defs>
-            <LinearGradient id="qrHeroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <Stop offset="0%" stopColor="#3f8cff" />
-              <Stop offset="55%" stopColor="#4f7ef4" />
-              <Stop offset="100%" stopColor="#6d5ce8" />
-            </LinearGradient>
-          </Defs>
-          <Rect x="0" y="0" width="100%" height="100%" fill="url(#qrHeroGradient)" />
-        </Svg>
+    <Screen scroll contentStyle={styles.content}>
+      <ScreenHeader eyebrow="Receive" title="Get paid" />
+      <Text style={styles.subtitle}>
+        Share this code so people can send you money.
+      </Text>
 
-        <View style={styles.heroGlowTop} />
-        <View style={styles.heroGlowBottom} />
-
-        <Text style={styles.kicker}>RECEIVE</Text>
-        <Text style={styles.title}>Get paid</Text>
-        <Text style={styles.subtitle}>Share this code so people can send you money.</Text>
-      </View>
-
+      {/* QR modules stay black-on-white regardless of theme so scanners can
+          read them; this surface is intentionally exempt from the dark sweep. */}
       <View style={styles.qrCard}>
         <QRCodeMatrix value={solanaPayUrl} size={232} />
       </View>
 
-      <View style={styles.accountPanel}>
+      <Surface style={styles.accountPanel}>
         <Text style={styles.address}>{truncateAddress(wallet.publicKey, 8)}</Text>
         <Text style={styles.fullAddress} selectable>
           {wallet.publicKey}
         </Text>
-      </View>
+      </Surface>
 
-      <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
-        <Text style={styles.shareBtnText}>Share Payment Code</Text>
-      </TouchableOpacity>
+      <Button
+        label="Share payment code"
+        icon="share"
+        onPress={handleShare}
+        style={styles.shareBtn}
+      />
 
-      <Text style={styles.urlLabel}>Payment Link</Text>
+      <Text style={styles.urlLabel}>PAYMENT LINK</Text>
       <Text style={styles.url} selectable>
         {solanaPayUrl}
       </Text>
-    </ScrollView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: tokens.colors.page,
-  },
   content: {
     alignItems: 'center',
-    paddingTop: 26,
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-  },
-  hero: {
-    width: '100%',
-    minHeight: 170,
-    borderRadius: tokens.radius.lg,
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 18,
-    marginBottom: 18,
-    overflow: 'hidden',
-    position: 'relative',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-  },
-  heroGlowTop: {
-    position: 'absolute',
-    width: 150,
-    height: 150,
-    borderRadius: 999,
-    top: -56,
-    right: -34,
-    backgroundColor: 'rgba(255,255,255,0.22)',
-  },
-  heroGlowBottom: {
-    position: 'absolute',
-    width: 108,
-    height: 108,
-    borderRadius: 999,
-    bottom: -40,
-    left: -18,
-    backgroundColor: 'rgba(255,255,255,0.18)',
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: tokens.colors.page,
+    gap: tokens.spacing.md,
+    backgroundColor: tokens.color.canvas,
   },
   noWallet: {
     ...tokens.type.title,
-    fontSize: 20,
-    lineHeight: 26,
-    color: tokens.colors.textPrimary,
-    marginBottom: 8,
+    color: tokens.color.textPrimary,
   },
   noWalletSub: {
     ...tokens.type.body,
-    color: tokens.colors.textMuted,
-  },
-  kicker: {
-    ...tokens.type.eyebrow,
-    color: tokens.onAccent.secondary,
-    marginBottom: 7,
-  },
-  title: {
-    ...tokens.type.display,
-    color: tokens.onAccent.primary,
-    marginBottom: 5,
+    color: tokens.color.textSecondary,
   },
   subtitle: {
     ...tokens.type.body,
-    color: tokens.onAccent.secondary,
-    marginBottom: 0,
+    color: tokens.color.textSecondary,
+    alignSelf: 'flex-start',
+    marginBottom: tokens.spacing.xxl,
   },
   qrCard: {
-    backgroundColor: tokens.colors.card,
-    padding: 18,
+    backgroundColor: tokens.color.qr.background,
+    padding: tokens.spacing.xl,
     borderRadius: tokens.radius.lg,
-    marginBottom: 20,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    marginBottom: tokens.spacing.xl,
   },
   accountPanel: {
     width: '100%',
-    backgroundColor: tokens.colors.card,
-    borderRadius: tokens.radius.md,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    marginBottom: 14,
+    alignItems: 'center',
+    gap: tokens.spacing.xs,
+    marginBottom: tokens.spacing.lg,
   },
   address: {
-    ...tokens.type.body,
-    fontFamily: 'monospace',
-    fontWeight: '700',
-    color: tokens.colors.textPrimary,
-    marginBottom: 4,
+    ...tokens.type.monoValue,
+    color: tokens.color.textPrimary,
     textAlign: 'center',
   },
   fullAddress: {
     ...tokens.type.mono,
-    color: tokens.colors.textMuted,
+    color: tokens.color.textMuted,
     textAlign: 'center',
-    paddingHorizontal: 8,
   },
   shareBtn: {
-    width: '100%',
-    backgroundColor: tokens.colors.accent,
-    borderRadius: tokens.radius.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  shareBtnText: {
-    ...tokens.type.action,
-    color: tokens.onAccent.primary,
+    marginBottom: tokens.spacing.xxl,
   },
   urlLabel: {
     ...tokens.type.eyebrow,
-    color: tokens.colors.textMuted,
-    marginBottom: 4,
+    color: tokens.color.textMuted,
+    marginBottom: tokens.spacing.md,
     alignSelf: 'flex-start',
   },
   url: {
     ...tokens.type.mono,
-    color: tokens.colors.textPrimary,
-    alignSelf: 'flex-start',
-    backgroundColor: tokens.colors.card,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
+    color: tokens.color.textPrimary,
+    alignSelf: 'stretch',
+    backgroundColor: tokens.color.surface,
+    borderWidth: tokens.border.strong,
+    borderColor: tokens.color.borderHairline,
     borderRadius: tokens.radius.sm,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    padding: tokens.spacing.lg,
+    lineHeight: 20,
   },
 });

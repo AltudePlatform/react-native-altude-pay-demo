@@ -11,6 +11,7 @@ import {StatusBar, View, ActivityIndicator, StyleSheet, Text} from 'react-native
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 import AppNavigator from './src/navigation/AppNavigator';
+import {ToastProvider} from './src/components/ui/Toast';
 import {
   ensureClientState,
   clearUserProfile,
@@ -164,7 +165,7 @@ function AppContent(): React.JSX.Element {
   if (!ready) {
     return (
       <View style={styles.loadingScreen}>
-        <ActivityIndicator color={tokens.colors.accent} size="large" />
+        <ActivityIndicator color={tokens.color.brand} size="large" />
       </View>
     );
   }
@@ -172,8 +173,8 @@ function AppContent(): React.JSX.Element {
   return (
     <>
       <StatusBar
-        barStyle="dark-content"
-        backgroundColor={tokens.colors.page}
+        barStyle="light-content"
+        backgroundColor={tokens.color.canvas}
       />
       {SHOW_STARTUP_DIAGNOSTICS ? <View style={styles.diagBanner} /> : null}
       <AppNavigator
@@ -190,9 +191,11 @@ export default function App(): React.JSX.Element {
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={styles.gestureRoot}>
         <SafeAreaProvider>
-          <RootErrorBoundary>
-            <AppContent />
-          </RootErrorBoundary>
+          <ToastProvider>
+            <RootErrorBoundary>
+              <AppContent />
+            </RootErrorBoundary>
+          </ToastProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>
@@ -205,34 +208,32 @@ const styles = StyleSheet.create({
   },
   loadingScreen: {
     flex: 1,
-    backgroundColor: tokens.colors.page,
+    backgroundColor: tokens.color.canvas,
     alignItems: 'center',
     justifyContent: 'center',
   },
   rootErrorContainer: {
     flex: 1,
-    backgroundColor: '#2b0d0d',
+    backgroundColor: tokens.color.canvas,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: tokens.layout.gutter,
   },
   rootErrorTitle: {
-    color: '#ffb4b4',
-    fontSize: 24,
-    fontWeight: '800',
-    marginBottom: 12,
+    ...tokens.type.title,
+    color: tokens.color.error,
+    marginBottom: tokens.spacing.md,
   },
   rootErrorMessage: {
-    color: '#ffffff',
+    ...tokens.type.body,
+    color: tokens.color.textSecondary,
     textAlign: 'center',
-    fontSize: 15,
-    lineHeight: 22,
   },
   diagBanner: {
-    backgroundColor: '#101010',
-    borderBottomWidth: 1,
-    borderBottomColor: '#2f2f2f',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+    backgroundColor: tokens.color.surface,
+    borderBottomWidth: tokens.border.strong,
+    borderBottomColor: tokens.color.borderHairline,
+    paddingHorizontal: tokens.spacing.md,
+    paddingVertical: tokens.spacing.sm,
   },
 });

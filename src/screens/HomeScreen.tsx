@@ -1,80 +1,93 @@
 import React, {useCallback, useState} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  Alert,
-} from 'react-native';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {Alert, StyleSheet, Text, View} from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
+import {CompositeNavigationProp, useFocusEffect, useNavigation} from '@react-navigation/native';
+import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 import {StackNavigationProp} from '@react-navigation/stack';
-import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 
 import {useBalance} from '../hooks/useBalance';
-import {getAccountPaymentHistory, transactionTypeLabel} from '../services/altudeHistory';
+import {getAccountPaymentHistory} from '../services/altudeHistory';
 import {useWalletStore} from '../store/walletStore';
-import {truncateAddress} from '../services/solana';
-import BalanceCard from '../components/BalanceCard';
-import {AltudeHistoryEntry, RootStackParamList} from '../types';
+import {truncateAddress, getAccountHistory, TransactionSummary} from '../services/solana';
+import {formatRelativeDate, formatUsd} from '../utils/format';
+import {
+  BalanceDisplay,
+  Button,
+  CircularAction,
+  Icon,
+  ListRow,
+  Screen,
+  ScreenHeader,
+  SkeletonRows,
+  useToast,
+} from '../components/ui';
+import {AltudeHistoryEntry, MainTabParamList, RootStackParamList} from '../types';
 import {tokens} from '../theme/tokens';
 
-type NavProp = StackNavigationProp<RootStackParamList>;
+/** Home sits in the tab navigator but also pushes onto the root stack. */
+type NavProp = CompositeNavigationProp<
+  BottomTabNavigationProp<MainTabParamList, 'Home'>,
+  StackNavigationProp<RootStackParamList>
+>;
 
 type HomeScreenProps = {
   onLogout: () => Promise<void>;
 };
 
+const PREVIEW_COUNT = 4;
+
 export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Element {
   const navigation = useNavigation<NavProp>();
   const wallet = useWalletStore(s => s.wallet);
+  const {showToast} = useToast();
 
   const {data: balance, isLoading, refetch} = useBalance();
-  const [historyPreview, setHistoryPreview] = useState<AltudeHistoryEntry[]>([]);
+  const [historyPreview, setHistoryPreview] = useState<TransactionSummary[]>([]);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(true);
 
-  const hasWallet = typeof wallet?.publicKey === 'string' && wallet.publicKey.length > 0;
+  const hasWallet =
+    typeof wallet?.publicKey === 'string' && wallet.publicKey.length > 0;
 
-  React.useEffect(() => {
-    console.log('[screen] HomeScreen mounted');
-  }, []);
-
-  const displayAddress = hasWallet ? truncateAddress(wallet!.publicKey, 6) : 'No account';
-
-  const handleDisconnectWallet = useCallback(() => {
-    Alert.alert(
-      'Logout',
-      'Log out and remove the account stored on this device?',
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            await onLogout();
-          },
+  const handleLogout = useCallback(() => {
+    Alert.alert('Logout', 'Log out and remove the account stored on this device?', [
+      {text: 'Cancel', style: 'cancel'},
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          await onLogout();
         },
-      ],
-    );
+      },
+    ]);
   }, [onLogout]);
 
-  const handleOpenHistory = useCallback(() => {
-    navigation.navigate('History');
-  }, [navigation]);
+  const handleCopyAddress = useCallback(() => {
+    if (!wallet?.publicKey) {
+      return;
+    }
+    Clipboard.setString(wallet.publicKey);
+    showToast('Payment address copied');
+  }, [showToast, wallet?.publicKey]);
 
   const loadHistoryPreview = useCallback(async () => {
     if (!wallet?.publicKey) {
       setHistoryPreview([]);
+      setHistoryLoading(false);
       return;
     }
 
     try {
       setHistoryError(null);
-      setHistoryPreview(await getAccountPaymentHistory(wallet.publicKey, 5));
-    } catch {
+      const history = await getAccountHistory(wallet.publicKey, 5, 1);//await getAccountPaymentHistory(wallet.publicKey, 5,1);
+      console.log('[HomeScreen] Loaded history preview:', history);
+      setHistoryPreview(history);
+    } catch (error) {
+      console.error('[HomeScreen] Failed to load history preview:', error);
       setHistoryError('Activity could not be loaded.');
       setHistoryPreview([]);
+    } finally {
+      setHistoryLoading(false);
     }
   }, [wallet?.publicKey]);
 
@@ -89,266 +102,171 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
   }, [loadHistoryPreview, refetch]);
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl
-          refreshing={isLoading}
-          onRefresh={handleRefresh}
-          tintColor={tokens.colors.accent}
-        />
-      }>
-      <View style={styles.hero}>
-        <Svg style={StyleSheet.absoluteFill} width="110%" height="110%">
-          <Defs>
-            <LinearGradient id="homeHeroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <Stop offset="0%" stopColor="#3f8cff" />
-              <Stop offset="55%" stopColor="#4f7ef4" />
-              <Stop offset="100%" stopColor="#6d5ce8" />
-            </LinearGradient>
-          </Defs>
-          <Rect x="0" y="0" width="100%" height="100%" fill="url(#homeHeroGradient)" />
-        </Svg>
+    <Screen scroll edgeBottom={false} onRefresh={handleRefresh} refreshing={isLoading}>
+      <ScreenHeader
+        action={{
+          label: 'Logout',
+          onPress: handleLogout,
+          accessibilityLabel: 'Log out of this device',
+        }}
+      />
 
-        <View style={styles.heroGlowTop} />
-        <View style={styles.heroGlowBottom} />
-
-        {hasWallet ? (
-          <TouchableOpacity
-            onPress={handleDisconnectWallet}
-            style={styles.heroTopAction}>
-            <Text style={styles.heroSecondaryActionText}>Logout</Text>
-          </TouchableOpacity>
-        ) : null}
-
-        <View style={styles.heroHeaderRow}>
-          <Text style={styles.kicker}>WELCOME BACK</Text>
-        </View>
-
-        <Text style={styles.heroTitle}>{displayAddress}</Text>
-        <Text style={styles.heroSubtitle}>Manage payments and monitor account activity from one place.</Text>
-      </View>
-
-      {!hasWallet && (
+      {!hasWallet ? (
         <View style={styles.noWallet}>
-          <Text style={styles.noWalletText}>No account on this device</Text>
-          <Text style={styles.noWalletSubtext}>
+          <Text style={styles.noWalletTitle}>No account on this device</Text>
+          <Text style={styles.noWalletBody}>
             Log out and set up again to start paying.
           </Text>
         </View>
-      )}
-
-      {hasWallet && (
+      ) : (
         <>
-          <BalanceCard
-            walletAddress={wallet!.publicKey}
-            usdcBalance={balance?.usdcBalance ?? 0}
-            isLoading={isLoading}
+          {/*
+            The balance leads the screen. It previously sat inside a bordered
+            card below a gradient hero whose headline was a truncated base58
+            address - chrome outranking the value the screen exists to show.
+          */}
+          <BalanceDisplay
+            label="Available balance"
+            value={formatUsd(balance?.usdcBalance ?? 0)}
+            meta={truncateAddress(wallet!.publicKey, 6)}
+            loading={isLoading}
           />
 
-          <View style={styles.historyCard}>
-            <View style={styles.historyHeader}>
-              <Text style={styles.historyTitle}>Recent Activity</Text>
-              <TouchableOpacity onPress={handleOpenHistory}>
-                <Text style={styles.historyViewAll}>View all</Text>
-              </TouchableOpacity>
-            </View>
-
-            {historyPreview.length === 0 ? (
-              <Text style={styles.historyEmpty}>
-                {historyError ?? 'No payments yet. Your latest activity will show here.'}
-              </Text>
-            ) : (
-              historyPreview.map(item => (
-                <TouchableOpacity
-                  style={styles.historyRow}
-                  key={item.signature}
-                  onPress={() =>
-                    navigation.navigate('Receipt', {signature: item.signature})
-                  }>
-                  <View style={styles.historyRowLeft}>
-                    <Text style={styles.historyPerson}>
-                      {transactionTypeLabel(item.transactionType)}
-                    </Text>
-                    <Text style={styles.historyMeta}>
-                      {truncateAddress(item.signature, 8)}
-                    </Text>
-                  </View>
-                  <View style={styles.historyRowRight}>
-                    <Text style={styles.historyStatus}>Receipt</Text>
-                  </View>
-                </TouchableOpacity>
-              ))
-            )}
+          <View style={styles.actions}>
+            <CircularAction
+              icon="send"
+              label="Pay"
+              emphasis="primary"
+              onPress={() => navigation.navigate('Send')}
+              accessibilityHint="Enter an amount to send"
+            />
+            <CircularAction
+              icon="copy"
+              label="Copy"
+              onPress={handleCopyAddress}
+              accessibilityHint="Copies your payment address"
+            />
+            <CircularAction
+              icon="scan"
+              label="Scan"
+              onPress={() => navigation.navigate('Scan')}
+              accessibilityHint="Scan a payment code"
+            />
+            <CircularAction
+              icon="clock"
+              label="Activity"
+              onPress={() => navigation.navigate('History')}
+            />
           </View>
 
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Recent activity</Text>
+              {historyPreview.length > 0 ? (
+                <Button
+                  label="View all"
+                  variant="ghost"
+                  size="sm"
+                  fullWidth={false}
+                  onPress={() => navigation.navigate('History')}
+                  style={styles.viewAll}
+                />
+              ) : null}
+            </View>
+
+            {historyLoading ? (
+              <SkeletonRows count={3} />
+            ) : historyPreview.length === 0 ? (
+              <View style={styles.empty}>
+                <Icon
+                  name={historyError ? 'alert' : 'clock'}
+                  size={tokens.icon.lg}
+                  color={historyError ? tokens.color.error : tokens.color.textMuted}
+                />
+                <Text style={styles.emptyText}>
+                  {historyError ??
+                    'No payments yet. Your latest activity will show here.'}
+                </Text>
+              </View>
+            ) : (
+              historyPreview.map((item :TransactionSummary , index: number) => {
+                
+                
+                return (
+                  <ListRow
+                  key={item.signature}
+                  divided={index > 0}
+                  leadingIcon="arrowUpRight"
+                  leadingTone={item.status === 'failed' ? 'error' : 'success'}
+                  title={item.type === "send" ? "Payment" : "Incoming Payment"}
+                  subtitle={formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}
+                  value={(item.type === "send" ? '-' : '+') + '$' + item.amount.toLocaleString('en-US', {
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 4,
+                        })}
+                  onPress={() =>
+                    navigation.navigate('Receipt', {signature: item.signature})
+                  }
+                  accessibilityLabel={`Payment, ${formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}`}
+                  accessibilityHint="Opens the receipt"
+                  />
+                );
+              })
+            )}
+          </View>
         </>
       )}
-
-    </ScrollView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: tokens.colors.page,
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 28,
-    paddingBottom: 32,
-  },
-  hero: {
-    minHeight: 204,
-    borderRadius: tokens.radius.lg,
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 24,
-    marginBottom: 24,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  heroGlowTop: {
-    position: 'absolute',
-    width: 160,
-    height: 160,
-    borderRadius: 999,
-    top: -66,
-    right: -30,
-    backgroundColor: 'rgba(255,255,255,0.24)',
-  },
-  heroGlowBottom: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 999,
-    bottom: -48,
-    left: -26,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-  },
-  heroHeaderRow: {
+  actions: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
-    marginBottom: 14,
+    justifyContent: 'space-between',
+    marginTop: tokens.spacing.xxxl,
   },
-  kicker: {
-    ...tokens.type.eyebrow,
-    color: tokens.onAccent.secondary,
-    flexShrink: 1,
+  section: {
+    marginTop: tokens.spacing.huge,
   },
-  heroTitle: {
-    ...tokens.type.title,
-    fontSize: 28,
-    lineHeight: 34,
-    color: tokens.onAccent.primary,
-  },
-  heroSubtitle: {
-    ...tokens.type.body,
-    color: tokens.onAccent.secondary,
-    marginTop: 10,
-    maxWidth: '90%',
-  },
-  heroTopAction: {
-    position: 'absolute',
-    right: 14,
-    top: 14,
-    zIndex: 2,
-    paddingHorizontal: 11,
-    paddingVertical: 5,
-    borderRadius: tokens.radius.pill,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.45)',
-    backgroundColor: 'rgba(255,255,255,0.16)',
-  },
-  heroSecondaryActionText: {
-    ...tokens.type.caption,
-    fontWeight: '700',
-    color: tokens.onAccent.primary,
-    textAlign: 'center',
-  },
-  historyCard: {
-    marginTop: 14,
-    borderRadius: tokens.radius.lg,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-    backgroundColor: tokens.colors.card,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  historyHeader: {
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: tokens.spacing.sm,
+    minHeight: tokens.layout.touchTarget,
   },
-  historyTitle: {
+  sectionTitle: {
     ...tokens.type.heading,
-    color: tokens.colors.textPrimary,
+    color: tokens.color.textPrimary,
   },
-  historyViewAll: {
-    ...tokens.type.label,
-    fontWeight: '700',
-    color: tokens.colors.accent,
+  viewAll: {
+    paddingHorizontal: tokens.spacing.md,
+    marginRight: -tokens.spacing.md,
   },
-  historyEmpty: {
-    ...tokens.type.label,
-    fontWeight: '500',
-    color: tokens.colors.textMuted,
-    paddingVertical: 8,
-  },
-  historyRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  empty: {
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: tokens.colors.border,
-    paddingTop: 10,
-    paddingBottom: 8,
+    gap: tokens.spacing.lg,
+    paddingVertical: tokens.spacing.xxxl,
   },
-  historyRowLeft: {
-    flex: 1,
-    paddingRight: 10,
-  },
-  historyPerson: {
-    ...tokens.type.label,
-    color: tokens.colors.textPrimary,
-  },
-  historyMeta: {
-    ...tokens.type.mono,
-    color: tokens.colors.textMuted,
-    marginTop: 2,
-  },
-  historyRowRight: {
-    alignItems: 'flex-end',
-  },
-  historyStatus: {
-    ...tokens.type.label,
-    fontWeight: '700',
-    color: tokens.colors.accent,
+  emptyText: {
+    ...tokens.type.body,
+    color: tokens.color.textSecondary,
+    textAlign: 'center',
   },
   noWallet: {
     alignItems: 'center',
-    paddingVertical: 40,
-    gap: 14,
-    backgroundColor: tokens.colors.card,
-    borderRadius: tokens.radius.lg,
-    borderWidth: 1,
-    borderColor: tokens.colors.border,
-    paddingHorizontal: 16,
+    gap: tokens.spacing.md,
+    paddingVertical: tokens.spacing.giant,
   },
-  noWalletText: {
+  noWalletTitle: {
     ...tokens.type.title,
-    fontSize: 20,
-    lineHeight: 26,
-    color: tokens.colors.textPrimary,
-  },
-  noWalletSubtext: {
-    ...tokens.type.body,
-    color: tokens.colors.textMuted,
+    color: tokens.color.textPrimary,
     textAlign: 'center',
-    marginBottom: 8,
+  },
+  noWalletBody: {
+    ...tokens.type.body,
+    color: tokens.color.textSecondary,
+    textAlign: 'center',
   },
 });
