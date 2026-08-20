@@ -8,11 +8,6 @@ import {WalletInfo, BalanceResponse, TransactionStatusResponse} from '../types';
 import {stableCoinMint} from '../config/paymentConfig';
 import {ALTUDE_NETWORK} from '../config/apiConfig';
 import {runtimeConfig} from '../config/runtimeConfig';
-import {
-  Connection,
-  PublicKey,
-} from '@solana/web3.js';
-
 type Commitment = 'processed' | 'confirmed' | 'finalized';
 
 
@@ -47,11 +42,8 @@ export async function getAccountHistory(
   limit: number,
   page: number,
 ): Promise<TransactionSummary[]> {
-  const connection = new Connection(
-    DEFAULT_RPC_URL,
-    'confirmed',
-  );
-
+  const connection = await getConnection(DEFAULT_RPC_URL);
+  const {PublicKey} = await loadWeb3();
   const publicKey = new PublicKey(walletAddress);
 
   const signatures = await connection.getSignaturesForAddress(
@@ -101,14 +93,9 @@ export async function getSignatureHistory(
   walletAddress: string,
   signature: string,
 ): Promise<TransactionSummary | null> {
-  const connection = new Connection(
-    DEFAULT_RPC_URL,
-    'confirmed',
-  );
+  const connection = await getConnection(DEFAULT_RPC_URL);
 
-;
-
- try {
+  try {
     const tx = await connection.getTransaction(
       signature,
       {
@@ -146,7 +133,7 @@ export async function getSignatureHistory(
  * preTokenBalances/postTokenBalances.
  */
 function getWalletBalanceChange(
-  tx: TransactionResponse,
+  tx: any,
   walletAddress: string,
 ): number {
   const { meta } = tx;
@@ -155,12 +142,10 @@ function getWalletBalanceChange(
     return 0;
   }
 
-  const walletPublicKey = new PublicKey(walletAddress);
-
   const accountKeys = tx.transaction.message.staticAccountKeys;
 
   const index = accountKeys.findIndex(
-    (    key: { equals: (arg0: PublicKey) => any; }) => key.equals(walletPublicKey),
+    (key: { toBase58: () => string }) => key.toBase58() === walletAddress,
   );
 
   if (index === -1) {
@@ -177,7 +162,7 @@ function getWalletBalanceChange(
  * Finds an SPL token balance change involving the wallet.
  */
 function getTokenTransfer(
-  tx: TransactionResponse,
+  tx: any,
   walletAddress: string,
 ): {
   amount: number;
@@ -315,7 +300,7 @@ function getTokenTransfer(
  * 2. SOL balance change
  */
 function summarizeTransaction(
-  tx: TransactionResponse,
+  tx: any,
   signature: string,
   walletAddress: string,
 ): TransactionSummary {
