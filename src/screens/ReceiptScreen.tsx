@@ -6,7 +6,8 @@ import {StackNavigationProp} from '@react-navigation/stack';
 
 import {PAYMENT_TRANSACTION_TYPE, transactionTypeLabel} from '../services/altudeHistory';
 import {buildSolscanTxUrl} from '../services/explorer';
-import {truncateAddress} from '../services/solana';
+import {truncateAddress, getSignatureHistory, TransactionSummary} from '../services/solana';
+import {useWalletStore} from '../store/walletStore';
 import {getHistory} from '../services/storage';
 import {formatAbsoluteDate, formatUsd} from '../utils/format';
 import {
@@ -22,6 +23,7 @@ import {
 import {tokens} from '../theme/tokens';
 import {RootStackParamList, TransactionRecord} from '../types';
 
+
 type NavProp = StackNavigationProp<RootStackParamList>;
 type RouteType = RouteProp<RootStackParamList, 'Receipt'>;
 
@@ -30,14 +32,26 @@ export default function ReceiptScreen(): React.JSX.Element {
   const {signature} = useRoute<RouteType>().params;
   const {showToast} = useToast();
 
-  const [record, setRecord] = useState<TransactionRecord | null>(null);
+  const [record, setRecord] = useState<TransactionSummary | null>(null);
   const [isOpening, setIsOpening] = useState(false);
+  const [isSend, setIsSend] = useState(false);
+  const [otherWallet, setOtherWallet] = useState<string | null>(null);
+
+  const wallet = useWalletStore(s => s.wallet);
 
   useEffect(() => {
-    getHistory().then(records => {
-      setRecord(records.find(item => item.signature === signature) ?? null);
-    });
-  }, [signature]);
+    (async () => {
+      if (!wallet?.publicKey) {
+        return;
+      }
+      const history = await getSignatureHistory(wallet.publicKey, signature);
+      console.log('[ReceiptScreen] Fetched history for signature:', signature, history);
+      console.log('[ReceiptScreen] Fetched history for blockTime:', ((history?.blockTime ?? 0) * 1000).toString());
+      setRecord(history);
+      setIsSend(history?.type === 'send');
+      setOtherWallet(history?.type === 'send' ? history?.to ?? null : history?.from ?? null);
+    })();
+  }, [signature, wallet?.publicKey]);
 
   const handleOpenSolscan = useCallback(async () => {
     setIsOpening(true);
@@ -55,31 +69,32 @@ export default function ReceiptScreen(): React.JSX.Element {
     showToast('Signature copied');
   }, [showToast, signature]);
 
+  
   return (
     <Screen scroll>
       <ScreenHeader onBack={() => navigation.goBack()} eyebrow="Receipt" />
 
       <BalanceDisplay
-        label={record ? 'Amount sent' : 'Payment'}
+        label={isSend ? 'Payment' : 'Incoming payment'}
         value={
           record
             ? formatUsd(record.amount)
-            : transactionTypeLabel(PAYMENT_TRANSACTION_TYPE)
+            : 'Loading...'
         }
-        meta={record ? `to ${truncateAddress(record.recipient, 6)}` : undefined}
+        meta={otherWallet ? (isSend ? 'to ' : 'from ') + `${truncateAddress(otherWallet, 6)}` : undefined}
       />
 
       <Surface style={styles.card}>
-        <Row label="Type" value={transactionTypeLabel(PAYMENT_TRANSACTION_TYPE)} />
+        <Row label="Type" value={isSend ? 'Payment' : 'Incoming payment'} />
         {record ? (
           <View style={styles.row}>
             <Text style={styles.rowLabel}>Status</Text>
             <StatusPill tone={toneForStatus(record.status)} label={record.status} />
           </View>
         ) : null}
-        {record ? <Row label="Date" value={formatAbsoluteDate(record.date)} /> : null}
+        {record ? <Row label="Date" value={formatAbsoluteDate(new Date((record.blockTime ?? 0) * 1000).toString())} /> : null}
         {record ? (
-          <Row label="Recipient" value={truncateAddress(record.recipient, 6)} />
+          <Row label="Recipient" value={truncateAddress(record.to ?? '', 6)} />
         ) : null}
 
         <Text style={styles.label}>Transaction signature</Text>

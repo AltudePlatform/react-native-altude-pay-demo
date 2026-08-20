@@ -62,7 +62,7 @@ export default function HistoryScreen(): React.JSX.Element {
         divided={index > 0}
         leadingIcon="arrowUpRight"
         leadingTone={item.status === 'failed' ? 'error' : 'success'}
-        title="Payment"
+        title={item.type === "send" ? "Payment" : "Incoming Payment"}
         subtitle={formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}
         value={(item.type === "send" ? '-' : '+') + '$' + item.amount.toLocaleString('en-US', {
                           minimumFractionDigits: 0,
