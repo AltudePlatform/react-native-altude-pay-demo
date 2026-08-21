@@ -27,6 +27,7 @@ describe('account bootstrap and SDK wrapper', () => {
 
     jest.doMock('../src/services/solana', () => ({
       generateDemoWallet: jest.fn().mockResolvedValue(generatedWallet),
+      createDevnetTokenAccount: jest.fn().mockResolvedValue(undefined),
     }));
     jest.doMock('../src/services/storage', () => ({
       saveWallet,
@@ -49,6 +50,7 @@ describe('account bootstrap and SDK wrapper', () => {
 
     jest.doMock('../src/services/solana', () => ({
       generateDemoWallet: jest.fn().mockResolvedValue(generatedWallet),
+      createDevnetTokenAccount: jest.fn().mockResolvedValue(undefined),
     }));
     jest.doMock('../src/services/storage', () => ({
       saveWallet,
@@ -158,11 +160,12 @@ describe('account bootstrap and SDK wrapper', () => {
     const first = ensureDemoAccount();
     const second = ensureDemoAccount();
 
+    await Promise.resolve();
+    expect(generateDemoWallet).toHaveBeenCalledTimes(1);
     resolveGeneration?.(generatedWallet);
     const [firstResult, secondResult] = await Promise.all([first, second]);
 
     expect(firstResult).toEqual(generatedWallet);
     expect(secondResult).toEqual(generatedWallet);
-    expect(generateDemoWallet).toHaveBeenCalledTimes(1);
   });
 });
