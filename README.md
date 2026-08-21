@@ -267,12 +267,6 @@ cd android
 
 </details>
 
-## Documentation artwork
-
-The diagrams above are hand-authored SVG built from this app's own design tokens and
-components. See [`docs/images/README.md`](docs/images/README.md) for the palette,
-geometry, and the accessibility and claim rules they follow.
-
 ## License
 
 See [LICENSE](LICENSE).
