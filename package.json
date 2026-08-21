@@ -19,15 +19,13 @@
   "dependencies": {
     "@altude/core": "^0.1.1",
     "@altude/gasstation": "^2.1.0",
-    "@noble/curves": "^1.9.7",
+    "@noble/curves": "^2.2.0",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-clipboard/clipboard": "^1.16.3",
     "@react-navigation/bottom-tabs": "^7.3.14",
     "@react-navigation/native": "^7.1.9",
     "@react-navigation/stack": "^7.10.19",
     "@scure/base": "^1.2.6",
-    "@scure/bip32": "^1.7.0",
-    "@scure/bip39": "^1.6.0",
     "@solana-program/token": "^0.5.1",
     "@solana/kit": "^2.3.0",
     "@tanstack/react-query": "^5.64.2",
@@ -87,16 +85,15 @@
     "testPathIgnorePatterns": [
       "<rootDir>/__tests__/setup/"
     ],
-    "transformIgnorePatterns": []
+    "transformIgnorePatterns": [],
+    "testEnvironmentOptions": {
+      "customExportConditions": [
+        "node",
+        "node-addons"
+      ]
+    }
   },
   "engines": {
-    "node": ">=18"
-  },
-  "overrides": {
-    "@noble/curves": "^1.9.7",
-    "@noble/hashes": "^1.8.0",
-    "@scure/base": "^1.2.6",
-    "@scure/bip32": "^1.7.0",
-    "@scure/bip39": "^1.6.0"
+    "node": ">=20.19"
   }
 }

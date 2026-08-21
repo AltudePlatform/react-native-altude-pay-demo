@@ -6,27 +6,9 @@ const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
  * https://reactnative.dev/docs/metro
  */
 const defaultConfig = getDefaultConfig(__dirname);
-const rpcWebsocketsBrowserPath = path.resolve(
-	__dirname,
-	'node_modules',
-	'rpc-websockets',
-	'dist',
-	'index.browser.cjs',
-);
-const gillBrowserPath = path.resolve(
-	__dirname,
-	'node_modules',
-	'gill',
-	'dist',
-	'index.browser.cjs',
-);
 const config = {
 	resolver: {
-		sourceExts: [...defaultConfig.resolver.sourceExts, 'mjs', 'cjs'],
-		extraNodeModules: {
-			'rpc-websockets': rpcWebsocketsBrowserPath,
-			gill: gillBrowserPath,
-		},
+		sourceExts: [...defaultConfig.resolver.sourceExts, 'mjs'],
 		// Keep Metro from indexing huge generated native build directories.
 		blockList: [
 			new RegExp(

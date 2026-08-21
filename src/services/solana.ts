@@ -1,8 +1,5 @@
 /**
  * Solana wallet and RPC utilities.
- *
- * Keep all crypto/RPC imports lazy to avoid freezing the app at startup while
- * Metro resolves the browser-oriented Solana and noble-hashes bundles on Android.
  */
 import {WalletInfo, BalanceResponse, TransactionStatusResponse} from '../types';
 import {stableCoinMint} from '../config/paymentConfig';
@@ -28,7 +25,6 @@ export {isValidSolanaAddress, truncateAddress} from '../utils/helpers';
 export const STABLE_COIN_MINT = stableCoinMint;
 export const USDC_DEVNET_MINT = STABLE_COIN_MINT;
 
-const SOLANA_DERIVATION_PATH = "m/44'/501'/0'/0'";
 const COMMITMENT: Commitment = 'confirmed';
 const DEFAULT_RPC_URL = 'https://api.devnet.solana.com';
 const rpcByUrl = new Map<string, any>();
@@ -40,7 +36,7 @@ let cryptoRandomValuesPromise: Promise<void> | null = null;
 export async function getAccountHistory(
   walletAddress: string,
   limit: number,
-  page: number,
+  _page: number,
 ): Promise<TransactionSummary[]> {
   const rpc = await getRpc(DEFAULT_RPC_URL);
   const {address} = await loadKit();
@@ -374,69 +370,6 @@ async function ensureCryptoRandomValues(): Promise<void> {
   await cryptoRandomValuesPromise;
 }
 
-async function loadAltudeCore(): Promise<any> {
-  try {
-    return require('@altude/core/react-native');
-  } catch {
-    // Continue to the browser and default export targets.
-  }
-
-  try {
-    return require('@altude/core/browser');
-  } catch {
-    // Continue to the default export target.
-  }
-
-  try {
-    return require('@altude/core');
-  } catch {
-    if (typeof process !== 'undefined' && process.env.JEST_WORKER_ID) {
-      throw new Error('Unable to require module in Jest runtime: @altude/core');
-    }
-    return await import('@altude/core');
-  }
-}
-
-async function loadScureBase(): Promise<any> {
-  try {
-    return require('@scure/base');
-  } catch {
-    return await import('@scure/base');
-  }
-}
-
-async function loadScureBip39(): Promise<any> {
-  try {
-    return require('@scure/bip39');
-  } catch {
-    return await import('@scure/bip39');
-  }
-}
-
-async function loadScureBip39Wordlist(): Promise<any> {
-  try {
-    return require('@scure/bip39/wordlists/english');
-  } catch {
-    return await import('@scure/bip39/wordlists/english');
-  }
-}
-
-async function loadScureBip32(): Promise<any> {
-  try {
-    return require('@scure/bip32');
-  } catch {
-    return await import('@scure/bip32');
-  }
-}
-
-async function loadNobleEd25519(): Promise<any> {
-  try {
-    return require('@noble/curves/ed25519.js');
-  } catch {
-    return await import('@noble/curves/ed25519.js');
-  }
-}
-
 async function loadKit(): Promise<any> {
   try {
     return require('@solana/kit');
@@ -487,49 +420,20 @@ export function hexToBytes(hex: string): Uint8Array {
   return out;
 }
 
-/**
- * Generate a new Solana wallet using BIP-39 + BIP-32 derivation.
- * Primary path uses @altude/core SDK helpers.
- * Fallback path uses local crypto libs if the SDK bundle cannot load.
- */
+/** Generate a new Solana wallet using the supported Altude Core SDK entrypoint. */
 export async function generateDemoWallet(): Promise<WalletInfo> {
   await ensureCryptoRandomValues();
 
-  try {
-    const altudeCore = await loadAltudeCore();
-    const {generateMnemonic, deriveSolanaKeypair} = altudeCore;
-    const {base58} = await loadScureBase();
+  const {deriveSolanaKeypair, generateMnemonic} =
+    require('@altude/core') as typeof import('@altude/core');
+  const {base58} = require('@scure/base') as typeof import('@scure/base');
+  const mnemonic = generateMnemonic(12);
+  const keypair = await deriveSolanaKeypair(mnemonic, 0);
 
-    const mnemonic = generateMnemonic(12);
-    const keypair = await deriveSolanaKeypair(mnemonic, 0);
-
-    return {
-      publicKey: base58.encode(keypair.publicKey),
-      privateKey: bytesToHex(keypair.privateKey),
-    };
-  } catch {
-    const {generateMnemonic, mnemonicToSeed} = await loadScureBip39();
-    const {wordlist} = await loadScureBip39Wordlist();
-    const {HDKey} = await loadScureBip32();
-    const {base58} = await loadScureBase();
-    const {ed25519} = await loadNobleEd25519();
-
-    const mnemonic = generateMnemonic(wordlist, 128); // 12 words
-    const seed = await mnemonicToSeed(mnemonic);
-    const root = HDKey.fromMasterSeed(seed);
-    const child = root.derive(SOLANA_DERIVATION_PATH);
-
-    if (!child.privateKey) {
-      throw new Error('Failed to derive Solana keypair');
-    }
-
-    const publicKey = ed25519.getPublicKey(child.privateKey);
-
-    return {
-      publicKey: base58.encode(publicKey),
-      privateKey: bytesToHex(child.privateKey),
-    };
-  }
+  return {
+    publicKey: base58.encode(keypair.publicKey),
+    privateKey: bytesToHex(keypair.privateKey),
+  };
 }
 
 /** Build a GaslessTransactionSigner from the hex private key stored in WalletInfo. */
