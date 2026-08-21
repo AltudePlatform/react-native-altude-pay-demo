@@ -134,6 +134,8 @@ cd ios && pod install
 ```bash
 npm run lint
 npm run type-check
+npm run check:react-native-exports
+npm run smoke:startup
 npm test
 ```
 

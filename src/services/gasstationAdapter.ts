@@ -1,3 +1,4 @@
+import type {SolanaNetwork} from '@altude/core';
 import {ALTUDE_API_KEY} from '../config/apiConfig';
 import {stableCoinMint} from '../config/paymentConfig';
 import {runtimeConfig} from '../config/runtimeConfig';
@@ -9,8 +10,6 @@ const ALLOW_FALLBACK_SEND =
       process.env.ALTUDE_ALLOW_FALLBACK_SEND === 'true')) ||
   (typeof __DEV__ !== 'undefined' && __DEV__);
 
-// Lazily hold the instance — avoids loading @altude/gasstation (and its
-// heavy `gill` / @solana/kit transitive deps) until the first SDK call.
 type GasstationLike = {
   getBalance: (args: {account: string; token?: string}) => Promise<{
     lamports?: number;
@@ -35,13 +34,20 @@ type GasstationLike = {
 };
 
 let instance: GasstationLike | null = null;
-let initializationError: Error | null = null;
 
-function toError(error: unknown): Error {
-  if (error instanceof Error) {
-    return error;
+function toSolanaNetwork(rpcEnvironment: string | null): SolanaNetwork {
+  const normalized = rpcEnvironment?.trim().toLowerCase();
+  if (normalized === 'mainnet' || normalized === 'mainnet-beta') {
+    return 'mainnet-beta';
   }
-  return new Error(String(error));
+  if (normalized === 'devnet' || normalized === 'testnet') {
+    return normalized;
+  }
+  throw new Error(
+    `Altude transaction config returned an unsupported RPC environment: ${
+      rpcEnvironment ?? 'missing'
+    }.`,
+  );
 }
 
 function createFallbackGasstation(): GasstationLike {
@@ -56,10 +62,10 @@ function createFallbackGasstation(): GasstationLike {
       const {getTransactionConfig} = await import('./altudeApi');
       return getTransactionConfig();
     },
-    async getHistory() {
+    async getHistory(_args) {
       return {TransactionList: []};
     },
-    async send(args) {
+    async send(_args) {
       if (ALLOW_FALLBACK_SEND) {
         const signature = `MOCK_SIG_${Date.now().toString(36)}${Math.random()
           .toString(36)
@@ -72,85 +78,31 @@ function createFallbackGasstation(): GasstationLike {
         console.warn('[gasstationAdapter] Using fallback mock send signature:', signature);
         return {signature};
       }
-      const reason = initializationError?.message
-        ? ` (${initializationError.message})`
-        : '';
-      throw new Error(
-        `Gas station SDK is unavailable on this runtime${reason}.`,
-      );
+      throw new Error('Mock gas station send is disabled.');
     },
   };
-}
-
-export function getGasstationInitializationError(): Error | null {
-  return initializationError;
 }
 
 export async function getGasstation(): Promise<GasstationLike> {
   if (!instance) {
     if (runtimeConfig.useMockData) {
-      initializationError = null;
       instance = createFallbackGasstation();
       return instance;
     }
 
-    try {
-      let gasstationModule: any;
-
-      try {
-        gasstationModule = require('@altude/gasstation/react-native');
-      } catch {
-        try {
-          gasstationModule = require('@altude/gasstation/browser');
-        } catch {
-          gasstationModule = require('@altude/gasstation');
-        }
-      }
-
-      const {AltudeGasStation} = gasstationModule;
-      // The API key's transaction config is the authoritative cluster, not an env var.
-      const {getTransactionConfig: loadConfig} = await import('./altudeApi');
-      const {RpcEnvironment} = await loadConfig();
-      const sdk = new AltudeGasStation({
-        apiKey: ALTUDE_API_KEY,
-        network: RpcEnvironment,
-      }) as any;
-      instance = {
-        async getBalance(args) {
-          if (typeof sdk.getBalance === 'function') {
-            return sdk.getBalance(args);
-          }
-          return {lamports: 0, uiAmount: 0};
-        },
-        async getConfig() {
-          if (typeof sdk.getConfig === 'function') {
-            return sdk.getConfig();
-          }
-          const {getTransactionConfig} = await import('./altudeApi');
-          return getTransactionConfig();
-        },
-        async getHistory(args) {
-          if (typeof sdk.getHistory === 'function') {
-            return sdk.getHistory(args);
-          }
-          throw new Error('Gas station SDK getHistory() is unavailable.');
-        },
-        async send(args) {
-          if (typeof sdk.send === 'function') {
-            return sdk.send(args);
-          }
-          throw new Error('Gas station SDK send() is unavailable.');
-        },
-      };
-      initializationError = null;
-    } catch (error) {
-      initializationError = toError(error);
-      console.warn(
-        '[gasstationAdapter] Falling back: SDK unavailable.',
-        initializationError,
-      );
-      instance = createFallbackGasstation();
-    }
+    const {getTransactionConfig: loadConfig} = await import('./altudeApi');
+    const {RpcEnvironment} = await loadConfig();
+    const {AltudeGasStation} = require('@altude/gasstation') as typeof import('@altude/gasstation');
+    const sdk = new AltudeGasStation({
+      apiKey: ALTUDE_API_KEY,
+      network: toSolanaNetwork(RpcEnvironment),
+    });
+    instance = {
+      getBalance: args => sdk.getBalance(args),
+      getConfig: () => sdk.getConfig(),
+      getHistory: args => sdk.getHistory(args),
+      send: args => sdk.send(args),
+    };
   }
   return instance;
 }
@@ -209,4 +161,3 @@ export default {
   fetchAccountHistory,
   sendWithSigner,
 };
-
