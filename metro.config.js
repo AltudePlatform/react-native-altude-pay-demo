@@ -6,12 +6,6 @@ const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
  * https://reactnative.dev/docs/metro
  */
 const defaultConfig = getDefaultConfig(__dirname);
-const screensShimPath = path.resolve(
-	__dirname,
-	'src',
-	'shims',
-	'react-native-screens.tsx',
-);
 const rpcWebsocketsBrowserPath = path.resolve(
 	__dirname,
 	'node_modules',
@@ -30,7 +24,6 @@ const config = {
 	resolver: {
 		sourceExts: [...defaultConfig.resolver.sourceExts, 'mjs', 'cjs'],
 		extraNodeModules: {
-			'react-native-screens': screensShimPath,
 			'rpc-websockets': rpcWebsocketsBrowserPath,
 			gill: gillBrowserPath,
 		},

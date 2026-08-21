@@ -254,19 +254,8 @@ describe('Preparing', () => {
 });
 
 describe('Scan', () => {
-  it('camera path (ios default)', async () => {
+  it('camera permission state', async () => {
     expect(await renderScreen(ScanScreen)).toMatchSnapshot();
-  });
-
-  it('android fallback', async () => {
-    const {Platform} = require('react-native');
-    const original = Platform.OS;
-    Platform.OS = 'android';
-    try {
-      expect(await renderScreen(ScanScreen)).toMatchSnapshot();
-    } finally {
-      Platform.OS = original;
-    }
   });
 });
 

@@ -12,7 +12,6 @@ import {
   StyleSheet,
   Pressable,
   Alert,
-  Platform,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {
@@ -46,24 +45,15 @@ function parseSolanaPayUrl(url: string): {
 export default function ScanScreen(): React.JSX.Element {
   const navigation = useNavigation<NavProp>();
 
-  // Hooks must run unconditionally. The Android early-return used to sit above
-  // these calls, which tripped react-hooks/rules-of-hooks.
   const [hasPermission, setHasPermission] = useState(false);
   const [scanned, setScanned] = useState(false);
-
-  // VisionCamera's native module is intentionally disabled on Android in this
-  // build (see react-native.config.js), so the hook must not run there.
-  const isAndroid = Platform.OS === 'android';
   const device = useCameraDevice('back');
 
   useEffect(() => {
-    if (isAndroid) {
-      return;
-    }
     Camera.requestCameraPermission().then(status =>
       setHasPermission(status === 'granted'),
     );
-  }, [isAndroid]);
+  }, []);
 
   const codeScanner = useCodeScanner({
     codeTypes: ['qr'],
@@ -91,23 +81,6 @@ export default function ScanScreen(): React.JSX.Element {
     },
   });
 
-  if (isAndroid) {
-    return (
-      <Screen>
-        <ScreenHeader
-          onBack={() => navigation.goBack()}
-          backVariant="close"
-          eyebrow="Scan"
-        />
-        <View style={styles.message}>
-          <Icon name="scan" size={32} color={tokens.color.textMuted} />
-          <Text style={styles.title}>Scanner unavailable on Android</Text>
-          <Text style={styles.body}>Use Pay and paste a payment link instead.</Text>
-        </View>
-      </Screen>
-    );
-  }
-
   if (!hasPermission) {
     return (
       <Screen>
@@ -123,7 +96,10 @@ export default function ScanScreen(): React.JSX.Element {
           <Button
             label="Grant permission"
             fullWidth={false}
-            onPress={() => Camera.requestCameraPermission()}
+            onPress={async () => {
+              const status = await Camera.requestCameraPermission();
+              setHasPermission(status === 'granted');
+            }}
             style={styles.action}
           />
         </View>
