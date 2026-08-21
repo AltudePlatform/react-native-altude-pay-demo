@@ -1,8 +1,9 @@
 # README artwork — visual specification and provenance
 
 These assets are not decoration. Every colour, stroke, radius and label in them is
-derived from code that ships in this repository, so the documentation and the running
-app share one visual system rather than merely a mood.
+derived from code that ships in this repository, and the first two compositions use
+screenshots captured from the running Android app. The documentation and the product
+therefore share one visual system rather than merely a mood.
 
 If you change the app's design tokens or the payment stages, update these files too.
 
@@ -75,7 +76,7 @@ an image also appears in the README prose** — no image carries load-bearing co
 
 ## GitHub safety rules
 
-Each SVG must remain static and self-contained:
+The technical flow remains a static, self-contained SVG:
 
 - no `<script>`, no event handlers, no `<animate>`, no CSS animation
 - no external `href`/`xlink:href`, no `@import`, no embedded raster, no tracking
@@ -102,9 +103,15 @@ Zero matches is the passing result.
 
 | File | Role | Aspect |
 |---|---|---|
-| `hero-ascent.svg` | Tone. A payment leaves, is sponsored, arrives. | 2.5:1 |
-| `without-and-with-altude.svg` | Argument. What the user has to do, with and without Altude. | 16:9 |
+| `hero-product.png` | Thesis. Altude Pay is a consumer-grade showcase of the Altude platform. | 16:9 |
+| `consumer-payment-experience.png` | Product story. Familiar payment UX, local signing, and sponsored fees. | 16:9 |
 | `payment-flow.svg` | Mechanism. Four lanes and the custody boundary. | 16:10 |
+
+The two marketing compositions are rendered PNGs because GitHub sanitizes
+file-linked raster images inside SVGs. Their source captures,
+`altude-pay-home.png` and `altude-pay-send.png`, come from the standard Android
+34 emulator in mock mode so the artwork shows the real app UI without exposing
+credentials or making live network calls.
 
 ## Claims discipline
 

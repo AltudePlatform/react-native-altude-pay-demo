@@ -7,7 +7,7 @@ It demonstrates a payment that behaves like an everyday consumer transfer: you e
 amount, approve it on your device, and it arrives. There is no gas balance to top up,
 and the private key never leaves the phone.
 
-![A payment leaving a phone, rising through Altude's sponsored relay, and arriving confirmed on Solana](docs/images/hero-ascent.svg)
+![Altude Pay presented as a polished consumer payment app, with its real balance screen beside the message: Solana payments, without the crypto friction](docs/images/hero-product.png)
 
 ## Paying with crypto is still too hard
 
@@ -20,7 +20,7 @@ Altude removes that step. Your application builds the transaction and the user s
 locally; Altude validates it, attaches a sponsored fee payer, and relays it to the
 network. The user never acquires SOL, and never surrenders their key to do it.
 
-![Left column: a typical crypto payment needs five things, joined by a broken line — create a wallet, buy SOL to pay network fees, wait for the SOL to arrive, approve the transaction, keep a SOL balance topped up. Right column: with Altude Pay there are two, joined by one unbroken line — enter an amount and approve the payment — ending in a confirmed payment](docs/images/without-and-with-altude.svg)
+![The real Altude Pay amount screen beside three product principles: a payment-first interface, keys that stay on the device, and no SOL top-up step](docs/images/consumer-payment-experience.png)
 
 ## What this demo does
 
