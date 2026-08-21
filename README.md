@@ -107,26 +107,106 @@ Install dependencies from repository root:
 npm install
 ```
 
-Start Metro:
+### Android Development Baseline
+
+The supported, repeatable Android validation target is a standard **Android 14
+(API 34) phone AVD**. The project is validated with `Pixel_8_API_34`, but the
+Pixel model is not required. In Android Studio's Device Manager, create any
+phone profile with a standard API 34 Google APIs image.
+
+Do not select an image or AVD whose target is labeled
+`TiramisuPrivacySandbox`. Those images are specialized Privacy Sandbox preview
+environments, not the standard Android 14 application target, and are outside
+this demo's supported test matrix. Physical devices and other API levels may
+work, but they are not the baseline used for ongoing validation.
+
+Prerequisites:
+
+- Android Studio with the Android 34 SDK, emulator, and platform tools
+- Android Studio's bundled JDK available to Gradle
+- `ANDROID_HOME` set to the local Android SDK directory
+- A short checkout path on Windows (for example, `C:\src\altude-pay`) because
+  native CMake modules can exceed Windows object-path limits in deeply nested
+  directories
+
+List and start an AVD from PowerShell:
+
+```powershell
+& "$env:ANDROID_HOME\emulator\emulator.exe" -list-avds
+& "$env:ANDROID_HOME\emulator\emulator.exe" -avd Pixel_8_API_34
+```
+
+After the emulator finishes booting, identify its serial and verify that it is
+the standard API 34 release image:
+
+```powershell
+$adb = "$env:ANDROID_HOME\platform-tools\adb.exe"
+& $adb devices -l
+
+$serial = "emulator-5554" # Replace with the serial shown above.
+& $adb -s $serial shell getprop ro.build.version.sdk
+& $adb -s $serial shell getprop ro.build.version.release
+& $adb -s $serial shell getprop ro.build.version.codename
+```
+
+The expected values are `34`, `14`, and `REL`.
+
+If `android/app/debug.keystore` is absent in a fresh checkout, create the
+project-local development key once:
+
+```powershell
+keytool -genkeypair -v `
+  -keystore .\android\app\debug.keystore `
+  -storepass android `
+  -alias androiddebugkey `
+  -keypass android `
+  -keyalg RSA `
+  -keysize 2048 `
+  -validity 10000 `
+  -dname "CN=Android Debug,O=Android,C=US"
+```
+
+Start Metro in one terminal:
 
 ```bash
 npm start
 ```
 
-Run the app:
+Then direct React Native to the intended emulator from another terminal. The
+explicit device is important when more than one emulator or device is visible
+to `adb`.
 
-```bash
-# Android
-npm run android
-
-# iOS
-npm run ios
+```powershell
+npm run android -- --device $serial
 ```
 
-For iOS, install CocoaPods first:
+If the React Native CLI cannot resolve `gradlew.bat` on Windows, use the
+repository wrapper and `adb` directly:
+
+```powershell
+.\android\gradlew.bat -p android app:assembleDebug `
+  -PreactNativeArchitectures=x86_64
+& $adb -s $serial reverse tcp:8081 tcp:8081
+& $adb -s $serial install -r `
+  .\android\app\build\outputs\apk\debug\app-debug.apk
+& $adb -s $serial shell am start -n com.altudepay/.MainActivity
+```
+
+Confirm that the app is the resumed activity:
+
+```powershell
+& $adb -s $serial shell dumpsys activity top |
+  Select-String "ACTIVITY com.altudepay/.MainActivity|mResumed=true"
+```
+
+### iOS Development
+
+Install CocoaPods, then run the app:
 
 ```bash
 cd ios && pod install
+cd ..
+npm run ios
 ```
 
 ## Validation Commands
