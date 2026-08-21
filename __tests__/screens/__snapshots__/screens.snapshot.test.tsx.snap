@@ -1932,7 +1932,7 @@ exports[`History with entries 1`] = `
                                                                           "children": [
                                                                             {
                                                                               "children": [
-                                                                                "5r8K...NnPp",
+                                                                                "-$42.5",
                                                                               ],
                                                                               "props": {
                                                                                 "numberOfLines": 1,
@@ -2115,7 +2115,7 @@ exports[`History with entries 1`] = `
                                                                           "children": [
                                                                             {
                                                                               "children": [
-                                                                                "Payment",
+                                                                                "Incoming Payment",
                                                                               ],
                                                                               "props": {
                                                                                 "numberOfLines": 1,
@@ -2143,7 +2143,7 @@ exports[`History with entries 1`] = `
                                                                           "children": [
                                                                             {
                                                                               "children": [
-                                                                                "3aBc...cdEF",
+                                                                                "+$18.25",
                                                                               ],
                                                                               "props": {
                                                                                 "numberOfLines": 1,
@@ -2228,18 +2228,22 @@ exports[`History with entries 1`] = `
                                                             },
                                                             "data": [
                                                               {
-                                                                "createdAt": "2026-08-17T10:24:00.000Z",
-                                                                "error": null,
+                                                                "amount": 42.5,
+                                                                "blockTime": 1786962240,
                                                                 "signature": "5r8Kd1yQwWc9vX2mTgY7bNqZaLp3EeF6HhJjKkMmNnPp",
-                                                                "transactionStatus": 1,
-                                                                "transactionType": 20,
+                                                                "slot": 42,
+                                                                "status": "success",
+                                                                "to": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+                                                                "type": "send",
                                                               },
                                                               {
-                                                                "createdAt": "2026-08-16T08:02:00.000Z",
-                                                                "error": null,
+                                                                "amount": 18.25,
+                                                                "blockTime": 1786867320,
+                                                                "from": "4Nd1mYwqA8sVXspn8QyJFrhbs91ZFVDJ5kJ4DqpKB7mR",
                                                                 "signature": "3aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdEF",
-                                                                "transactionStatus": 1,
-                                                                "transactionType": 20,
+                                                                "slot": 41,
+                                                                "status": "success",
+                                                                "type": "receive",
                                                               },
                                                             ],
                                                             "getItem": [Function],
@@ -8012,7 +8016,7 @@ exports[`Home with balance and activity 1`] = `
                                                                       "children": [
                                                                         {
                                                                           "children": [
-                                                                            "5r8K...NnPp",
+                                                                            "-$42.5",
                                                                           ],
                                                                           "props": {
                                                                             "numberOfLines": 1,
@@ -8185,7 +8189,7 @@ exports[`Home with balance and activity 1`] = `
                                                                       "children": [
                                                                         {
                                                                           "children": [
-                                                                            "Payment",
+                                                                            "Incoming Payment",
                                                                           ],
                                                                           "props": {
                                                                             "numberOfLines": 1,
@@ -8213,7 +8217,7 @@ exports[`Home with balance and activity 1`] = `
                                                                       "children": [
                                                                         {
                                                                           "children": [
-                                                                            "3aBc...cdEF",
+                                                                            "+$18.25",
                                                                           ],
                                                                           "props": {
                                                                             "numberOfLines": 1,
@@ -15615,7 +15619,7 @@ exports[`Receipt record not found locally 1`] = `
                                                               "children": [
                                                                 {
                                                                   "children": [
-                                                                    "PAYMENT",
+                                                                    "INCOMING PAYMENT",
                                                                   ],
                                                                   "props": {
                                                                     "style": {
@@ -15631,10 +15635,10 @@ exports[`Receipt record not found locally 1`] = `
                                                                 },
                                                                 {
                                                                   "children": [
-                                                                    "Payment",
+                                                                    "Loading...",
                                                                   ],
                                                                   "props": {
-                                                                    "accessibilityLabel": "Payment: Payment",
+                                                                    "accessibilityLabel": "Incoming payment: Loading...",
                                                                     "accessibilityRole": "text",
                                                                     "adjustsFontSizeToFit": true,
                                                                     "minimumFontScale": 0.5,
@@ -15686,7 +15690,7 @@ exports[`Receipt record not found locally 1`] = `
                                                                     },
                                                                     {
                                                                       "children": [
-                                                                        "Payment",
+                                                                        "Incoming payment",
                                                                       ],
                                                                       "props": {
                                                                         "numberOfLines": 2,
@@ -16583,7 +16587,7 @@ exports[`Receipt with stored record 1`] = `
                                                               "children": [
                                                                 {
                                                                   "children": [
-                                                                    "AMOUNT SENT",
+                                                                    "PAYMENT",
                                                                   ],
                                                                   "props": {
                                                                     "style": {
@@ -16602,7 +16606,7 @@ exports[`Receipt with stored record 1`] = `
                                                                     "$42.50",
                                                                   ],
                                                                   "props": {
-                                                                    "accessibilityLabel": "Amount sent: $42.50",
+                                                                    "accessibilityLabel": "Payment: $42.50",
                                                                     "accessibilityRole": "text",
                                                                     "adjustsFontSizeToFit": true,
                                                                     "minimumFontScale": 0.5,
@@ -16719,7 +16723,27 @@ exports[`Receipt with stored record 1`] = `
                                                                                 {
                                                                                   "children": null,
                                                                                   "props": {
-                                                                                    "d": "M5 13 L10 18 L19 6",
+                                                                                    "cx": 12,
+                                                                                    "cy": 12,
+                                                                                    "fill": null,
+                                                                                    "propList": [
+                                                                                      "fill",
+                                                                                      "stroke",
+                                                                                      "strokeWidth",
+                                                                                    ],
+                                                                                    "r": 8.5,
+                                                                                    "stroke": {
+                                                                                      "payload": 4288393402,
+                                                                                      "type": 0,
+                                                                                    },
+                                                                                    "strokeWidth": 2.25,
+                                                                                  },
+                                                                                  "type": "RNSVGCircle",
+                                                                                },
+                                                                                {
+                                                                                  "children": null,
+                                                                                  "props": {
+                                                                                    "d": "M12 7 V12 L15 14",
                                                                                     "fill": null,
                                                                                     "propList": [
                                                                                       "fill",
@@ -16729,7 +16753,7 @@ exports[`Receipt with stored record 1`] = `
                                                                                       "strokeLinejoin",
                                                                                     ],
                                                                                     "stroke": {
-                                                                                      "payload": 4287089309,
+                                                                                      "payload": 4288393402,
                                                                                       "type": 0,
                                                                                     },
                                                                                     "strokeLinecap": 1,
@@ -16774,7 +16798,7 @@ exports[`Receipt with stored record 1`] = `
                                                                         },
                                                                         {
                                                                           "children": [
-                                                                            "confirmed",
+                                                                            "success",
                                                                           ],
                                                                           "props": {
                                                                             "numberOfLines": 1,
@@ -16786,7 +16810,7 @@ exports[`Receipt with stored record 1`] = `
                                                                                 "lineHeight": 16,
                                                                               },
                                                                               {
-                                                                                "color": "#87CA9D",
+                                                                                "color": "#9BB0BA",
                                                                               },
                                                                             ],
                                                                           },
@@ -16805,7 +16829,7 @@ exports[`Receipt with stored record 1`] = `
                                                                             "paddingVertical": 6,
                                                                           },
                                                                           {
-                                                                            "backgroundColor": "rgba(135, 202, 157, 0.12)",
+                                                                            "backgroundColor": "#132E38",
                                                                           },
                                                                           undefined,
                                                                         ],

@@ -9,27 +9,32 @@
  */
 import React from 'react';
 import {renderScreen} from '../setup/renderScreen';
-import {AltudeHistoryEntry, TransactionRecord} from '../../src/types';
+import {TransactionRecord} from '../../src/types';
+import type {TransactionSummary} from '../../src/services/solana';
 
 const WALLET = {
   publicKey: '7VfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs',
   privateKey: '11'.repeat(32),
 };
 
-const HISTORY: AltudeHistoryEntry[] = [
+const HISTORY: TransactionSummary[] = [
   {
     signature: '5r8Kd1yQwWc9vX2mTgY7bNqZaLp3EeF6HhJjKkMmNnPp',
-    createdAt: '2026-08-17T10:24:00.000Z',
-    transactionType: 20,
-    transactionStatus: 1,
-    error: null,
+    slot: 42,
+    blockTime: 1786962240,
+    status: 'success',
+    type: 'send',
+    amount: 42.5,
+    to: '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin',
   },
   {
     signature: '3aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdEF',
-    createdAt: '2026-08-16T08:02:00.000Z',
-    transactionType: 20,
-    transactionStatus: 1,
-    error: null,
+    slot: 41,
+    blockTime: 1786867320,
+    status: 'success',
+    type: 'receive',
+    amount: 18.25,
+    from: '4Nd1mYwqA8sVXspn8QyJFrhbs91ZFVDJ5kJ4DqpKB7mR',
   },
 ];
 
@@ -54,11 +59,12 @@ jest.mock('../../src/hooks/usePayment', () => ({
   usePayment: jest.fn(() => ({mutate: jest.fn()})),
 }));
 
-jest.mock('../../src/services/altudeHistory', () => {
-  const actual = jest.requireActual('../../src/services/altudeHistory');
+jest.mock('../../src/services/solana', () => {
+  const actual = jest.requireActual('../../src/services/solana');
   return {
     ...actual,
-    getAccountPaymentHistory: jest.fn(async () => []),
+    getAccountHistory: jest.fn(async () => []),
+    getSignatureHistory: jest.fn(async () => null),
   };
 });
 
@@ -77,8 +83,11 @@ jest.mock('../../src/config/apiConfig', () => ({
 }));
 
 import {useBalance} from '../../src/hooks/useBalance';
-import {getAccountPaymentHistory} from '../../src/services/altudeHistory';
-import {getHistory, getRecentRecipients} from '../../src/services/storage';
+import {
+  getAccountHistory,
+  getSignatureHistory,
+} from '../../src/services/solana';
+import {getRecentRecipients} from '../../src/services/storage';
 import {useWalletStore} from '../../src/store/walletStore';
 
 import HomeScreen from '../../src/screens/HomeScreen';
@@ -94,6 +103,14 @@ import QRScreen from '../../src/screens/QRScreen';
 
 const noop = async () => undefined;
 
+let dateNowSpy: jest.SpyInstance;
+
+beforeAll(() => {
+  dateNowSpy = jest
+    .spyOn(Date, 'now')
+    .mockReturnValue(Date.parse('2026-08-18T10:24:00.000Z'));
+});
+
 beforeEach(() => {
   jest.clearAllMocks();
   useWalletStore.setState({wallet: WALLET});
@@ -102,14 +119,18 @@ beforeEach(() => {
     isLoading: false,
     refetch: jest.fn(async () => undefined),
   });
-  (getAccountPaymentHistory as jest.Mock).mockResolvedValue([]);
+  (getAccountHistory as jest.Mock).mockResolvedValue([]);
+  (getSignatureHistory as jest.Mock).mockResolvedValue(null);
   (getRecentRecipients as jest.Mock).mockResolvedValue([]);
-  (getHistory as jest.Mock).mockResolvedValue([]);
+});
+
+afterAll(() => {
+  dateNowSpy.mockRestore();
 });
 
 describe('Home', () => {
   it('with balance and activity', async () => {
-    (getAccountPaymentHistory as jest.Mock).mockResolvedValue(HISTORY);
+    (getAccountHistory as jest.Mock).mockResolvedValue(HISTORY);
     expect(
       await renderScreen(() => <HomeScreen onLogout={noop} />),
     ).toMatchSnapshot();
@@ -122,7 +143,7 @@ describe('Home', () => {
   });
 
   it('activity load error', async () => {
-    (getAccountPaymentHistory as jest.Mock).mockRejectedValue(new Error('nope'));
+    (getAccountHistory as jest.Mock).mockRejectedValue(new Error('nope'));
     expect(
       await renderScreen(() => <HomeScreen onLogout={noop} />),
     ).toMatchSnapshot();
@@ -165,7 +186,7 @@ describe('Send (protected)', () => {
 
 describe('History', () => {
   it('with entries', async () => {
-    (getAccountPaymentHistory as jest.Mock).mockResolvedValue(HISTORY);
+    (getAccountHistory as jest.Mock).mockResolvedValue(HISTORY);
     expect(await renderScreen(HistoryScreen)).toMatchSnapshot();
   });
 
@@ -174,7 +195,7 @@ describe('History', () => {
   });
 
   it('error', async () => {
-    (getAccountPaymentHistory as jest.Mock).mockRejectedValue(
+    (getAccountHistory as jest.Mock).mockRejectedValue(
       new Error('Activity could not be loaded.'),
     );
     expect(await renderScreen(HistoryScreen)).toMatchSnapshot();
@@ -220,7 +241,7 @@ describe('Receipt', () => {
   });
 
   it('with stored record', async () => {
-    (getHistory as jest.Mock).mockResolvedValue([RECORD]);
+    (getSignatureHistory as jest.Mock).mockResolvedValue(HISTORY[0]);
     expect(
       await renderScreen(ReceiptScreen, {params: {signature: RECORD.signature}}),
     ).toMatchSnapshot();
