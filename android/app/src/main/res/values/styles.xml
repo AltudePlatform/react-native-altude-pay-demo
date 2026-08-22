@@ -2,10 +2,11 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <!-- Customize your theme here. -->
-        <item name="android:windowBackground">#f4f7fc</item>
-        <item name="android:statusBarColor">#f4f7fc</item>
-        <item name="android:navigationBarColor">#f4f7fc</item>
+        <item name="android:windowBackground">@color/altude_canvas</item>
+        <item name="android:statusBarColor">@color/altude_canvas</item>
+        <item name="android:navigationBarColor">@color/altude_canvas</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     </style>
 
