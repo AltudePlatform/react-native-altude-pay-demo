@@ -37,8 +37,8 @@ jest.mock('react-native-vision-camera', () => {
 
   return {
     Camera,
-    useCameraDevice: () => ({id: 'back'}),
-    useCodeScanner: () => ({}),
+    useCameraDevice: jest.fn(() => ({id: 'back'})),
+    useCodeScanner: jest.fn(() => ({})),
   };
 });
 
