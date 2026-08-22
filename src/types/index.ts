@@ -1,3 +1,5 @@
+import {NavigatorScreenParams} from '@react-navigation/native';
+
 export type MainTabParamList = {
   Home: undefined;
   Send: undefined;
@@ -8,7 +10,7 @@ export type RootStackParamList = {
   Preparing: {
     profile: UserProfile;
   };
-  MainTabs: undefined;
+  MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   History: undefined;
   QR: undefined;
   Scan: undefined;
