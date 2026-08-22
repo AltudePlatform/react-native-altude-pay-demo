@@ -14,6 +14,7 @@ type GasstationLike = {
     pageSize?: number;
     page?: number;
   }) => Promise<any>;
+  getRpcClient: () => Promise<any>;
   send: (args: {
     sourceSigner: {
       address: string;
@@ -47,6 +48,10 @@ function createMockGasstation(): GasstationLike {
     async getHistory(_args) {
       return {TransactionList: []};
     },
+    async getRpcClient() {
+      const {createSolanaRpc} = await import('@solana/kit');
+      return createSolanaRpc('https://api.devnet.solana.com');
+    },
     async send(_args) {
       const signature = `MOCK_SIG_${Date.now().toString(36)}${Math.random()
         .toString(36)
@@ -77,6 +82,7 @@ export async function getGasstation(): Promise<GasstationLike> {
       getBalance: args => sdk.getBalance(args),
       getConfig: () => sdk.getConfig(),
       getHistory: args => sdk.getHistory(args),
+      getRpcClient: () => sdk.getRpcClient(),
       send: args => sdk.send(args),
     };
   }

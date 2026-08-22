@@ -3,7 +3,6 @@
  */
 import {WalletInfo, BalanceResponse, TransactionStatusResponse} from '../types';
 import {stableCoinMint} from '../config/paymentConfig';
-import {ALTUDE_NETWORK} from '../config/apiConfig';
 import {runtimeConfig} from '../config/runtimeConfig';
 type Commitment = 'processed' | 'confirmed' | 'finalized';
 
@@ -26,7 +25,6 @@ export const STABLE_COIN_MINT = stableCoinMint;
 export const USDC_DEVNET_MINT = STABLE_COIN_MINT;
 
 const COMMITMENT: Commitment = 'confirmed';
-const DEFAULT_RPC_URL = 'https://api.devnet.solana.com';
 const rpcByUrl = new Map<string, any>();
 type CryptoWithRandomValues = {
   getRandomValues?: (...args: any[]) => unknown;
@@ -38,7 +36,7 @@ export async function getAccountHistory(
   limit: number,
   _page: number,
 ): Promise<TransactionSummary[]> {
-  const rpc = await getRpc(DEFAULT_RPC_URL);
+  const rpc = await getConfiguredRpc();
   const {address} = await loadKit();
 
   const signatures: Array<{signature: string}> = await rpc
@@ -79,7 +77,7 @@ export async function getSignatureHistory(
   walletAddress: string,
   signature: string,
 ): Promise<TransactionSummary | null> {
-  const rpc = await getRpc(DEFAULT_RPC_URL);
+  const rpc = await getConfiguredRpc();
 
   try {
     const tx = await fetchTransaction(rpc, signature);
@@ -386,13 +384,24 @@ async function loadTokenProgram(): Promise<any> {
   }
 }
 
-async function getRpc(rpcUrl = DEFAULT_RPC_URL): Promise<any> {
+async function getRpc(rpcUrl: string): Promise<any> {
   const cached = rpcByUrl.get(rpcUrl);
   if (cached) {return cached;}
   const {createSolanaRpc} = await loadKit();
   const next = createSolanaRpc(rpcUrl);
   rpcByUrl.set(rpcUrl, next);
   return next;
+}
+
+async function getConfiguredRpc(): Promise<any> {
+  const gasstation = await getSdkGasstation();
+  return gasstation.getRpcClient();
+}
+
+async function getSdkGasstation() {
+  const {getGasstation} =
+    require('./gasstationAdapter') as typeof import('./gasstationAdapter');
+  return getGasstation();
 }
 
 async function fetchTransaction(rpc: any, txSignature: string): Promise<any> {
@@ -522,7 +531,9 @@ export async function createDevnetTokenAccount(
   mint = STABLE_COIN_MINT,
   options?: DevnetTokenAccountOptions,
 ): Promise<DevnetTokenAccountBootstrapResult> {
-  if (ALTUDE_NETWORK !== 'devnet') {
+  const gasstation = await getSdkGasstation();
+  const config = await gasstation.getConfig();
+  if (config.RpcEnvironment?.trim().toLowerCase() !== 'devnet') {
     throw new Error('Devnet token account creation is only supported on devnet');
   }
 
@@ -544,7 +555,7 @@ export async function createDevnetTokenAccount(
     TOKEN_PROGRAM_ADDRESS,
   } = await loadTokenProgram();
 
-  const rpc = await getRpc(DEFAULT_RPC_URL);
+  const rpc = await gasstation.getRpcClient();
   const payer = await createKeyPairSignerFromPrivateKeyBytes(
     hexToBytes(wallet.privateKey),
   );
@@ -672,8 +683,7 @@ export async function getWalletBalances(
     };
   }
 
-  const {getGasstation} = await import('./gasstationAdapter');
-  const gasstation = await getGasstation();
+  const gasstation = await getSdkGasstation();
   const account = await gasstation.getBalance({
     account: walletAddress,
     token: STABLE_COIN_MINT,
@@ -699,7 +709,7 @@ export async function getTransactionStatus(
     };
   }
 
-  const rpc = await getRpc(rpcUrl ?? DEFAULT_RPC_URL);
+  const rpc = rpcUrl ? await getRpc(rpcUrl) : await getConfiguredRpc();
   const statuses = await rpc
     .getSignatureStatuses([signature], {searchTransactionHistory: true})
     .send();
