@@ -4,7 +4,6 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 
-import {PAYMENT_TRANSACTION_TYPE, transactionTypeLabel} from '../services/altudeHistory';
 import {buildSolscanTxUrl} from '../services/explorer';
 import {truncateAddress, getSignatureHistory, TransactionSummary} from '../services/solana';
 import {useWalletStore} from '../store/walletStore';
@@ -21,37 +20,110 @@ import {
   useToast,
 } from '../components/ui';
 import {tokens} from '../theme/tokens';
-import {RootStackParamList, TransactionRecord} from '../types';
+import {
+  RootStackParamList,
+  TransactionRecord,
+  TransactionStatus,
+} from '../types';
 
 
 type NavProp = StackNavigationProp<RootStackParamList>;
 type RouteType = RouteProp<RootStackParamList, 'Receipt'>;
+
+type ReceiptRecord = {
+  amount: number;
+  status: TransactionStatus;
+  direction: 'send' | 'receive';
+  date: string | null;
+  otherWallet: string | null;
+  recipient: string | null;
+};
+
+function fromStoredRecord(record: TransactionRecord): ReceiptRecord {
+  return {
+    amount: record.amount,
+    status: record.status,
+    direction: 'send',
+    date: record.date,
+    otherWallet: record.recipient,
+    recipient: record.recipient,
+  };
+}
+
+function fromChainRecord(record: TransactionSummary): ReceiptRecord {
+  const direction = record.type === 'receive' ? 'receive' : 'send';
+
+  return {
+    amount: record.amount,
+    status: record.status === 'success' ? 'confirmed' : 'failed',
+    direction,
+    date:
+      record.blockTime === null
+        ? null
+        : new Date(record.blockTime * 1000).toISOString(),
+    otherWallet:
+      direction === 'send' ? record.to ?? null : record.from ?? null,
+    recipient: record.to ?? null,
+  };
+}
 
 export default function ReceiptScreen(): React.JSX.Element {
   const navigation = useNavigation<NavProp>();
   const {signature} = useRoute<RouteType>().params;
   const {showToast} = useToast();
 
-  const [record, setRecord] = useState<TransactionSummary | null>(null);
+  const [record, setRecord] = useState<ReceiptRecord | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isOpening, setIsOpening] = useState(false);
-  const [isSend, setIsSend] = useState(false);
-  const [otherWallet, setOtherWallet] = useState<string | null>(null);
 
   const wallet = useWalletStore(s => s.wallet);
 
   useEffect(() => {
+    let active = true;
+
     (async () => {
-      if (!wallet?.publicKey) {
+      setIsLoading(true);
+      setRecord(null);
+
+      let storedRecord: TransactionRecord | undefined;
+      try {
+        const localHistory = await getHistory();
+        storedRecord = localHistory.find(item => item.signature === signature);
+        if (storedRecord && active) {
+          setRecord(fromStoredRecord(storedRecord));
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('[ReceiptScreen] Error loading local receipt:', error);
+      }
+
+      if (signature.startsWith('MOCK_SIG_') || !wallet?.publicKey) {
+        if (active) {
+          setIsLoading(false);
+        }
         return;
       }
-      const history = await getSignatureHistory(wallet.publicKey, signature);
-      console.log('[ReceiptScreen] Fetched history for signature:', signature, history);
-      console.log('[ReceiptScreen] Fetched history for blockTime:', ((history?.blockTime ?? 0) * 1000).toString());
-      setRecord(history);
-      setIsSend(history?.type === 'send');
-      setOtherWallet(history?.type === 'send' ? history?.to ?? null : history?.from ?? null);
+
+      const chainRecord = await getSignatureHistory(wallet.publicKey, signature);
+      if (active) {
+        if (chainRecord) {
+          setRecord(fromChainRecord(chainRecord));
+        }
+        setIsLoading(false);
+      }
     })();
+
+    return () => {
+      active = false;
+    };
   }, [signature, wallet?.publicKey]);
+
+  const isSend = record?.direction === 'send';
+  const directionLabel = record
+    ? isSend
+      ? 'Payment'
+      : 'Incoming payment'
+    : 'Payment details';
 
   const handleOpenSolscan = useCallback(async () => {
     setIsOpening(true);
@@ -75,26 +147,41 @@ export default function ReceiptScreen(): React.JSX.Element {
       <ScreenHeader onBack={() => navigation.goBack()} eyebrow="Receipt" />
 
       <BalanceDisplay
-        label={isSend ? 'Payment' : 'Incoming payment'}
-        value={
-          record
-            ? formatUsd(record.amount)
-            : 'Loading...'
+        label={directionLabel}
+        value={record ? formatUsd(record.amount) : 'Unavailable'}
+        loading={isLoading}
+        meta={
+          record?.otherWallet
+            ? (isSend ? 'to ' : 'from ') +
+              truncateAddress(record.otherWallet, 6)
+            : undefined
         }
-        meta={otherWallet ? (isSend ? 'to ' : 'from ') + `${truncateAddress(otherWallet, 6)}` : undefined}
       />
 
       <Surface style={styles.card}>
-        <Row label="Type" value={isSend ? 'Payment' : 'Incoming payment'} />
+        <Row label="Type" value={directionLabel} />
         {record ? (
           <View style={styles.row}>
             <Text style={styles.rowLabel}>Status</Text>
             <StatusPill tone={toneForStatus(record.status)} label={record.status} />
           </View>
         ) : null}
-        {record ? <Row label="Date" value={formatAbsoluteDate(new Date((record.blockTime ?? 0) * 1000).toString())} /> : null}
-        {record ? (
-          <Row label="Recipient" value={truncateAddress(record.to ?? '', 6)} />
+        {record?.date ? (
+          <Row label="Date" value={formatAbsoluteDate(record.date)} />
+        ) : null}
+        {record?.recipient ? (
+          <Row
+            label="Recipient"
+            value={truncateAddress(record.recipient, 6)}
+          />
+        ) : null}
+        {!isLoading && !record ? (
+          <View style={styles.unavailable}>
+            <Text style={styles.unavailableTitle}>Receipt unavailable</Text>
+            <Text style={styles.unavailableBody}>
+              Payment details could not be found on this device or on Solana.
+            </Text>
+          </View>
         ) : null}
 
         <Text style={styles.label}>Transaction signature</Text>
@@ -173,6 +260,21 @@ const styles = StyleSheet.create({
     borderColor: tokens.color.borderHairline,
     padding: tokens.spacing.lg,
     lineHeight: 20,
+  },
+  unavailable: {
+    gap: tokens.spacing.sm,
+    paddingVertical: tokens.spacing.xl,
+    borderBottomWidth: tokens.border.strong,
+    borderBottomColor: tokens.color.borderHairline,
+  },
+  unavailableTitle: {
+    ...tokens.type.label,
+    fontWeight: '700',
+    color: tokens.color.textPrimary,
+  },
+  unavailableBody: {
+    ...tokens.type.body,
+    color: tokens.color.textSecondary,
   },
   actions: {
     marginTop: tokens.spacing.xl,
