@@ -61,6 +61,14 @@ export default function ScanScreen(): React.JSX.Element {
             QR scanning is not available in this Android build. Enter the
             payment address manually instead.
           </Text>
+          <Button
+            label="Enter payment details"
+            fullWidth={false}
+            onPress={() =>
+              navigation.navigate('MainTabs', {screen: 'Send'})
+            }
+            style={styles.action}
+          />
         </View>
       </Screen>
     );

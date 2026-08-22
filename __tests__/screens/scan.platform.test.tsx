@@ -20,8 +20,10 @@ describe('Scan platform support', () => {
 
     try {
       const tree = await renderScreen(ScanScreen);
+      const serializedTree = JSON.stringify(tree);
 
-      expect(JSON.stringify(tree)).toContain('QR scanning unavailable');
+      expect(serializedTree).toContain('QR scanning unavailable');
+      expect(serializedTree).toContain('Enter payment details');
       expect(cameraDeviceHook).not.toHaveBeenCalled();
       expect(codeScannerHook).not.toHaveBeenCalled();
       expect(permissionRequest).not.toHaveBeenCalled();
