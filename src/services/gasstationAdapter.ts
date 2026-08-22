@@ -1,14 +1,6 @@
-import type {SolanaNetwork} from '@altude/core';
 import {ALTUDE_API_KEY} from '../config/apiConfig';
 import {stableCoinMint} from '../config/paymentConfig';
 import {runtimeConfig} from '../config/runtimeConfig';
-
-const ALLOW_FALLBACK_SEND =
-  runtimeConfig.useMockData ||
-  (typeof process !== 'undefined' &&
-    (process.env.ALTUDE_ALLOW_FALLBACK_SEND === '1' ||
-      process.env.ALTUDE_ALLOW_FALLBACK_SEND === 'true')) ||
-  (typeof __DEV__ !== 'undefined' && __DEV__);
 
 type GasstationLike = {
   getBalance: (args: {account: string; token?: string}) => Promise<{
@@ -35,22 +27,7 @@ type GasstationLike = {
 
 let instance: GasstationLike | null = null;
 
-function toSolanaNetwork(rpcEnvironment: string | null): SolanaNetwork {
-  const normalized = rpcEnvironment?.trim().toLowerCase();
-  if (normalized === 'mainnet' || normalized === 'mainnet-beta') {
-    return 'mainnet-beta';
-  }
-  if (normalized === 'devnet' || normalized === 'testnet') {
-    return normalized;
-  }
-  throw new Error(
-    `Altude transaction config returned an unsupported RPC environment: ${
-      rpcEnvironment ?? 'missing'
-    }.`,
-  );
-}
-
-function createFallbackGasstation(): GasstationLike {
+function createMockGasstation(): GasstationLike {
   return {
     async getBalance(args) {
       if (args.token === stableCoinMint) {
@@ -59,26 +36,28 @@ function createFallbackGasstation(): GasstationLike {
       return {lamports: Math.round(runtimeConfig.mock.solBalance * 1_000_000_000)};
     },
     async getConfig() {
-      const {getTransactionConfig} = await import('./altudeApi');
-      return getTransactionConfig();
+      return {
+        FeePayer: 'MockFeePayer11111111111111111111111111111111',
+        RpcUrl: 'https://api.devnet.solana.com',
+        Token: null,
+        RpcEnvironment: 'devnet',
+        TokenExpiration: null,
+      };
     },
     async getHistory(_args) {
       return {TransactionList: []};
     },
     async send(_args) {
-      if (ALLOW_FALLBACK_SEND) {
-        const signature = `MOCK_SIG_${Date.now().toString(36)}${Math.random()
-          .toString(36)
-          .slice(2, 8)}`;
-        if (runtimeConfig.mock.sendDelayMs > 0) {
-          await new Promise<void>(resolve => {
-            setTimeout(resolve, runtimeConfig.mock.sendDelayMs);
-          });
-        }
-        console.warn('[gasstationAdapter] Using fallback mock send signature:', signature);
-        return {signature};
+      const signature = `MOCK_SIG_${Date.now().toString(36)}${Math.random()
+        .toString(36)
+        .slice(2, 8)}`;
+      if (runtimeConfig.mock.sendDelayMs > 0) {
+        await new Promise<void>(resolve => {
+          setTimeout(resolve, runtimeConfig.mock.sendDelayMs);
+        });
       }
-      throw new Error('Mock gas station send is disabled.');
+      console.warn('[gasstationAdapter] Using mock send signature:', signature);
+      return {signature};
     },
   };
 }
@@ -86,16 +65,13 @@ function createFallbackGasstation(): GasstationLike {
 export async function getGasstation(): Promise<GasstationLike> {
   if (!instance) {
     if (runtimeConfig.useMockData) {
-      instance = createFallbackGasstation();
+      instance = createMockGasstation();
       return instance;
     }
 
-    const {getTransactionConfig: loadConfig} = await import('./altudeApi');
-    const {RpcEnvironment} = await loadConfig();
     const {AltudeGasStation} = require('@altude/gasstation') as typeof import('@altude/gasstation');
     const sdk = new AltudeGasStation({
       apiKey: ALTUDE_API_KEY,
-      network: toSolanaNetwork(RpcEnvironment),
     });
     instance = {
       getBalance: args => sdk.getBalance(args),
