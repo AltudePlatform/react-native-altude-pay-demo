@@ -226,6 +226,7 @@ npm run ios
 ```bash
 npm run lint
 npm run type-check
+npm run check:altude-sdk-boundary
 npm run check:react-native-exports
 npm run smoke:startup
 npm test
