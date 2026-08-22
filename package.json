@@ -8,13 +8,14 @@
     "ios": "react-native run-ios",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "postinstall": "patch-package",
+    "check:altude-sdk-boundary": "node scripts/check-altude-sdk-boundary.cjs",
     "check:react-native-exports": "node scripts/check-react-native-exports.mjs",
     "smoke:startup": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output .tmp-altude-npm-check/startup.bundle --assets-dest .tmp-altude-npm-check/assets",
     "smoke:startup:strict": "npm run type-check && npm run smoke:startup",
     "start": "react-native start",
     "test": "jest",
     "test:devnet-live": "node scripts/devnet-integration.mjs",
-    "type-check": "tsc --noEmit"
+    "type-check": "npm run check:altude-sdk-boundary && tsc --noEmit"
   },
   "dependencies": {
     "@altude/core": "^0.1.1",
