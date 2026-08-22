@@ -3,8 +3,7 @@ import {View, Text, StyleSheet, FlatList, RefreshControl} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 
-import {getAccountPaymentHistory} from '../services/altudeHistory';
-import {truncateAddress, getAccountHistory, TransactionSummary} from '../services/solana';
+import {getHistory} from '../services/storage';
 import {useWalletStore} from '../store/walletStore';
 import {formatRelativeDate} from '../utils/format';
 import {
@@ -15,7 +14,7 @@ import {
   ScreenHeader,
   SkeletonRows,
 } from '../components/ui';
-import {AltudeHistoryEntry, RootStackParamList} from '../types';
+import {RootStackParamList, TransactionRecord} from '../types';
 import {tokens} from '../theme/tokens';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
@@ -25,7 +24,7 @@ export default function HistoryScreen(): React.JSX.Element {
   const wallet = useWalletStore(s => s.wallet);
   const account = wallet?.publicKey;
 
-  const [entries, setEntries] = useState<TransactionSummary[]>([]);
+  const [entries, setEntries] = useState<TransactionRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +38,7 @@ export default function HistoryScreen(): React.JSX.Element {
     setLoading(true);
     setError(null);
     try {
-      const history = await getAccountHistory(account, 50, 1);
+      const history = await getHistory();
       setEntries(history);
     } catch (err) {
       setError(
@@ -57,19 +56,22 @@ export default function HistoryScreen(): React.JSX.Element {
   }, [loadHistory]);
 
   const renderItem = useCallback(
-    ({item, index}: {item: TransactionSummary; index: number}) => (
+    ({item, index}: {item: TransactionRecord; index: number}) => (
       <ListRow
         divided={index > 0}
         leadingIcon="arrowUpRight"
         leadingTone={item.status === 'failed' ? 'error' : 'success'}
-        title={item.type === "send" ? "Payment" : "Incoming Payment"}
-        subtitle={formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}
-        value={(item.type === "send" ? '-' : '+') + '$' + item.amount.toLocaleString('en-US', {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 4,
-                        })}
+        title="Payment"
+        subtitle={formatRelativeDate(item.date)}
+        value={
+          '-$' +
+          item.amount.toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 4,
+          })
+        }
         onPress={() => navigation.navigate('Receipt', {signature: item.signature})}
-        accessibilityLabel={`Payment, ${formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}`}
+        accessibilityLabel={`Payment, ${formatRelativeDate(item.date)}`}
         accessibilityHint="Opens the receipt"
       />
     ),

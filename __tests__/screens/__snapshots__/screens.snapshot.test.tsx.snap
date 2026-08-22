@@ -2115,7 +2115,7 @@ exports[`History with entries 1`] = `
                                                                           "children": [
                                                                             {
                                                                               "children": [
-                                                                                "Incoming Payment",
+                                                                                "Payment",
                                                                               ],
                                                                               "props": {
                                                                                 "numberOfLines": 1,
@@ -2143,7 +2143,7 @@ exports[`History with entries 1`] = `
                                                                           "children": [
                                                                             {
                                                                               "children": [
-                                                                                "+$18.25",
+                                                                                "-$18.25",
                                                                               ],
                                                                               "props": {
                                                                                 "numberOfLines": 1,
@@ -2229,21 +2229,19 @@ exports[`History with entries 1`] = `
                                                             "data": [
                                                               {
                                                                 "amount": 42.5,
-                                                                "blockTime": 1786962240,
+                                                                "date": "2026-08-17T10:24:00.000Z",
+                                                                "id": "tx-1",
+                                                                "recipient": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
                                                                 "signature": "5r8Kd1yQwWc9vX2mTgY7bNqZaLp3EeF6HhJjKkMmNnPp",
-                                                                "slot": 42,
-                                                                "status": "success",
-                                                                "to": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
-                                                                "type": "send",
+                                                                "status": "confirmed",
                                                               },
                                                               {
                                                                 "amount": 18.25,
-                                                                "blockTime": 1786867320,
-                                                                "from": "4Nd1mYwqA8sVXspn8QyJFrhbs91ZFVDJ5kJ4DqpKB7mR",
+                                                                "date": "2026-08-16T08:02:00.000Z",
+                                                                "id": "tx-2",
+                                                                "recipient": "4Nd1mYwqA8sVXspn8QyJFrhbs91ZFVDJ5kJ4DqpKB7mR",
                                                                 "signature": "3aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdEF",
-                                                                "slot": 41,
-                                                                "status": "success",
-                                                                "type": "receive",
+                                                                "status": "confirmed",
                                                               },
                                                             ],
                                                             "getItem": [Function],
@@ -8189,7 +8187,7 @@ exports[`Home with balance and activity 1`] = `
                                                                       "children": [
                                                                         {
                                                                           "children": [
-                                                                            "Incoming Payment",
+                                                                            "Payment",
                                                                           ],
                                                                           "props": {
                                                                             "numberOfLines": 1,
@@ -8217,7 +8215,7 @@ exports[`Home with balance and activity 1`] = `
                                                                       "children": [
                                                                         {
                                                                           "children": [
-                                                                            "+$18.25",
+                                                                            "-$18.25",
                                                                           ],
                                                                           "props": {
                                                                             "numberOfLines": 1,
