@@ -1,4 +1,4 @@
-import {getTransactionConfig} from './altudeApi';
+import {getTransactionConfig} from './gasstationAdapter';
 
 const SOLSCAN_TX_BASE = 'https://solscan.io/tx';
 
