@@ -47,6 +47,18 @@ const RECORD: TransactionRecord = {
   date: '2026-08-17T10:24:00.000Z',
 };
 
+const LOCAL_HISTORY: TransactionRecord[] = [
+  RECORD,
+  {
+    id: 'tx-2',
+    recipient: '4Nd1mYwqA8sVXspn8QyJFrhbs91ZFVDJ5kJ4DqpKB7mR',
+    amount: 18.25,
+    signature: HISTORY[1].signature,
+    status: 'confirmed',
+    date: '2026-08-16T08:02:00.000Z',
+  },
+];
+
 const MOCK_RECORD: TransactionRecord = {
   ...RECORD,
   id: 'tx-mock',
@@ -89,10 +101,7 @@ jest.mock('../../src/config/apiConfig', () => ({
 }));
 
 import {useBalance} from '../../src/hooks/useBalance';
-import {
-  getAccountHistory,
-  getSignatureHistory,
-} from '../../src/services/solana';
+import {getSignatureHistory} from '../../src/services/solana';
 import {getHistory, getRecentRecipients} from '../../src/services/storage';
 import {useWalletStore} from '../../src/store/walletStore';
 
@@ -125,7 +134,6 @@ beforeEach(() => {
     isLoading: false,
     refetch: jest.fn(async () => undefined),
   });
-  (getAccountHistory as jest.Mock).mockResolvedValue([]);
   (getSignatureHistory as jest.Mock).mockResolvedValue(null);
   (getHistory as jest.Mock).mockResolvedValue([]);
   (getRecentRecipients as jest.Mock).mockResolvedValue([]);
@@ -137,7 +145,7 @@ afterAll(() => {
 
 describe('Home', () => {
   it('with balance and activity', async () => {
-    (getAccountHistory as jest.Mock).mockResolvedValue(HISTORY);
+    (getHistory as jest.Mock).mockResolvedValue(LOCAL_HISTORY);
     expect(
       await renderScreen(() => <HomeScreen onLogout={noop} />),
     ).toMatchSnapshot();
@@ -150,7 +158,7 @@ describe('Home', () => {
   });
 
   it('activity load error', async () => {
-    (getAccountHistory as jest.Mock).mockRejectedValue(new Error('nope'));
+    (getHistory as jest.Mock).mockRejectedValue(new Error('nope'));
     expect(
       await renderScreen(() => <HomeScreen onLogout={noop} />),
     ).toMatchSnapshot();
@@ -193,7 +201,7 @@ describe('Send (protected)', () => {
 
 describe('History', () => {
   it('with entries', async () => {
-    (getAccountHistory as jest.Mock).mockResolvedValue(HISTORY);
+    (getHistory as jest.Mock).mockResolvedValue(LOCAL_HISTORY);
     expect(await renderScreen(HistoryScreen)).toMatchSnapshot();
   });
 
@@ -202,7 +210,7 @@ describe('History', () => {
   });
 
   it('error', async () => {
-    (getAccountHistory as jest.Mock).mockRejectedValue(
+    (getHistory as jest.Mock).mockRejectedValue(
       new Error('Activity could not be loaded.'),
     );
     expect(await renderScreen(HistoryScreen)).toMatchSnapshot();

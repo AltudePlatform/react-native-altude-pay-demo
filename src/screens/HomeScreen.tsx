@@ -6,9 +6,9 @@ import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 import {StackNavigationProp} from '@react-navigation/stack';
 
 import {useBalance} from '../hooks/useBalance';
-import {getAccountPaymentHistory} from '../services/altudeHistory';
+import {getHistory} from '../services/storage';
 import {useWalletStore} from '../store/walletStore';
-import {truncateAddress, getAccountHistory, TransactionSummary} from '../services/solana';
+import {truncateAddress} from '../services/solana';
 import {formatRelativeDate, formatUsd} from '../utils/format';
 import {
   BalanceDisplay,
@@ -21,7 +21,11 @@ import {
   SkeletonRows,
   useToast,
 } from '../components/ui';
-import {AltudeHistoryEntry, MainTabParamList, RootStackParamList} from '../types';
+import {
+  MainTabParamList,
+  RootStackParamList,
+  TransactionRecord,
+} from '../types';
 import {tokens} from '../theme/tokens';
 
 /** Home sits in the tab navigator but also pushes onto the root stack. */
@@ -42,7 +46,7 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
   const {showToast} = useToast();
 
   const {data: balance, isLoading, refetch} = useBalance();
-  const [historyPreview, setHistoryPreview] = useState<TransactionSummary[]>([]);
+  const [historyPreview, setHistoryPreview] = useState<TransactionRecord[]>([]);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [historyLoading, setHistoryLoading] = useState(true);
 
@@ -79,9 +83,8 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
 
     try {
       setHistoryError(null);
-      const history = await getAccountHistory(wallet.publicKey, 5, 1);//await getAccountPaymentHistory(wallet.publicKey, 5,1);
-      console.log('[HomeScreen] Loaded history preview:', history);
-      setHistoryPreview(history);
+      const history = await getHistory();
+      setHistoryPreview(history.slice(0, PREVIEW_COUNT));
     } catch (error) {
       console.error('[HomeScreen] Failed to load history preview:', error);
       setHistoryError('Activity could not be loaded.');
@@ -189,29 +192,28 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
                 </Text>
               </View>
             ) : (
-              historyPreview.map((item :TransactionSummary , index: number) => {
-                
-                
-                return (
-                  <ListRow
+              historyPreview.map((item, index) => (
+                <ListRow
                   key={item.signature}
                   divided={index > 0}
                   leadingIcon="arrowUpRight"
                   leadingTone={item.status === 'failed' ? 'error' : 'success'}
-                  title={item.type === "send" ? "Payment" : "Incoming Payment"}
-                  subtitle={formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}
-                  value={(item.type === "send" ? '-' : '+') + '$' + item.amount.toLocaleString('en-US', {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 4,
-                        })}
+                  title="Payment"
+                  subtitle={formatRelativeDate(item.date)}
+                  value={
+                    '-$' +
+                    item.amount.toLocaleString('en-US', {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 4,
+                    })
+                  }
                   onPress={() =>
                     navigation.navigate('Receipt', {signature: item.signature})
                   }
-                  accessibilityLabel={`Payment, ${formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}`}
+                  accessibilityLabel={`Payment, ${formatRelativeDate(item.date)}`}
                   accessibilityHint="Opens the receipt"
-                  />
-                );
-              })
+                />
+              ))
             )}
           </View>
         </>
