@@ -47,9 +47,8 @@ While this happens the app shows three stages — **Approving payment**, **Sendi
 **Confirming** — defined in
 [`PaymentStatusScreen`](src/screens/PaymentStatusScreen.tsx).
 
-The fee payer, RPC endpoint, short-lived RPC JWT and cluster are all resolved from your
-API key by `GET /api/transaction/config`. You do not configure a network or a fee payer
-address anywhere in this app.
+The Altude SDK resolves the fee payer, RPC endpoint, short-lived RPC credentials, and
+cluster from your API key. You do not configure a network or fee payer address in this app.
 
 ## Where your keys live
 
@@ -91,15 +90,28 @@ Create a `.env` file in the repository root using `.env.example` as a template:
 ALTUDE_API_KEY=replace_with_your_key
 ```
 
-For Altude configuration, the API key is the only required value. The API key's
-`/api/transaction/config` response determines the cluster, RPC URL, JWT, and
-fee payer. Users should not need to enter a fee payer address or choose a
-network manually.
+For Altude configuration, the API key is the only required value. The SDK resolves the
+cluster, Solana RPC connection, RPC credentials, and fee payer. Users should not enter a
+fee payer address, choose a network, or configure an Altude service URL manually.
 
 Restart Metro after changing `.env`. The app ships with `useMockData: false` in
 [`src/config/runtimeConfig.ts`](src/config/runtimeConfig.ts), so a valid API key is
 required to get past onboarding. Setting `useMockData: true` runs the app against local
 demo data without a key.
+
+### Altude SDK integration boundary
+
+Production application code uses supported `@altude/*` APIs as the only boundary for
+Altude service operations. The app must not own Altude service origins, endpoint paths,
+authentication headers, wire payloads, or response parsing that the SDK provides.
+
+The `RpcUrl` resolved internally by the SDK is a Solana JSON-RPC endpoint, not an Altude
+service base URL. Application-owned Solana queries use the SDK-managed authenticated RPC
+client. Explicit mock mode remains local and never falls back to production HTTP calls.
+
+An exception requires reviewer approval and documentation of its rationale, owner, and
+expiration or removal criteria. Add that documentation next to the narrowest possible
+allowlist entry in the architecture check.
 
 Install dependencies from repository root:
 
@@ -221,51 +233,8 @@ npm test
 
 ## Network
 
-- Solana cluster: **Devnet**
+- Intended demo cluster: **Devnet**, selected by the configured Altude API key
 - Devnet USDC mint: `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`
-- Altude API base: `https://api.altude.so`
-
-<details>
-<summary><strong>Android Altude SDK integration and instrumentation tests</strong></summary>
-
-The Android app module is configured to use Altude AndroidSDK from JitPack with:
-
-- `com.github.AltudePlatform.AndroidSDK:core:chen~pay-demo-02-SNAPSHOT`
-- `com.github.AltudePlatform.AndroidSDK:gasstation:chen~pay-demo-02-SNAPSHOT`
-- `com.github.AltudePlatform.AndroidSDK:vault:chen~pay-demo-02-SNAPSHOT`
-
-JitPack is added in Android Gradle settings repositories.
-
-### Instrumentation Tests (Setup / Create Account / Send USDC)
-
-Implemented test class:
-
-- `android/app/src/androidTest/java/com/altudepay/AltudeGasstationInstrumentedTest.kt`
-
-Required values (set as environment variables or Gradle properties):
-
-- `ALTUDE_ACCOUNT_PRIVATE_KEY_BASE64` (optional)
-
-The instrumentation tests use a static demo API key constant in
-`AltudeGasstationInstrumentedTest.kt`.
-
-If `ALTUDE_ACCOUNT_PRIVATE_KEY_BASE64` is not provided, the send test generates a temporary sender account and attempts account creation before transfer.
-
-Run test compilation:
-
-```bash
-cd android
-./gradlew :app:compileDebugKotlin :app:compileDebugAndroidTestKotlin
-```
-
-Run instrumentation tests on a connected emulator/device:
-
-```bash
-cd android
-./gradlew :app:connectedDebugAndroidTest
-```
-
-</details>
 
 ## License
 
