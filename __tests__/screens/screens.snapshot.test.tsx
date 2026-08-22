@@ -59,6 +59,12 @@ const LOCAL_HISTORY: TransactionRecord[] = [
   },
 ];
 
+const MOCK_RECORD: TransactionRecord = {
+  ...RECORD,
+  id: 'tx-mock',
+  signature: 'MOCK_SIG_receipt123',
+};
+
 jest.mock('../../src/hooks/useBalance', () => ({
   useBalance: jest.fn(() => ({
     data: {walletAddress: 'x', solBalance: 0, usdcBalance: 1250.75},
@@ -243,13 +249,23 @@ describe('PaymentStatus', () => {
 });
 
 describe('Receipt', () => {
-  it('record not found locally', async () => {
+  it('shows an unavailable state when the record cannot be resolved', async () => {
     expect(
       await renderScreen(ReceiptScreen, {params: {signature: RECORD.signature}}),
     ).toMatchSnapshot();
   });
 
-  it('with stored record', async () => {
+  it('uses a stored record without querying mock signatures on chain', async () => {
+    (getHistory as jest.Mock).mockResolvedValue([MOCK_RECORD]);
+    expect(
+      await renderScreen(ReceiptScreen, {
+        params: {signature: MOCK_RECORD.signature},
+      }),
+    ).toMatchSnapshot();
+    expect(getSignatureHistory).not.toHaveBeenCalled();
+  });
+
+  it('uses a resolved chain record', async () => {
     (getSignatureHistory as jest.Mock).mockResolvedValue(HISTORY[0]);
     expect(
       await renderScreen(ReceiptScreen, {params: {signature: RECORD.signature}}),
