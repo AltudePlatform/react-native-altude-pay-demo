@@ -1,21 +1,7 @@
-describe('account bootstrap and SDK wrapper', () => {
+describe('account bootstrap', () => {
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
-  });
-
-  it('runs the Altude SDK wrapper and returns the relayed signature', async () => {
-    jest.doMock('../src/services/altudeApi', () => ({
-      sendTransactionToAltude: jest.fn().mockResolvedValue({
-        signature: 'sig_sdk_123',
-        raw: {ok: true},
-      }),
-    }));
-
-    const {sendTransaction} = require('../src/services/altudeSdk');
-    const result = await sendTransaction('signed_tx_base64');
-
-    expect(result.signature).toBe('sig_sdk_123');
   });
 
   it('creates a demo account from a generated keypair and persists it', async () => {

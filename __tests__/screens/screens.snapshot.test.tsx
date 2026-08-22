@@ -47,6 +47,24 @@ const RECORD: TransactionRecord = {
   date: '2026-08-17T10:24:00.000Z',
 };
 
+const LOCAL_HISTORY: TransactionRecord[] = [
+  RECORD,
+  {
+    id: 'tx-2',
+    recipient: '4Nd1mYwqA8sVXspn8QyJFrhbs91ZFVDJ5kJ4DqpKB7mR',
+    amount: 18.25,
+    signature: HISTORY[1].signature,
+    status: 'confirmed',
+    date: '2026-08-16T08:02:00.000Z',
+  },
+];
+
+const MOCK_RECORD: TransactionRecord = {
+  ...RECORD,
+  id: 'tx-mock',
+  signature: 'MOCK_SIG_receipt123',
+};
+
 jest.mock('../../src/hooks/useBalance', () => ({
   useBalance: jest.fn(() => ({
     data: {walletAddress: 'x', solBalance: 0, usdcBalance: 1250.75},
@@ -83,11 +101,8 @@ jest.mock('../../src/config/apiConfig', () => ({
 }));
 
 import {useBalance} from '../../src/hooks/useBalance';
-import {
-  getAccountHistory,
-  getSignatureHistory,
-} from '../../src/services/solana';
-import {getRecentRecipients} from '../../src/services/storage';
+import {getSignatureHistory} from '../../src/services/solana';
+import {getHistory, getRecentRecipients} from '../../src/services/storage';
 import {useWalletStore} from '../../src/store/walletStore';
 
 import HomeScreen from '../../src/screens/HomeScreen';
@@ -119,8 +134,8 @@ beforeEach(() => {
     isLoading: false,
     refetch: jest.fn(async () => undefined),
   });
-  (getAccountHistory as jest.Mock).mockResolvedValue([]);
   (getSignatureHistory as jest.Mock).mockResolvedValue(null);
+  (getHistory as jest.Mock).mockResolvedValue([]);
   (getRecentRecipients as jest.Mock).mockResolvedValue([]);
 });
 
@@ -130,7 +145,7 @@ afterAll(() => {
 
 describe('Home', () => {
   it('with balance and activity', async () => {
-    (getAccountHistory as jest.Mock).mockResolvedValue(HISTORY);
+    (getHistory as jest.Mock).mockResolvedValue(LOCAL_HISTORY);
     expect(
       await renderScreen(() => <HomeScreen onLogout={noop} />),
     ).toMatchSnapshot();
@@ -143,7 +158,7 @@ describe('Home', () => {
   });
 
   it('activity load error', async () => {
-    (getAccountHistory as jest.Mock).mockRejectedValue(new Error('nope'));
+    (getHistory as jest.Mock).mockRejectedValue(new Error('nope'));
     expect(
       await renderScreen(() => <HomeScreen onLogout={noop} />),
     ).toMatchSnapshot();
@@ -186,7 +201,7 @@ describe('Send (protected)', () => {
 
 describe('History', () => {
   it('with entries', async () => {
-    (getAccountHistory as jest.Mock).mockResolvedValue(HISTORY);
+    (getHistory as jest.Mock).mockResolvedValue(LOCAL_HISTORY);
     expect(await renderScreen(HistoryScreen)).toMatchSnapshot();
   });
 
@@ -195,7 +210,7 @@ describe('History', () => {
   });
 
   it('error', async () => {
-    (getAccountHistory as jest.Mock).mockRejectedValue(
+    (getHistory as jest.Mock).mockRejectedValue(
       new Error('Activity could not be loaded.'),
     );
     expect(await renderScreen(HistoryScreen)).toMatchSnapshot();
@@ -234,13 +249,23 @@ describe('PaymentStatus', () => {
 });
 
 describe('Receipt', () => {
-  it('record not found locally', async () => {
+  it('shows an unavailable state when the record cannot be resolved', async () => {
     expect(
       await renderScreen(ReceiptScreen, {params: {signature: RECORD.signature}}),
     ).toMatchSnapshot();
   });
 
-  it('with stored record', async () => {
+  it('uses a stored record without querying mock signatures on chain', async () => {
+    (getHistory as jest.Mock).mockResolvedValue([MOCK_RECORD]);
+    expect(
+      await renderScreen(ReceiptScreen, {
+        params: {signature: MOCK_RECORD.signature},
+      }),
+    ).toMatchSnapshot();
+    expect(getSignatureHistory).not.toHaveBeenCalled();
+  });
+
+  it('uses a resolved chain record', async () => {
     (getSignatureHistory as jest.Mock).mockResolvedValue(HISTORY[0]);
     expect(
       await renderScreen(ReceiptScreen, {params: {signature: RECORD.signature}}),
