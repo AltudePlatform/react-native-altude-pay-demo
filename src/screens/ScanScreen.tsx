@@ -12,6 +12,7 @@ import {
   StyleSheet,
   Pressable,
   Alert,
+  Platform,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {
@@ -45,6 +46,30 @@ function parseSolanaPayUrl(url: string): {
 export default function ScanScreen(): React.JSX.Element {
   const navigation = useNavigation<NavProp>();
 
+  if (Platform.OS === 'android') {
+    return (
+      <Screen>
+        <ScreenHeader
+          onBack={() => navigation.goBack()}
+          backVariant="close"
+          eyebrow="Scan"
+        />
+        <View style={styles.message}>
+          <Icon name="scan" size={32} color={tokens.color.textMuted} />
+          <Text style={styles.title}>QR scanning unavailable</Text>
+          <Text style={styles.body}>
+            QR scanning is not available in this Android build. Enter the
+            payment address manually instead.
+          </Text>
+        </View>
+      </Screen>
+    );
+  }
+
+  return <CameraScanner navigation={navigation} />;
+}
+
+function CameraScanner({navigation}: {navigation: NavProp}): React.JSX.Element {
   const [hasPermission, setHasPermission] = useState(false);
   const [scanned, setScanned] = useState(false);
   const device = useCameraDevice('back');
