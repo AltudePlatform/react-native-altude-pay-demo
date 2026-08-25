@@ -8,9 +8,9 @@ function loadEnv() {
   }
 
   for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
-    const match = line.match(/^\s*(ALTUDE_API_KEY|ALTUDE_NETWORK)\s*=\s*(.*?)\s*$/);
+    const match = line.match(/^\s*ALTUDE_API_KEY\s*=\s*(.*?)\s*$/);
     if (match) {
-      process.env[match[1]] = match[2].replace(/^['"]|['"]$/g, '');
+      process.env.ALTUDE_API_KEY = match[1].replace(/^['"]|['"]$/g, '');
     }
   }
 }
@@ -29,14 +29,12 @@ module.exports = api => {
         : [
           ({types: t}) => ({
             visitor: {
-              MemberExpression(path) {
-                const {node} = path;
+              MemberExpression(babelPath) {
+                const {node} = babelPath;
                 if (
                   node.computed ||
                   !t.isIdentifier(node.property) ||
-                  !['ALTUDE_API_KEY', 'ALTUDE_NETWORK'].includes(
-                    node.property.name,
-                  ) ||
+                  node.property.name !== 'ALTUDE_API_KEY' ||
                   !t.isMemberExpression(node.object) ||
                   node.object.computed ||
                   !t.isIdentifier(node.object.property, {name: 'env'}) ||
@@ -47,7 +45,7 @@ module.exports = api => {
 
                 const value = process.env[node.property.name];
                 if (value !== undefined) {
-                  path.replaceWith(t.stringLiteral(value));
+                  babelPath.replaceWith(t.stringLiteral(value));
                 }
               },
             },

@@ -1,11 +1,13 @@
 const mockGetBalance = jest.fn();
 const mockGetConfig = jest.fn();
 const mockGetHistory = jest.fn();
+const mockGetRpcClient = jest.fn();
 const mockSend = jest.fn();
 const mockAltudeGasStation = jest.fn(() => ({
   getBalance: mockGetBalance,
   getConfig: mockGetConfig,
   getHistory: mockGetHistory,
+  getRpcClient: mockGetRpcClient,
   send: mockSend,
 }));
 
@@ -50,9 +52,11 @@ describe('gasstationAdapter', () => {
     const config = {RpcEnvironment: 'devnet'};
     const balance = {lamports: 42};
     const history = {TransactionList: []};
+    const rpc = {getBalance: jest.fn()};
     mockGetConfig.mockResolvedValue(config);
     mockGetBalance.mockResolvedValue(balance);
     mockGetHistory.mockResolvedValue(history);
+    mockGetRpcClient.mockResolvedValue(rpc);
     mockSend.mockResolvedValue({Signature: 'sig_sdk_123'});
 
     const {
@@ -69,6 +73,7 @@ describe('gasstationAdapter', () => {
 
     await expect(getTransactionConfig()).resolves.toBe(config);
     await expect(gasstation.getBalance({account: 'sender'})).resolves.toBe(balance);
+    await expect(gasstation.getRpcClient()).resolves.toBe(rpc);
     await expect(
       fetchAccountHistory({walletAddress: 'sender', page: 2, pageSize: 10}),
     ).resolves.toBe(history);
@@ -84,6 +89,7 @@ describe('gasstationAdapter', () => {
       page: 2,
       pageSize: 10,
     });
+    expect(mockGetRpcClient).toHaveBeenCalledWith();
     expect(mockSend).toHaveBeenCalledWith({
       sourceSigner: signer,
       toAddress: 'recipient',
