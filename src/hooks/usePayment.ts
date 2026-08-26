@@ -1,5 +1,5 @@
 import {useMutation, useQueryClient} from '@tanstack/react-query';
-import {addRecentRecipient, appendToHistory} from '../services/storage';
+//import {addRecentRecipient, appendToHistory} from '../services/storage';
 import {buildSigner, waitForTransactionConfirmation} from '../services/solana';
 import {sendWithSigner} from '../services/gasstationAdapter';
 import {useWalletStore} from '../store/walletStore';
@@ -101,10 +101,10 @@ export function usePayment() {
           status: ''
         };
 
-        await Promise.all([
-          appendToHistory(record),
-          addRecentRecipient(recipientAddress),
-        ]);
+        // await Promise.all([
+        //   appendToHistory(record),
+        //   addRecentRecipient(recipientAddress),
+        // ]);
 
         if (record.data[0].status === 'failed') {
           throw new Error(status.error ?? 'Payment failed to confirm');
@@ -112,6 +112,7 @@ export function usePayment() {
 
         return record;
       } catch (error) {
+        console.error(error);
         throw toPaymentError(error);
       }
     },
