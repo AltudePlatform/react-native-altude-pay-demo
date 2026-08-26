@@ -80,25 +80,16 @@ export function usePayment() {
 
         const record: TransactionRecord = {
           id: generateId(),
-          walletAddress: recipientAddress,
-          data: [
-            {
-              signature,
-              slot: status.slot ?? 0,
-              blockTime: Date.now(),
-              status: status.status === 'confirmed' ? 'success' : 'failed',
-              type: 'send',
-              amount,
-              from: wallet.publicKey,
-              to: recipientAddress,
-            },
-          ],
-          page: '',
-          pageSize: '',
-          limit: 0,
-          offset: 0,
-          total: 0,
-          status: ''
+          recipient: recipientAddress,
+          amount,
+          signature,
+          status:
+            status.status === 'confirmed'
+              ? 'confirmed'
+              : status.status === 'failed'
+                ? 'failed'
+                : 'pending',
+          date: new Date().toISOString(),
         };
 
         await Promise.all([
@@ -106,7 +97,7 @@ export function usePayment() {
           addRecentRecipient(recipientAddress),
         ]);
 
-        if (record.data[0].status === 'failed') {
+        if (record.status === 'failed') {
           throw new Error(status.error ?? 'Payment failed to confirm');
         }
 

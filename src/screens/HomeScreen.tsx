@@ -6,10 +6,9 @@ import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 import {StackNavigationProp} from '@react-navigation/stack';
 
 import {useBalance} from '../hooks/useBalance';
-import {} from '../services/storage';
+import {getHistory} from '../services/storage';
 import {useWalletStore} from '../store/walletStore';
 import {truncateAddress} from '../services/solana';
-import {getGasstation} from '../services/gasstationAdapter';
 import {formatRelativeDate, formatUsd} from '../utils/format';
 import {
   BalanceDisplay,
@@ -47,17 +46,7 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
   const {showToast} = useToast();
 
   const {data: balance, isLoading, refetch} = useBalance();
-  const [historyPreview, setHistoryPreview] = useState<TransactionRecord>({
-    data: [],
-    page: 1,
-    pageSize: PREVIEW_COUNT,
-    limit: PREVIEW_COUNT,
-    offset: 0,
-    total: 0,
-    status: '',
-    id: '',
-    walletAddress: '',
-  });
+  const [historyPreview, setHistoryPreview] = useState<TransactionRecord[]>([]);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [historyLoading, setHistoryLoading] = useState(true);
 
@@ -87,44 +76,19 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
 
   const loadHistoryPreview = useCallback(async () => {
     if (!wallet?.publicKey) {
-      setHistoryPreview({
-        data: [],
-        page: 1,
-        pageSize: PREVIEW_COUNT,
-        limit: PREVIEW_COUNT,
-        offset: 0,
-        total: 0,
-        status: '',
-        id: '',
-        walletAddress: '',
-      });
+      setHistoryPreview([]);
       setHistoryLoading(false);
       return;
     }
-    const sdk = await getGasstation();
+
     try {
       setHistoryError(null);
-      const history = await sdk.getHistory({
-        walletAddress: wallet.publicKey,
-        page: 1,
-        pageSize: PREVIEW_COUNT,
-      });
-      history.data = history.data.slice(0, PREVIEW_COUNT);
-      setHistoryPreview(history);
+      const history = await getHistory();
+      setHistoryPreview(history.slice(0, PREVIEW_COUNT));
     } catch (error) {
       console.error('[HomeScreen] Failed to load history preview:', error);
       setHistoryError('Activity could not be loaded.');
-      setHistoryPreview({
-        data: [],
-        page: 1,
-        pageSize: PREVIEW_COUNT,
-        limit: PREVIEW_COUNT,
-        offset: 0,
-        total: 0,
-        status: '',
-        id: '',
-        walletAddress: '',
-      });
+      setHistoryPreview([]);
     } finally {
       setHistoryLoading(false);
     }
@@ -201,7 +165,7 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Recent activity</Text>
-              {historyPreview.data.length > 0 ? (
+              {historyPreview.length > 0 ? (
                 <Button
                   label="View all"
                   variant="ghost"
@@ -215,7 +179,7 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
 
             {historyLoading ? (
               <SkeletonRows count={3} />
-            ) : historyPreview.data.length === 0 ? (
+            ) : historyPreview.length === 0 ? (
               <View style={styles.empty}>
                 <Icon
                   name={historyError ? 'alert' : 'clock'}
@@ -228,14 +192,14 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
                 </Text>
               </View>
             ) : (
-              historyPreview.data.map((item, index) => (
+              historyPreview.map((item, index) => (
                 <ListRow
                   key={item.signature}
                   divided={index > 0}
                   leadingIcon="arrowUpRight"
                   leadingTone={item.status === 'failed' ? 'error' : 'success'}
                   title="Payment"
-                  subtitle={formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}
+                  subtitle={formatRelativeDate(item.date)}
                   value={
                     '-$' +
                     item.amount.toLocaleString('en-US', {
@@ -244,9 +208,9 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
                     })
                   }
                   onPress={() =>
-                    navigation.navigate('Receipt', {receiptData: item})
+                    navigation.navigate('Receipt', {signature: item.signature})
                   }
-                  accessibilityLabel={`Payment, ${formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}`}
+                  accessibilityLabel={`Payment, ${formatRelativeDate(item.date)}`}
                   accessibilityHint="Opens the receipt"
                 />
               ))

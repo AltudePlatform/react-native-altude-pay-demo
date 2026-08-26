@@ -5,8 +5,9 @@ import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 
 import {buildSolscanTxUrl} from '../services/explorer';
-import {truncateAddress, getSignatureHistory} from '../services/solana';
+import {truncateAddress, getSignatureHistory, TransactionSummary} from '../services/solana';
 import {useWalletStore} from '../store/walletStore';
+import {getHistory} from '../services/storage';
 import {formatAbsoluteDate, formatUsd} from '../utils/format';
 import {
   BalanceDisplay,
@@ -20,7 +21,6 @@ import {
 } from '../components/ui';
 import {tokens} from '../theme/tokens';
 import {
-  GetHistorySummary,
   RootStackParamList,
   TransactionRecord,
   TransactionStatus,
@@ -39,31 +39,40 @@ type ReceiptRecord = {
   recipient: string | null;
 };
 
-function fromStoredRecord(record: GetHistorySummary): GetHistorySummary {
-  return record;
+function fromStoredRecord(record: TransactionRecord): ReceiptRecord {
+  return {
+    amount: record.amount,
+    status: record.status,
+    direction: 'send',
+    date: record.date,
+    otherWallet: record.recipient,
+    recipient: record.recipient,
+  };
 }
 
-function fromChainRecord(record: GetHistorySummary): GetHistorySummary {
+function fromChainRecord(record: TransactionSummary): ReceiptRecord {
   const direction = record.type === 'receive' ? 'receive' : 'send';
 
   return {
     amount: record.amount,
-    status: record.status === 'success' ? 'success' : 'failed',
-    type: record.type,
-    blockTime: record.blockTime === null ? null : record.blockTime,
-    from: record.from,
-    to: record.to,
-    signature: '',
-    slot: 0
+    status: record.status === 'success' ? 'confirmed' : 'failed',
+    direction,
+    date:
+      record.blockTime === null
+        ? null
+        : new Date(record.blockTime * 1000).toISOString(),
+    otherWallet:
+      direction === 'send' ? record.to ?? null : record.from ?? null,
+    recipient: record.to ?? null,
   };
 }
 
 export default function ReceiptScreen(): React.JSX.Element {
   const navigation = useNavigation<NavProp>();
-  const {receiptData} = useRoute<RouteType>().params;
+  const {signature} = useRoute<RouteType>().params;
   const {showToast} = useToast();
 
-  const [record, setRecord] = useState<GetHistorySummary | null>(null);
+  const [record, setRecord] = useState<ReceiptRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpening, setIsOpening] = useState(false);
 
@@ -76,10 +85,10 @@ export default function ReceiptScreen(): React.JSX.Element {
       setIsLoading(true);
       setRecord(null);
 
-      let storedRecord: GetHistorySummary | undefined;
+      let storedRecord: TransactionRecord | undefined;
       try {
-        //const localHistory = await getHistory();
-        storedRecord = receiptData;
+        const localHistory = await getHistory();
+        storedRecord = localHistory.find(item => item.signature === signature);
         if (storedRecord && active) {
           setRecord(fromStoredRecord(storedRecord));
           setIsLoading(false);
@@ -88,28 +97,28 @@ export default function ReceiptScreen(): React.JSX.Element {
         console.error('[ReceiptScreen] Error loading local receipt:', error);
       }
 
-      if (receiptData.signature.startsWith('MOCK_SIG_') || !wallet?.publicKey) {
+      if (signature.startsWith('MOCK_SIG_') || !wallet?.publicKey) {
         if (active) {
           setIsLoading(false);
         }
         return;
       }
 
-      // const chainRecord = await getSignatureHistory(wallet.publicKey, receiptData.signature);
-      // if (active) {
-      //   if (chainRecord) {
-      //     setRecord(fromChainRecord(chainRecord));
-      //   }
-      //   setIsLoading(false);
-      // }
+      const chainRecord = await getSignatureHistory(wallet.publicKey, signature);
+      if (active) {
+        if (chainRecord) {
+          setRecord(fromChainRecord(chainRecord));
+        }
+        setIsLoading(false);
+      }
     })();
 
     return () => {
       active = false;
     };
-  }, [receiptData.signature, wallet?.publicKey]);
+  }, [signature, wallet?.publicKey]);
 
-  const isSend = record?.type === 'send';
+  const isSend = record?.direction === 'send';
   const directionLabel = record
     ? isSend
       ? 'Payment'
@@ -119,18 +128,18 @@ export default function ReceiptScreen(): React.JSX.Element {
   const handleOpenSolscan = useCallback(async () => {
     setIsOpening(true);
     try {
-      await Linking.openURL(await buildSolscanTxUrl(receiptData.signature));
+      await Linking.openURL(await buildSolscanTxUrl(signature));
     } catch {
       showToast('Solscan is unreachable. Check your connection.', 'error');
     } finally {
       setIsOpening(false);
     }
-  }, [showToast, receiptData.signature]);
+  }, [showToast, signature]);
 
   const handleCopySignature = useCallback(() => {
-    Clipboard.setString(receiptData.signature);
+    Clipboard.setString(signature);
     showToast('Signature copied');
-  }, [showToast, receiptData.signature]);
+  }, [showToast, signature]);
 
   
   return (
@@ -142,9 +151,9 @@ export default function ReceiptScreen(): React.JSX.Element {
         value={record ? formatUsd(record.amount) : 'Unavailable'}
         loading={isLoading}
         meta={
-          record?.to
+          record?.otherWallet
             ? (isSend ? 'to ' : 'from ') +
-              truncateAddress(record.to, 6)
+              truncateAddress(record.otherWallet, 6)
             : undefined
         }
       />
@@ -157,13 +166,13 @@ export default function ReceiptScreen(): React.JSX.Element {
             <StatusPill tone={toneForStatus(record.status)} label={record.status} />
           </View>
         ) : null}
-        {record?.blockTime ? (
-          <Row label="Date" value={formatAbsoluteDate(new Date((record.blockTime ?? 0) * 1000).toString())} />
+        {record?.date ? (
+          <Row label="Date" value={formatAbsoluteDate(record.date)} />
         ) : null}
-        {record?.to ? (
+        {record?.recipient ? (
           <Row
             label="Recipient"
-            value={truncateAddress(record.to, 6)}
+            value={truncateAddress(record.recipient, 6)}
           />
         ) : null}
         {!isLoading && !record ? (
@@ -177,7 +186,7 @@ export default function ReceiptScreen(): React.JSX.Element {
 
         <Text style={styles.label}>Transaction signature</Text>
         <Text style={styles.signature} selectable>
-          {receiptData.signature}
+          {signature}
         </Text>
 
         <View style={styles.actions}>
