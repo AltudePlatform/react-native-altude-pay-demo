@@ -23,7 +23,7 @@ export type RootStackParamList = {
     recipient: string;
   };
   Receipt: {
-    data: GetHistorySummary;
+    receiptData: GetHistorySummary;
   };
 };
 
