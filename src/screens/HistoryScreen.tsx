@@ -2,10 +2,8 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View, Text, StyleSheet, FlatList, RefreshControl} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-
-import {getHistory} from '../services/storage';
 import {useWalletStore} from '../store/walletStore';
-import {formatRelativeDate} from '../utils/format';
+import {getHistoryPresentation} from '../utils/historyPresentation';
 import {
   Button,
   Icon,
@@ -14,8 +12,9 @@ import {
   ScreenHeader,
   SkeletonRows,
 } from '../components/ui';
-import {RootStackParamList, TransactionRecord} from '../types';
+import {GetHistorySummary, RootStackParamList, TransactionRecord} from '../types';
 import {tokens} from '../theme/tokens';
+import {getGasstation} from '../services/gasstationAdapter';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
 
@@ -24,13 +23,13 @@ export default function HistoryScreen(): React.JSX.Element {
   const wallet = useWalletStore(s => s.wallet);
   const account = wallet?.publicKey;
 
-  const [entries, setEntries] = useState<TransactionRecord[]>([]);
+  const [entries, setEntries] = useState<TransactionRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadHistory = useCallback(async () => {
     if (!account) {
-      setEntries([]);
+      setEntries(null);
       setLoading(false);
       return;
     }
@@ -38,9 +37,15 @@ export default function HistoryScreen(): React.JSX.Element {
     setLoading(true);
     setError(null);
     try {
-      const history = await getHistory();
+      const sdk = await getGasstation();
+      const history = await sdk.getHistory({
+        walletAddress: account,
+        page: 1,
+        pageSize: 20,
+      });
       setEntries(history);
     } catch (err) {
+      setEntries(null);
       setError(
         err instanceof Error && err.message
           ? err.message
@@ -56,25 +61,22 @@ export default function HistoryScreen(): React.JSX.Element {
   }, [loadHistory]);
 
   const renderItem = useCallback(
-    ({item, index}: {item: TransactionRecord; index: number}) => (
-      <ListRow
-        divided={index > 0}
-        leadingIcon="arrowUpRight"
-        leadingTone={item.status === 'failed' ? 'error' : 'success'}
-        title="Payment"
-        subtitle={formatRelativeDate(item.date)}
-        value={
-          '-$' +
-          item.amount.toLocaleString('en-US', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 4,
-          })
-        }
-        onPress={() => navigation.navigate('Receipt', {signature: item.signature})}
-        accessibilityLabel={`Payment, ${formatRelativeDate(item.date)}`}
-        accessibilityHint="Opens the receipt"
-      />
-    ),
+    ({item, index}: {item: GetHistorySummary; index: number}) => {
+      const presentation = getHistoryPresentation(item);
+      return (
+        <ListRow
+          divided={index > 0}
+          leadingIcon={presentation.icon}
+          leadingTone={presentation.leadingTone}
+          title={presentation.title}
+          subtitle={presentation.date}
+          value={presentation.value}
+          onPress={() => navigation.navigate('Receipt', {receiptData: item})}
+          accessibilityLabel={`${presentation.title}, ${presentation.date}`}
+          accessibilityHint="Opens the receipt"
+        />
+      );
+    },
     [navigation],
   );
 
@@ -99,7 +101,7 @@ export default function HistoryScreen(): React.JSX.Element {
     );
   }
 
-  if (entries.length === 0) {
+  if (!entries || entries.data.length === 0) {
     return (
       <Screen>
         {header}
@@ -131,7 +133,7 @@ export default function HistoryScreen(): React.JSX.Element {
   return (
     <Screen>
       <FlatList
-        data={entries}
+        data={entries.data}
         keyExtractor={item => item.signature}
         renderItem={renderItem}
         ListHeaderComponent={header}

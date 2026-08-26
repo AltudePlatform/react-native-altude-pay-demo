@@ -74,7 +74,7 @@ export default function PaymentStatusScreen(): React.JSX.Element {
   const handleDone = useCallback(() => navigation.navigate('MainTabs'), [navigation]);
   const handleReceipt = useCallback(() => {
     if (record) {
-      navigation.navigate('Receipt', {signature: record.signature});
+      navigation.navigate('Receipt', {receiptData: record.data[0]});
     }
   }, [navigation, record]);
   const handleRetry = useCallback(() => setAttempt(n => n + 1), []);

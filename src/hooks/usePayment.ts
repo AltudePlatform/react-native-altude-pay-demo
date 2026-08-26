@@ -1,5 +1,5 @@
 import {useMutation, useQueryClient} from '@tanstack/react-query';
-import {addRecentRecipient, appendToHistory} from '../services/storage';
+import {addRecentRecipient} from '../services/storage';
 import {buildSigner, waitForTransactionConfirmation} from '../services/solana';
 import {sendWithSigner} from '../services/gasstationAdapter';
 import {useWalletStore} from '../store/walletStore';
@@ -78,31 +78,43 @@ export function usePayment() {
           ? {signature, status: 'confirmed' as const, confirmed: true}
           : await waitForTransactionConfirmation(signature, 12, 1_500);
 
+        const historyStatus =
+          status.status === 'confirmed'
+            ? 'success'
+            : status.status === 'failed'
+              ? 'failed'
+              : 'pending';
         const record: TransactionRecord = {
           id: generateId(),
-          recipient: recipientAddress,
-          amount,
-          signature,
-          status:
-            status.status === 'confirmed'
-              ? 'confirmed'
-              : status.status === 'failed'
-                ? 'failed'
-                : 'pending',
-          date: new Date().toISOString(),
+          walletAddress: wallet.publicKey,
+          data: [
+            {
+              signature,
+              slot: status.slot ?? 0,
+              blockTime: Math.floor(Date.now() / 1000),
+              status: historyStatus,
+              type: 'send',
+              amount,
+              from: wallet.publicKey,
+              to: recipientAddress,
+            },
+          ],
+          page: 1,
+          pageSize: 1,
+          limit: 1,
+          offset: 0,
+          total: 1,
+          status: historyStatus,
         };
 
-        await Promise.all([
-          appendToHistory(record),
-          addRecentRecipient(recipientAddress),
-        ]);
-
-        if (record.status === 'failed') {
+        if (record.data[0].status === 'failed') {
           throw new Error(status.error ?? 'Payment failed to confirm');
         }
 
+        await addRecentRecipient(recipientAddress);
         return record;
       } catch (error) {
+        console.error(error);
         throw toPaymentError(error);
       }
     },
@@ -112,4 +124,3 @@ export function usePayment() {
     },
   });
 }
-

@@ -36,17 +36,16 @@ export async function getAccountHistory(
   limit: number,
   _page: number,
 ): Promise<TransactionSummary[]> {
-  const rpc = await getConfiguredRpc();
+  const client = await getConfiguredRpc();
   const {address} = await loadKit();
-
-  const signatures: Array<{signature: string}> = await rpc
+  const signatures: Array<{signature: string}> = await client.rpc
     .getSignaturesForAddress(address(walletAddress), {limit})
     .send();
 
   const transactions = await Promise.all(
     signatures.map(async sigInfo => {
       try {
-        const tx = await fetchTransaction(rpc, sigInfo.signature);
+        const tx = await fetchTransaction(client.rpc, sigInfo.signature);
 
         if (!tx) {
           return null;
@@ -77,10 +76,10 @@ export async function getSignatureHistory(
   walletAddress: string,
   signature: string,
 ): Promise<TransactionSummary | null> {
-  const rpc = await getConfiguredRpc();
+  const client = await getConfiguredRpc();
 
   try {
-    const tx = await fetchTransaction(rpc, signature);
+    const tx = await fetchTransaction(client.rpc, signature);
 
     if (!tx) {
       return null;
@@ -555,7 +554,7 @@ export async function createDevnetTokenAccount(
     TOKEN_PROGRAM_ADDRESS,
   } = await loadTokenProgram();
 
-  const rpc = await gasstation.getRpcClient();
+  const client = await gasstation.getRpcClient();
   const payer = await createKeyPairSignerFromPrivateKeyBytes(
     hexToBytes(wallet.privateKey),
   );
@@ -570,10 +569,10 @@ export async function createDevnetTokenAccount(
 
   try {
     if (!options?.skipFunding) {
-      await ensureDevnetFunding(rpc, payer.address);
+      await ensureDevnetFunding(client.rpc, payer.address);
     }
 
-    const {value: latestBlockhash} = await rpc
+    const {value: latestBlockhash} = await client.rpc
       .getLatestBlockhash({commitment: COMMITMENT})
       .send();
 
@@ -601,14 +600,14 @@ export async function createDevnetTokenAccount(
     );
     const txSignature = getSignatureFromTransaction(signedTransaction);
 
-    await rpc
+    await client.rpc
       .sendTransaction(getBase64EncodedWireTransaction(signedTransaction), {
         encoding: 'base64',
         preflightCommitment: COMMITMENT,
       })
       .send();
 
-    await confirmSignature(rpc, txSignature);
+    await confirmSignature(client.rpc, txSignature);
 
     return {
       wallet,
@@ -709,7 +708,7 @@ export async function getTransactionStatus(
     };
   }
 
-  const rpc = rpcUrl ? await getRpc(rpcUrl) : await getConfiguredRpc();
+  const rpc = rpcUrl ? await getRpc(rpcUrl) : (await getConfiguredRpc()).rpc;
   const statuses = await rpc
     .getSignatureStatuses([signature], {searchTransactionHistory: true})
     .send();
