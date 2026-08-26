@@ -23,7 +23,7 @@ export type RootStackParamList = {
     recipient: string;
   };
   Receipt: {
-    signature: string;
+    data: GetHistorySummary;
   };
 };
 
@@ -58,13 +58,27 @@ export interface TransactionStatusResponse {
 export type TransactionStatus = 'pending' | 'confirmed' | 'failed';
 
 export interface TransactionRecord {
+  status: string;
   id: string;
-  recipient: string;
-  amount: number;
+  walletAddress: string;
+  data: GetHistorySummary[];
+  page: number | string;
+  pageSize: number | string;
+  limit: number;
+  offset: number;
+  total: number;
+  
+}
+export interface GetHistorySummary{
   signature: string;
-  status: TransactionStatus;
-  date: string;
-  memo?: string;
+  slot: number;
+  blockTime: number | null;
+  status: 'success' | 'failed';
+  type: 'send' | 'receive' | 'unknown';
+  amount: number;
+  mint?: string;
+  from?: string;
+  to?: string;
 }
 
 export type ThemePreference = 'dark' | 'light';

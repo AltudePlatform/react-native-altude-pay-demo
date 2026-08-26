@@ -172,17 +172,16 @@ export async function clearWallet(): Promise<void> {
   await AsyncStorage.removeItem(KEYS.WALLET);
 }
 
-export async function getHistory(): Promise<TransactionRecord[]> {
-  return readJson(KEYS.HISTORY, [] as TransactionRecord[]);
+export async function getHistory(): Promise<TransactionRecord> {
+  return readJson(KEYS.HISTORY, {} as TransactionRecord);
 }
 
 export async function appendToHistory(
   record: TransactionRecord,
-): Promise<TransactionRecord[]> {
+): Promise<TransactionRecord> {
   const history = await getHistory();
-  const updated = [record, ...history];
-  await AsyncStorage.setItem(KEYS.HISTORY, JSON.stringify(updated));
-  return updated;
+  await AsyncStorage.setItem(KEYS.HISTORY, JSON.stringify({data: [record.data, ...history.data]}));
+  return history;
 }
 
 export async function updateHistoryRecord(
@@ -190,8 +189,8 @@ export async function updateHistoryRecord(
   patch: Partial<TransactionRecord>,
 ): Promise<void> {
   const history = await getHistory();
-  const updated = history.map(r => (r.id === id ? {...r, ...patch} : r));
-  await AsyncStorage.setItem(KEYS.HISTORY, JSON.stringify(updated));
+  const updated = history.data.map((r: GetHistorySummary) => (r.id === id ? {...r, ...patch.data} : r));
+  await AsyncStorage.setItem(KEYS.HISTORY, JSON.stringify({data: updated}));
 }
 
 export async function clearHistory(): Promise<void> {

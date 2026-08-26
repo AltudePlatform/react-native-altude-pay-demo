@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@altude/core": "^0.1.1",
-    "@altude/gasstation": "^2.1.0",
+    "@altude/gasstation": "^2.2.0",
     "@noble/curves": "^2.2.0",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-clipboard/clipboard": "^1.16.3",
