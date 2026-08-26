@@ -232,7 +232,7 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
                 <ListRow
                   key={item.signature}
                   divided={index > 0}
-                  leadingIcon="arrowUpRight"
+                  leadingIcon={item.type === 'send' ? 'arrowUpRight' : 'arrowDownLeft'}
                   leadingTone={item.status === 'failed' ? 'error' : 'success'}
                   title="Payment"
                   subtitle={formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}
