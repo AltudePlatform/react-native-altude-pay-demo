@@ -2025,7 +2025,7 @@ exports[`History with entries 1`] = `
                                                                                     {
                                                                                       "children": null,
                                                                                       "props": {
-                                                                                        "d": "M7 17 L17 7",
+                                                                                        "d": "M17 7 L7 17",
                                                                                         "fill": null,
                                                                                         "propList": [
                                                                                           "fill",
@@ -2047,7 +2047,7 @@ exports[`History with entries 1`] = `
                                                                                     {
                                                                                       "children": null,
                                                                                       "props": {
-                                                                                        "d": "M7 7 L17 7 L17 17",
+                                                                                        "d": "M17 17 L7 17 L7 7",
                                                                                         "fill": null,
                                                                                         "propList": [
                                                                                           "fill",
@@ -2115,7 +2115,7 @@ exports[`History with entries 1`] = `
                                                                           "children": [
                                                                             {
                                                                               "children": [
-                                                                                "Payment",
+                                                                                "Incoming payment",
                                                                               ],
                                                                               "props": {
                                                                                 "numberOfLines": 1,
@@ -2143,7 +2143,7 @@ exports[`History with entries 1`] = `
                                                                           "children": [
                                                                             {
                                                                               "children": [
-                                                                                "-$18.25",
+                                                                                "+$18.25",
                                                                               ],
                                                                               "props": {
                                                                                 "numberOfLines": 1,
@@ -2160,7 +2160,7 @@ exports[`History with entries 1`] = `
                                                                       ],
                                                                       "props": {
                                                                         "accessibilityHint": "Opens the receipt",
-                                                                        "accessibilityLabel": "Payment, 2 days ago",
+                                                                        "accessibilityLabel": "Incoming payment, 2 days ago",
                                                                         "accessibilityRole": "button",
                                                                         "accessibilityState": {
                                                                           "busy": undefined,
@@ -2207,6 +2207,196 @@ exports[`History with entries 1`] = `
                                                                   },
                                                                   "type": "View",
                                                                 },
+                                                                {
+                                                                  "children": [
+                                                                    {
+                                                                      "children": [
+                                                                        {
+                                                                          "children": [
+                                                                            {
+                                                                              "children": [
+                                                                                {
+                                                                                  "children": [
+                                                                                    {
+                                                                                      "children": null,
+                                                                                      "props": {
+                                                                                        "cx": 12,
+                                                                                        "cy": 12,
+                                                                                        "fill": null,
+                                                                                        "propList": [
+                                                                                          "fill",
+                                                                                          "stroke",
+                                                                                          "strokeWidth",
+                                                                                        ],
+                                                                                        "r": 8.5,
+                                                                                        "stroke": {
+                                                                                          "payload": 4288393402,
+                                                                                          "type": 0,
+                                                                                        },
+                                                                                        "strokeWidth": 1.75,
+                                                                                      },
+                                                                                      "type": "RNSVGCircle",
+                                                                                    },
+                                                                                    {
+                                                                                      "children": null,
+                                                                                      "props": {
+                                                                                        "d": "M12 7 V12 L15 14",
+                                                                                        "fill": null,
+                                                                                        "propList": [
+                                                                                          "fill",
+                                                                                          "stroke",
+                                                                                          "strokeWidth",
+                                                                                          "strokeLinecap",
+                                                                                          "strokeLinejoin",
+                                                                                        ],
+                                                                                        "stroke": {
+                                                                                          "payload": 4288393402,
+                                                                                          "type": 0,
+                                                                                        },
+                                                                                        "strokeLinecap": 1,
+                                                                                        "strokeLinejoin": 1,
+                                                                                        "strokeWidth": 1.75,
+                                                                                      },
+                                                                                      "type": "RNSVGPath",
+                                                                                    },
+                                                                                  ],
+                                                                                  "props": {
+                                                                                    "fill": null,
+                                                                                    "propList": [
+                                                                                      "fill",
+                                                                                    ],
+                                                                                  },
+                                                                                  "type": "RNSVGGroup",
+                                                                                },
+                                                                              ],
+                                                                              "props": {
+                                                                                "align": "xMidYMid",
+                                                                                "bbHeight": 20,
+                                                                                "bbWidth": 20,
+                                                                                "fill": "none",
+                                                                                "focusable": false,
+                                                                                "height": 20,
+                                                                                "meetOrSlice": 0,
+                                                                                "minX": 0,
+                                                                                "minY": 0,
+                                                                                "style": [
+                                                                                  "[Circular]",
+                                                                                  {
+                                                                                    "flex": 0,
+                                                                                    "height": 20,
+                                                                                    "width": 20,
+                                                                                  },
+                                                                                ],
+                                                                                "vbHeight": 24,
+                                                                                "vbWidth": 24,
+                                                                                "width": 20,
+                                                                              },
+                                                                              "type": "RNSVGSvgView",
+                                                                            },
+                                                                          ],
+                                                                          "props": {
+                                                                            "style": [
+                                                                              "[Circular]",
+                                                                              {
+                                                                                "backgroundColor": "#132E38",
+                                                                              },
+                                                                            ],
+                                                                          },
+                                                                          "type": "View",
+                                                                        },
+                                                                        {
+                                                                          "children": [
+                                                                            {
+                                                                              "children": [
+                                                                                "Transaction",
+                                                                              ],
+                                                                              "props": {
+                                                                                "numberOfLines": 1,
+                                                                                "style": "[Circular]",
+                                                                              },
+                                                                              "type": "Text",
+                                                                            },
+                                                                            {
+                                                                              "children": [
+                                                                                "Date unavailable",
+                                                                              ],
+                                                                              "props": {
+                                                                                "numberOfLines": 1,
+                                                                                "style": "[Circular]",
+                                                                              },
+                                                                              "type": "Text",
+                                                                            },
+                                                                          ],
+                                                                          "props": {
+                                                                            "style": "[Circular]",
+                                                                          },
+                                                                          "type": "View",
+                                                                        },
+                                                                        {
+                                                                          "children": [
+                                                                            {
+                                                                              "children": [
+                                                                                "$3.5",
+                                                                              ],
+                                                                              "props": {
+                                                                                "numberOfLines": 1,
+                                                                                "style": "[Circular]",
+                                                                              },
+                                                                              "type": "Text",
+                                                                            },
+                                                                          ],
+                                                                          "props": {
+                                                                            "style": "[Circular]",
+                                                                          },
+                                                                          "type": "View",
+                                                                        },
+                                                                      ],
+                                                                      "props": {
+                                                                        "accessibilityHint": "Opens the receipt",
+                                                                        "accessibilityLabel": "Transaction, Date unavailable",
+                                                                        "accessibilityRole": "button",
+                                                                        "accessibilityState": {
+                                                                          "busy": undefined,
+                                                                          "checked": undefined,
+                                                                          "disabled": undefined,
+                                                                          "expanded": undefined,
+                                                                          "selected": undefined,
+                                                                        },
+                                                                        "accessibilityValue": {
+                                                                          "max": undefined,
+                                                                          "min": undefined,
+                                                                          "now": undefined,
+                                                                          "text": undefined,
+                                                                        },
+                                                                        "accessible": true,
+                                                                        "collapsable": false,
+                                                                        "focusable": true,
+                                                                        "onBlur": [Function],
+                                                                        "onClick": [Function],
+                                                                        "onFocus": [Function],
+                                                                        "onResponderGrant": [Function],
+                                                                        "onResponderMove": [Function],
+                                                                        "onResponderRelease": [Function],
+                                                                        "onResponderTerminate": [Function],
+                                                                        "onResponderTerminationRequest": [Function],
+                                                                        "onStartShouldSetResponder": [Function],
+                                                                        "style": [
+                                                                          "[Circular]",
+                                                                          "[Circular]",
+                                                                          false,
+                                                                          undefined,
+                                                                        ],
+                                                                      },
+                                                                      "type": "View",
+                                                                    },
+                                                                  ],
+                                                                  "props": {
+                                                                    "onFocusCapture": [Function],
+                                                                    "onLayout": [Function],
+                                                                    "style": null,
+                                                                  },
+                                                                  "type": "View",
+                                                                },
                                                               ],
                                                               "props": {},
                                                               "type": "View",
@@ -2229,19 +2419,29 @@ exports[`History with entries 1`] = `
                                                             "data": [
                                                               {
                                                                 "amount": 42.5,
-                                                                "date": "2026-08-17T10:24:00.000Z",
-                                                                "id": "tx-1",
-                                                                "recipient": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+                                                                "blockTime": 1786962240,
                                                                 "signature": "5r8Kd1yQwWc9vX2mTgY7bNqZaLp3EeF6HhJjKkMmNnPp",
-                                                                "status": "confirmed",
+                                                                "slot": 42,
+                                                                "status": "success",
+                                                                "to": "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin",
+                                                                "type": "send",
                                                               },
                                                               {
                                                                 "amount": 18.25,
-                                                                "date": "2026-08-16T08:02:00.000Z",
-                                                                "id": "tx-2",
-                                                                "recipient": "4Nd1mYwqA8sVXspn8QyJFrhbs91ZFVDJ5kJ4DqpKB7mR",
+                                                                "blockTime": 1786867320,
+                                                                "from": "4Nd1mYwqA8sVXspn8QyJFrhbs91ZFVDJ5kJ4DqpKB7mR",
                                                                 "signature": "3aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdEF",
-                                                                "status": "confirmed",
+                                                                "slot": 41,
+                                                                "status": "success",
+                                                                "type": "receive",
+                                                              },
+                                                              {
+                                                                "amount": 3.5,
+                                                                "blockTime": null,
+                                                                "signature": "7unknownTransactionSignature1234567890abcdef",
+                                                                "slot": 40,
+                                                                "status": "pending",
+                                                                "type": "unknown",
                                                               },
                                                             ],
                                                             "getItem": [Function],
@@ -8097,7 +8297,7 @@ exports[`Home with balance and activity 1`] = `
                                                                                 {
                                                                                   "children": null,
                                                                                   "props": {
-                                                                                    "d": "M7 17 L17 7",
+                                                                                    "d": "M17 7 L7 17",
                                                                                     "fill": null,
                                                                                     "propList": [
                                                                                       "fill",
@@ -8119,7 +8319,7 @@ exports[`Home with balance and activity 1`] = `
                                                                                 {
                                                                                   "children": null,
                                                                                   "props": {
-                                                                                    "d": "M7 7 L17 7 L17 17",
+                                                                                    "d": "M17 17 L7 17 L7 7",
                                                                                     "fill": null,
                                                                                     "propList": [
                                                                                       "fill",
@@ -8187,7 +8387,7 @@ exports[`Home with balance and activity 1`] = `
                                                                       "children": [
                                                                         {
                                                                           "children": [
-                                                                            "Payment",
+                                                                            "Incoming payment",
                                                                           ],
                                                                           "props": {
                                                                             "numberOfLines": 1,
@@ -8215,7 +8415,7 @@ exports[`Home with balance and activity 1`] = `
                                                                       "children": [
                                                                         {
                                                                           "children": [
-                                                                            "-$18.25",
+                                                                            "+$18.25",
                                                                           ],
                                                                           "props": {
                                                                             "numberOfLines": 1,
@@ -8232,7 +8432,7 @@ exports[`Home with balance and activity 1`] = `
                                                                   ],
                                                                   "props": {
                                                                     "accessibilityHint": "Opens the receipt",
-                                                                    "accessibilityLabel": "Payment, 2 days ago",
+                                                                    "accessibilityLabel": "Incoming payment, 2 days ago",
                                                                     "accessibilityRole": "button",
                                                                     "accessibilityState": {
                                                                       "busy": undefined,
@@ -8265,6 +8465,186 @@ exports[`Home with balance and activity 1`] = `
                                                                         "borderTopColor": "#17323C",
                                                                         "borderTopWidth": 1,
                                                                       },
+                                                                      false,
+                                                                      undefined,
+                                                                    ],
+                                                                  },
+                                                                  "type": "View",
+                                                                },
+                                                                {
+                                                                  "children": [
+                                                                    {
+                                                                      "children": [
+                                                                        {
+                                                                          "children": [
+                                                                            {
+                                                                              "children": [
+                                                                                {
+                                                                                  "children": null,
+                                                                                  "props": {
+                                                                                    "cx": 12,
+                                                                                    "cy": 12,
+                                                                                    "fill": null,
+                                                                                    "propList": [
+                                                                                      "fill",
+                                                                                      "stroke",
+                                                                                      "strokeWidth",
+                                                                                    ],
+                                                                                    "r": 8.5,
+                                                                                    "stroke": {
+                                                                                      "payload": 4288393402,
+                                                                                      "type": 0,
+                                                                                    },
+                                                                                    "strokeWidth": 1.75,
+                                                                                  },
+                                                                                  "type": "RNSVGCircle",
+                                                                                },
+                                                                                {
+                                                                                  "children": null,
+                                                                                  "props": {
+                                                                                    "d": "M12 7 V12 L15 14",
+                                                                                    "fill": null,
+                                                                                    "propList": [
+                                                                                      "fill",
+                                                                                      "stroke",
+                                                                                      "strokeWidth",
+                                                                                      "strokeLinecap",
+                                                                                      "strokeLinejoin",
+                                                                                    ],
+                                                                                    "stroke": {
+                                                                                      "payload": 4288393402,
+                                                                                      "type": 0,
+                                                                                    },
+                                                                                    "strokeLinecap": 1,
+                                                                                    "strokeLinejoin": 1,
+                                                                                    "strokeWidth": 1.75,
+                                                                                  },
+                                                                                  "type": "RNSVGPath",
+                                                                                },
+                                                                              ],
+                                                                              "props": {
+                                                                                "fill": null,
+                                                                                "propList": [
+                                                                                  "fill",
+                                                                                ],
+                                                                              },
+                                                                              "type": "RNSVGGroup",
+                                                                            },
+                                                                          ],
+                                                                          "props": {
+                                                                            "align": "xMidYMid",
+                                                                            "bbHeight": 20,
+                                                                            "bbWidth": 20,
+                                                                            "fill": "none",
+                                                                            "focusable": false,
+                                                                            "height": 20,
+                                                                            "meetOrSlice": 0,
+                                                                            "minX": 0,
+                                                                            "minY": 0,
+                                                                            "style": [
+                                                                              "[Circular]",
+                                                                              {
+                                                                                "flex": 0,
+                                                                                "height": 20,
+                                                                                "width": 20,
+                                                                              },
+                                                                            ],
+                                                                            "vbHeight": 24,
+                                                                            "vbWidth": 24,
+                                                                            "width": 20,
+                                                                          },
+                                                                          "type": "RNSVGSvgView",
+                                                                        },
+                                                                      ],
+                                                                      "props": {
+                                                                        "style": [
+                                                                          "[Circular]",
+                                                                          {
+                                                                            "backgroundColor": "#132E38",
+                                                                          },
+                                                                        ],
+                                                                      },
+                                                                      "type": "View",
+                                                                    },
+                                                                    {
+                                                                      "children": [
+                                                                        {
+                                                                          "children": [
+                                                                            "Transaction",
+                                                                          ],
+                                                                          "props": {
+                                                                            "numberOfLines": 1,
+                                                                            "style": "[Circular]",
+                                                                          },
+                                                                          "type": "Text",
+                                                                        },
+                                                                        {
+                                                                          "children": [
+                                                                            "Date unavailable",
+                                                                          ],
+                                                                          "props": {
+                                                                            "numberOfLines": 1,
+                                                                            "style": "[Circular]",
+                                                                          },
+                                                                          "type": "Text",
+                                                                        },
+                                                                      ],
+                                                                      "props": {
+                                                                        "style": "[Circular]",
+                                                                      },
+                                                                      "type": "View",
+                                                                    },
+                                                                    {
+                                                                      "children": [
+                                                                        {
+                                                                          "children": [
+                                                                            "$3.5",
+                                                                          ],
+                                                                          "props": {
+                                                                            "numberOfLines": 1,
+                                                                            "style": "[Circular]",
+                                                                          },
+                                                                          "type": "Text",
+                                                                        },
+                                                                      ],
+                                                                      "props": {
+                                                                        "style": "[Circular]",
+                                                                      },
+                                                                      "type": "View",
+                                                                    },
+                                                                  ],
+                                                                  "props": {
+                                                                    "accessibilityHint": "Opens the receipt",
+                                                                    "accessibilityLabel": "Transaction, Date unavailable",
+                                                                    "accessibilityRole": "button",
+                                                                    "accessibilityState": {
+                                                                      "busy": undefined,
+                                                                      "checked": undefined,
+                                                                      "disabled": undefined,
+                                                                      "expanded": undefined,
+                                                                      "selected": undefined,
+                                                                    },
+                                                                    "accessibilityValue": {
+                                                                      "max": undefined,
+                                                                      "min": undefined,
+                                                                      "now": undefined,
+                                                                      "text": undefined,
+                                                                    },
+                                                                    "accessible": true,
+                                                                    "collapsable": false,
+                                                                    "focusable": true,
+                                                                    "onBlur": [Function],
+                                                                    "onClick": [Function],
+                                                                    "onFocus": [Function],
+                                                                    "onResponderGrant": [Function],
+                                                                    "onResponderMove": [Function],
+                                                                    "onResponderRelease": [Function],
+                                                                    "onResponderTerminate": [Function],
+                                                                    "onResponderTerminationRequest": [Function],
+                                                                    "onStartShouldSetResponder": [Function],
+                                                                    "style": [
+                                                                      "[Circular]",
+                                                                      "[Circular]",
                                                                       false,
                                                                       undefined,
                                                                     ],
@@ -15391,7 +15771,7 @@ exports[`QR (unreachable route) without wallet 1`] = `
 }
 `;
 
-exports[`Receipt shows an unavailable state when the record cannot be resolved 1`] = `
+exports[`Receipt shows a received payment with its sender 1`] = `
 {
   "children": [
     {
@@ -15617,7 +15997,7 @@ exports[`Receipt shows an unavailable state when the record cannot be resolved 1
                                                               "children": [
                                                                 {
                                                                   "children": [
-                                                                    "PAYMENT DETAILS",
+                                                                    "INCOMING PAYMENT",
                                                                   ],
                                                                   "props": {
                                                                     "style": {
@@ -15633,10 +16013,10 @@ exports[`Receipt shows an unavailable state when the record cannot be resolved 1
                                                                 },
                                                                 {
                                                                   "children": [
-                                                                    "Unavailable",
+                                                                    "$18.25",
                                                                   ],
                                                                   "props": {
-                                                                    "accessibilityLabel": "Payment details: Unavailable",
+                                                                    "accessibilityLabel": "Incoming payment: $18.25",
                                                                     "accessibilityRole": "text",
                                                                     "adjustsFontSizeToFit": true,
                                                                     "minimumFontScale": 0.5,
@@ -15648,6 +16028,21 @@ exports[`Receipt shows an unavailable state when the record cannot be resolved 1
                                                                       "fontWeight": "800",
                                                                       "letterSpacing": -2,
                                                                       "lineHeight": 64,
+                                                                    },
+                                                                  },
+                                                                  "type": "Text",
+                                                                },
+                                                                {
+                                                                  "children": [
+                                                                    "from 4Nd1mY...pKB7mR",
+                                                                  ],
+                                                                  "props": {
+                                                                    "style": {
+                                                                      "color": "#9BB0BA",
+                                                                      "fontFamily": undefined,
+                                                                      "fontSize": 15,
+                                                                      "fontWeight": "500",
+                                                                      "lineHeight": 21,
                                                                     },
                                                                   },
                                                                   "type": "Text",
@@ -15688,7 +16083,7 @@ exports[`Receipt shows an unavailable state when the record cannot be resolved 1
                                                                     },
                                                                     {
                                                                       "children": [
-                                                                        "Payment details",
+                                                                        "Incoming payment",
                                                                       ],
                                                                       "props": {
                                                                         "numberOfLines": 2,
@@ -15722,42 +16117,172 @@ exports[`Receipt shows an unavailable state when the record cannot be resolved 1
                                                                   "children": [
                                                                     {
                                                                       "children": [
-                                                                        "Receipt unavailable",
+                                                                        "Status",
                                                                       ],
                                                                       "props": {
-                                                                        "style": {
-                                                                          "color": "#F2EFE9",
-                                                                          "fontFamily": undefined,
-                                                                          "fontSize": 13,
-                                                                          "fontWeight": "700",
-                                                                          "lineHeight": 18,
-                                                                        },
+                                                                        "style": "[Circular]",
                                                                       },
                                                                       "type": "Text",
                                                                     },
                                                                     {
                                                                       "children": [
-                                                                        "Payment details could not be found on this device or on Solana.",
+                                                                        {
+                                                                          "children": [
+                                                                            {
+                                                                              "children": [
+                                                                                {
+                                                                                  "children": null,
+                                                                                  "props": {
+                                                                                    "d": "M5 13 L10 18 L19 6",
+                                                                                    "fill": null,
+                                                                                    "propList": [
+                                                                                      "fill",
+                                                                                      "stroke",
+                                                                                      "strokeWidth",
+                                                                                      "strokeLinecap",
+                                                                                      "strokeLinejoin",
+                                                                                    ],
+                                                                                    "stroke": {
+                                                                                      "payload": 4287089309,
+                                                                                      "type": 0,
+                                                                                    },
+                                                                                    "strokeLinecap": 1,
+                                                                                    "strokeLinejoin": 1,
+                                                                                    "strokeWidth": 2.25,
+                                                                                  },
+                                                                                  "type": "RNSVGPath",
+                                                                                },
+                                                                              ],
+                                                                              "props": {
+                                                                                "fill": null,
+                                                                                "propList": [
+                                                                                  "fill",
+                                                                                ],
+                                                                              },
+                                                                              "type": "RNSVGGroup",
+                                                                            },
+                                                                          ],
+                                                                          "props": {
+                                                                            "align": "xMidYMid",
+                                                                            "bbHeight": 16,
+                                                                            "bbWidth": 16,
+                                                                            "fill": "none",
+                                                                            "focusable": false,
+                                                                            "height": 16,
+                                                                            "meetOrSlice": 0,
+                                                                            "minX": 0,
+                                                                            "minY": 0,
+                                                                            "style": [
+                                                                              "[Circular]",
+                                                                              {
+                                                                                "flex": 0,
+                                                                                "height": 16,
+                                                                                "width": 16,
+                                                                              },
+                                                                            ],
+                                                                            "vbHeight": 24,
+                                                                            "vbWidth": 24,
+                                                                            "width": 16,
+                                                                          },
+                                                                          "type": "RNSVGSvgView",
+                                                                        },
+                                                                        {
+                                                                          "children": [
+                                                                            "success",
+                                                                          ],
+                                                                          "props": {
+                                                                            "numberOfLines": 1,
+                                                                            "style": [
+                                                                              {
+                                                                                "fontFamily": undefined,
+                                                                                "fontSize": 12,
+                                                                                "fontWeight": "700",
+                                                                                "lineHeight": 16,
+                                                                              },
+                                                                              {
+                                                                                "color": "#87CA9D",
+                                                                              },
+                                                                            ],
+                                                                          },
+                                                                          "type": "Text",
+                                                                        },
                                                                       ],
                                                                       "props": {
-                                                                        "style": {
-                                                                          "color": "#9BB0BA",
-                                                                          "fontFamily": undefined,
-                                                                          "fontSize": 15,
-                                                                          "fontWeight": "500",
-                                                                          "lineHeight": 21,
-                                                                        },
+                                                                        "style": [
+                                                                          {
+                                                                            "alignItems": "center",
+                                                                            "alignSelf": "flex-start",
+                                                                            "borderRadius": 999,
+                                                                            "flexDirection": "row",
+                                                                            "gap": 6,
+                                                                            "paddingHorizontal": 10,
+                                                                            "paddingVertical": 6,
+                                                                          },
+                                                                          {
+                                                                            "backgroundColor": "rgba(135, 202, 157, 0.12)",
+                                                                          },
+                                                                          undefined,
+                                                                        ],
+                                                                      },
+                                                                      "type": "View",
+                                                                    },
+                                                                  ],
+                                                                  "props": {
+                                                                    "style": "[Circular]",
+                                                                  },
+                                                                  "type": "View",
+                                                                },
+                                                                {
+                                                                  "children": [
+                                                                    {
+                                                                      "children": [
+                                                                        "Date",
+                                                                      ],
+                                                                      "props": {
+                                                                        "style": "[Circular]",
+                                                                      },
+                                                                      "type": "Text",
+                                                                    },
+                                                                    {
+                                                                      "children": [
+                                                                        "Aug 16, 2026, 3:02 AM",
+                                                                      ],
+                                                                      "props": {
+                                                                        "numberOfLines": 2,
+                                                                        "style": "[Circular]",
                                                                       },
                                                                       "type": "Text",
                                                                     },
                                                                   ],
                                                                   "props": {
-                                                                    "style": {
-                                                                      "borderBottomColor": "#17323C",
-                                                                      "borderBottomWidth": 1,
-                                                                      "gap": 6,
-                                                                      "paddingVertical": 20,
+                                                                    "style": "[Circular]",
+                                                                  },
+                                                                  "type": "View",
+                                                                },
+                                                                {
+                                                                  "children": [
+                                                                    {
+                                                                      "children": [
+                                                                        "Sender",
+                                                                      ],
+                                                                      "props": {
+                                                                        "style": "[Circular]",
+                                                                      },
+                                                                      "type": "Text",
                                                                     },
+                                                                    {
+                                                                      "children": [
+                                                                        "4Nd1mY...pKB7mR",
+                                                                      ],
+                                                                      "props": {
+                                                                        "numberOfLines": 2,
+                                                                        "style": "[Circular]",
+                                                                      },
+                                                                      "type": "Text",
+                                                                    },
+                                                                  ],
+                                                                  "props": {
+                                                                    "style": "[Circular]",
                                                                   },
                                                                   "type": "View",
                                                                 },
@@ -15780,7 +16305,7 @@ exports[`Receipt shows an unavailable state when the record cannot be resolved 1
                                                                 },
                                                                 {
                                                                   "children": [
-                                                                    "5r8Kd1yQwWc9vX2mTgY7bNqZaLp3EeF6HhJjKkMmNnPp",
+                                                                    "3aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdEF",
                                                                   ],
                                                                   "props": {
                                                                     "selectable": true,
@@ -16402,7 +16927,7 @@ exports[`Receipt shows an unavailable state when the record cannot be resolved 1
 }
 `;
 
-exports[`Receipt uses a resolved chain record 1`] = `
+exports[`Receipt shows a sent payment 1`] = `
 {
   "children": [
     {
@@ -16819,7 +17344,7 @@ exports[`Receipt uses a resolved chain record 1`] = `
                                                                         },
                                                                         {
                                                                           "children": [
-                                                                            "confirmed",
+                                                                            "success",
                                                                           ],
                                                                           "props": {
                                                                             "numberOfLines": 1,
@@ -16876,7 +17401,7 @@ exports[`Receipt uses a resolved chain record 1`] = `
                                                                     },
                                                                     {
                                                                       "children": [
-                                                                        "Aug 17, 2026, 10:24 AM",
+                                                                        "Aug 17, 2026, 5:24 AM",
                                                                       ],
                                                                       "props": {
                                                                         "numberOfLines": 2,
@@ -17558,7 +18083,7 @@ exports[`Receipt uses a resolved chain record 1`] = `
 }
 `;
 
-exports[`Receipt uses a stored record without querying mock signatures on chain 1`] = `
+exports[`Receipt shows an unknown transaction without inventing a direction 1`] = `
 {
   "children": [
     {
@@ -17784,7 +18309,7 @@ exports[`Receipt uses a stored record without querying mock signatures on chain 
                                                               "children": [
                                                                 {
                                                                   "children": [
-                                                                    "PAYMENT",
+                                                                    "TRANSACTION",
                                                                   ],
                                                                   "props": {
                                                                     "style": {
@@ -17800,10 +18325,10 @@ exports[`Receipt uses a stored record without querying mock signatures on chain 
                                                                 },
                                                                 {
                                                                   "children": [
-                                                                    "$42.50",
+                                                                    "$3.50",
                                                                   ],
                                                                   "props": {
-                                                                    "accessibilityLabel": "Payment: $42.50",
+                                                                    "accessibilityLabel": "Transaction: $3.50",
                                                                     "accessibilityRole": "text",
                                                                     "adjustsFontSizeToFit": true,
                                                                     "minimumFontScale": 0.5,
@@ -17815,21 +18340,6 @@ exports[`Receipt uses a stored record without querying mock signatures on chain 
                                                                       "fontWeight": "800",
                                                                       "letterSpacing": -2,
                                                                       "lineHeight": 64,
-                                                                    },
-                                                                  },
-                                                                  "type": "Text",
-                                                                },
-                                                                {
-                                                                  "children": [
-                                                                    "to 9xQeWv...usVFin",
-                                                                  ],
-                                                                  "props": {
-                                                                    "style": {
-                                                                      "color": "#9BB0BA",
-                                                                      "fontFamily": undefined,
-                                                                      "fontSize": 15,
-                                                                      "fontWeight": "500",
-                                                                      "lineHeight": 21,
                                                                     },
                                                                   },
                                                                   "type": "Text",
@@ -17870,7 +18380,7 @@ exports[`Receipt uses a stored record without querying mock signatures on chain 
                                                                     },
                                                                     {
                                                                       "children": [
-                                                                        "Payment",
+                                                                        "Transaction",
                                                                       ],
                                                                       "props": {
                                                                         "numberOfLines": 2,
@@ -17920,7 +18430,27 @@ exports[`Receipt uses a stored record without querying mock signatures on chain 
                                                                                 {
                                                                                   "children": null,
                                                                                   "props": {
-                                                                                    "d": "M5 13 L10 18 L19 6",
+                                                                                    "cx": 12,
+                                                                                    "cy": 12,
+                                                                                    "fill": null,
+                                                                                    "propList": [
+                                                                                      "fill",
+                                                                                      "stroke",
+                                                                                      "strokeWidth",
+                                                                                    ],
+                                                                                    "r": 8.5,
+                                                                                    "stroke": {
+                                                                                      "payload": 4293441899,
+                                                                                      "type": 0,
+                                                                                    },
+                                                                                    "strokeWidth": 2.25,
+                                                                                  },
+                                                                                  "type": "RNSVGCircle",
+                                                                                },
+                                                                                {
+                                                                                  "children": null,
+                                                                                  "props": {
+                                                                                    "d": "M12 7 V12 L15 14",
                                                                                     "fill": null,
                                                                                     "propList": [
                                                                                       "fill",
@@ -17930,7 +18460,7 @@ exports[`Receipt uses a stored record without querying mock signatures on chain 
                                                                                       "strokeLinejoin",
                                                                                     ],
                                                                                     "stroke": {
-                                                                                      "payload": 4287089309,
+                                                                                      "payload": 4293441899,
                                                                                       "type": 0,
                                                                                     },
                                                                                     "strokeLinecap": 1,
@@ -17975,7 +18505,7 @@ exports[`Receipt uses a stored record without querying mock signatures on chain 
                                                                         },
                                                                         {
                                                                           "children": [
-                                                                            "confirmed",
+                                                                            "pending",
                                                                           ],
                                                                           "props": {
                                                                             "numberOfLines": 1,
@@ -17987,7 +18517,7 @@ exports[`Receipt uses a stored record without querying mock signatures on chain 
                                                                                 "lineHeight": 16,
                                                                               },
                                                                               {
-                                                                                "color": "#87CA9D",
+                                                                                "color": "#E8B96B",
                                                                               },
                                                                             ],
                                                                           },
@@ -18006,66 +18536,12 @@ exports[`Receipt uses a stored record without querying mock signatures on chain 
                                                                             "paddingVertical": 6,
                                                                           },
                                                                           {
-                                                                            "backgroundColor": "rgba(135, 202, 157, 0.12)",
+                                                                            "backgroundColor": "rgba(232, 185, 107, 0.12)",
                                                                           },
                                                                           undefined,
                                                                         ],
                                                                       },
                                                                       "type": "View",
-                                                                    },
-                                                                  ],
-                                                                  "props": {
-                                                                    "style": "[Circular]",
-                                                                  },
-                                                                  "type": "View",
-                                                                },
-                                                                {
-                                                                  "children": [
-                                                                    {
-                                                                      "children": [
-                                                                        "Date",
-                                                                      ],
-                                                                      "props": {
-                                                                        "style": "[Circular]",
-                                                                      },
-                                                                      "type": "Text",
-                                                                    },
-                                                                    {
-                                                                      "children": [
-                                                                        "Aug 17, 2026, 10:24 AM",
-                                                                      ],
-                                                                      "props": {
-                                                                        "numberOfLines": 2,
-                                                                        "style": "[Circular]",
-                                                                      },
-                                                                      "type": "Text",
-                                                                    },
-                                                                  ],
-                                                                  "props": {
-                                                                    "style": "[Circular]",
-                                                                  },
-                                                                  "type": "View",
-                                                                },
-                                                                {
-                                                                  "children": [
-                                                                    {
-                                                                      "children": [
-                                                                        "Recipient",
-                                                                      ],
-                                                                      "props": {
-                                                                        "style": "[Circular]",
-                                                                      },
-                                                                      "type": "Text",
-                                                                    },
-                                                                    {
-                                                                      "children": [
-                                                                        "9xQeWv...usVFin",
-                                                                      ],
-                                                                      "props": {
-                                                                        "numberOfLines": 2,
-                                                                        "style": "[Circular]",
-                                                                      },
-                                                                      "type": "Text",
                                                                     },
                                                                   ],
                                                                   "props": {
@@ -18092,7 +18568,7 @@ exports[`Receipt uses a stored record without querying mock signatures on chain 
                                                                 },
                                                                 {
                                                                   "children": [
-                                                                    "MOCK_SIG_receipt123",
+                                                                    "7unknownTransactionSignature1234567890abcdef",
                                                                   ],
                                                                   "props": {
                                                                     "selectable": true,

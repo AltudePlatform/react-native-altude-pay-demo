@@ -66,6 +66,7 @@ export function StatusPill({
 export function toneForStatus(status: string | null | undefined): StatusTone {
   switch (status) {
     case 'confirmed':
+    case 'success':
       return 'success';
     case 'pending':
       return 'pending';

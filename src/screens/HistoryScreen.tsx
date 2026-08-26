@@ -3,7 +3,7 @@ import {View, Text, StyleSheet, FlatList, RefreshControl} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useWalletStore} from '../store/walletStore';
-import {formatRelativeDate} from '../utils/format';
+import {getHistoryPresentation} from '../utils/historyPresentation';
 import {
   Button,
   Icon,
@@ -39,12 +39,13 @@ export default function HistoryScreen(): React.JSX.Element {
     try {
       const sdk = await getGasstation();
       const history = await sdk.getHistory({
-        walletAddress: wallet.publicKey,
+        walletAddress: account,
         page: 1,
         pageSize: 20,
       });
       setEntries(history);
     } catch (err) {
+      setEntries(null);
       setError(
         err instanceof Error && err.message
           ? err.message
@@ -60,25 +61,22 @@ export default function HistoryScreen(): React.JSX.Element {
   }, [loadHistory]);
 
   const renderItem = useCallback(
-    ({item, index}: {item: GetHistorySummary; index: number}) => (
-      <ListRow
-        divided={index > 0}
-        leadingIcon={item.type == "receive" ? "arrowDownLeft" : "arrowUpRight"}
-        leadingTone={item.status === 'failed' ? 'error' : 'success'}
-        title={item.type == "receive" ? "Incoming payment" : "Payment"}
-        subtitle={formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}
-        value={
-          (item.type == "receive" ? '+$' : '-$') +
-          item.amount.toLocaleString('en-US', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 4,
-          })
-        }
-        onPress={() => navigation.navigate('Receipt', {receiptData: item})}
-        accessibilityLabel={`Payment, ${formatRelativeDate(new Date((item.blockTime ?? 0) * 1000).toString())}`}
-        accessibilityHint="Opens the receipt"
-      />
-    ),
+    ({item, index}: {item: GetHistorySummary; index: number}) => {
+      const presentation = getHistoryPresentation(item);
+      return (
+        <ListRow
+          divided={index > 0}
+          leadingIcon={presentation.icon}
+          leadingTone={presentation.leadingTone}
+          title={presentation.title}
+          subtitle={presentation.date}
+          value={presentation.value}
+          onPress={() => navigation.navigate('Receipt', {receiptData: item})}
+          accessibilityLabel={`${presentation.title}, ${presentation.date}`}
+          accessibilityHint="Opens the receipt"
+        />
+      );
+    },
     [navigation],
   );
 
@@ -103,7 +101,7 @@ export default function HistoryScreen(): React.JSX.Element {
     );
   }
 
-  if (!entries) {
+  if (!entries || entries.data.length === 0) {
     return (
       <Screen>
         {header}
