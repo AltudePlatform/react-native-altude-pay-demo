@@ -47,7 +47,7 @@ export default function PayAddressScreen(): React.JSX.Element {
   }, []);
 
   const handlePasteRecipient = useCallback(async () => {
-    const text = (await Clipboard.getString()).trim().slice(0, 44);
+    const text = (await Clipboard.getString()).trim();
     if (!text) {
       showToast('Clipboard is empty', 'error');
       return;
