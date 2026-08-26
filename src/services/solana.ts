@@ -708,8 +708,8 @@ export async function getTransactionStatus(
     };
   }
 
-  const client = rpcUrl ? await getRpc(rpcUrl) : await getConfiguredRpc();
-  const statuses = await client.rpc
+  const rpc = rpcUrl ? await getRpc(rpcUrl) : (await getConfiguredRpc()).rpc;
+  const statuses = await rpc
     .getSignatureStatuses([signature], {searchTransactionHistory: true})
     .send();
   const status = statuses.value?.[0];

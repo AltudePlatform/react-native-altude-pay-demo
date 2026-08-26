@@ -56,9 +56,10 @@ export interface TransactionStatusResponse {
 }
 
 export type TransactionStatus = 'pending' | 'confirmed' | 'failed';
+export type HistoryStatus = 'success' | 'pending' | 'failed';
 
 export interface TransactionRecord {
-  status: string;
+  status: HistoryStatus;
   id: string;
   walletAddress: string;
   data: GetHistorySummary[];
@@ -67,13 +68,13 @@ export interface TransactionRecord {
   limit: number;
   offset: number;
   total: number;
-  
 }
-export interface GetHistorySummary{
+
+export interface GetHistorySummary {
   signature: string;
   slot: number;
   blockTime: number | null;
-  status: 'success' | 'failed';
+  status: HistoryStatus;
   type: 'send' | 'receive' | 'unknown';
   amount: number;
   mint?: string;

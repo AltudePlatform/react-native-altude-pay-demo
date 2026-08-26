@@ -1,6 +1,18 @@
 import {ALTUDE_API_KEY} from '../config/apiConfig';
 import {stableCoinMint} from '../config/paymentConfig';
 import {runtimeConfig} from '../config/runtimeConfig';
+import {
+  GetHistorySummary,
+  HistoryStatus,
+  TransactionRecord,
+} from '../types';
+
+type HistoryArgs = {
+  walletAddress: string;
+  account?: string;
+  pageSize?: number;
+  page?: number;
+};
 
 type GasstationLike = {
   getBalance: (args: {account: string; token?: string}) => Promise<{
@@ -8,12 +20,7 @@ type GasstationLike = {
     uiAmount?: number;
   }>;
   getConfig: () => Promise<any>;
-  getHistory: (args: {
-    walletAddress: string;
-    account?: string;
-    pageSize?: number;
-    page?: number;
-  }) => Promise<any>;
+  getHistory: (args: HistoryArgs) => Promise<TransactionRecord>;
   getRpcClient: () => Promise<any>;
   send: (args: {
     sourceSigner: {
@@ -27,6 +34,61 @@ type GasstationLike = {
 };
 
 let instance: GasstationLike | null = null;
+
+function isHistoryStatus(value: unknown): value is HistoryStatus {
+  return value === 'success' || value === 'pending' || value === 'failed';
+}
+
+function isHistorySummary(value: unknown): value is GetHistorySummary {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const item = value as Partial<GetHistorySummary>;
+  return (
+    typeof item.signature === 'string' &&
+    typeof item.slot === 'number' &&
+    (typeof item.blockTime === 'number' || item.blockTime === null) &&
+    isHistoryStatus(item.status) &&
+    (item.type === 'send' ||
+      item.type === 'receive' ||
+      item.type === 'unknown') &&
+    typeof item.amount === 'number'
+  );
+}
+
+function normalizeHistoryResponse(
+  value: unknown,
+  args: HistoryArgs,
+): TransactionRecord {
+  if (!value || typeof value !== 'object') {
+    throw new Error('Gas station getHistory() returned an invalid response.');
+  }
+
+  const response = value as Partial<TransactionRecord>;
+  if (!Array.isArray(response.data) || !response.data.every(isHistorySummary)) {
+    throw new Error('Gas station getHistory() returned invalid transaction data.');
+  }
+
+  return {
+    id: typeof response.id === 'string' ? response.id : '',
+    walletAddress:
+      typeof response.walletAddress === 'string'
+        ? response.walletAddress
+        : args.walletAddress,
+    data: response.data,
+    page: response.page ?? args.page ?? 1,
+    pageSize: response.pageSize ?? args.pageSize ?? response.data.length,
+    limit:
+      typeof response.limit === 'number'
+        ? response.limit
+        : args.pageSize ?? response.data.length,
+    offset: typeof response.offset === 'number' ? response.offset : 0,
+    total:
+      typeof response.total === 'number' ? response.total : response.data.length,
+    status: isHistoryStatus(response.status) ? response.status : 'success',
+  };
+}
 
 function createMockGasstation(): GasstationLike {
   return {
@@ -45,8 +107,18 @@ function createMockGasstation(): GasstationLike {
         TokenExpiration: null,
       };
     },
-    async getHistory(_args) {
-      return {TransactionList: []};
+    async getHistory(args) {
+      return {
+        id: '',
+        walletAddress: args.walletAddress,
+        data: [],
+        page: args.page ?? 1,
+        pageSize: args.pageSize ?? 10,
+        limit: args.pageSize ?? 10,
+        offset: 0,
+        total: 0,
+        status: 'success',
+      };
     },
     async getRpcClient() {
       const {createSolanaRpc} = await import('@solana/kit');
@@ -81,7 +153,8 @@ export async function getGasstation(): Promise<GasstationLike> {
     instance = {
       getBalance: args => sdk.getBalance(args),
       getConfig: () => sdk.getConfig(),
-      getHistory: args => sdk.getHistory(args),
+      getHistory: async args =>
+        normalizeHistoryResponse(await sdk.getHistory(args), args),
       getRpcClient: () => sdk.getRpcClient(),
       send: args => sdk.send(args),
     };
@@ -96,9 +169,9 @@ export async function getTransactionConfig(): Promise<any> {
 
 export async function fetchAccountHistory(args: {
   walletAddress: string;
-  pageSize?: number,
-  page?: number,
-}): Promise<any> {
+  pageSize?: number;
+  page?: number;
+}): Promise<TransactionRecord> {
   const gs = await getGasstation();
   // The API requires WalletAddress; `account` is the Android SDK's spelling of the same field.
   console.log('[gasstationAdapter] Fetching account history with args:', args);

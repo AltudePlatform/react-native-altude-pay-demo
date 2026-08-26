@@ -51,8 +51,16 @@ describe('gasstationAdapter', () => {
   it('delegates config, balance, history, and send operations to the SDK', async () => {
     const config = {RpcEnvironment: 'devnet'};
     const balance = {lamports: 42};
-    const history = {TransactionList: []};
-    const rpc = {getBalance: jest.fn()};
+    const history = {
+      data: [],
+      page: 2,
+      pageSize: 10,
+      limit: 10,
+      offset: 10,
+      total: 0,
+      status: 'success',
+    };
+    const rpc = {rpc: {getBalance: jest.fn()}};
     mockGetConfig.mockResolvedValue(config);
     mockGetBalance.mockResolvedValue(balance);
     mockGetHistory.mockResolvedValue(history);
@@ -76,7 +84,11 @@ describe('gasstationAdapter', () => {
     await expect(gasstation.getRpcClient()).resolves.toBe(rpc);
     await expect(
       fetchAccountHistory({walletAddress: 'sender', page: 2, pageSize: 10}),
-    ).resolves.toBe(history);
+    ).resolves.toEqual({
+      ...history,
+      id: '',
+      walletAddress: 'sender',
+    });
     await expect(
       sendWithSigner(signer, 'recipient', 5, 'token-mint'),
     ).resolves.toEqual({signature: 'sig_sdk_123'});
@@ -119,6 +131,23 @@ describe('gasstationAdapter', () => {
         1,
       ),
     ).resolves.toEqual({signature: expect.stringMatching(/^MOCK_SIG_/)});
+    await expect(
+      gasstation.getHistory({
+        walletAddress: 'sender',
+        page: 2,
+        pageSize: 10,
+      }),
+    ).resolves.toEqual({
+      id: '',
+      walletAddress: 'sender',
+      data: [],
+      page: 2,
+      pageSize: 10,
+      limit: 10,
+      offset: 0,
+      total: 0,
+      status: 'success',
+    });
     expect(mockAltudeGasStation).not.toHaveBeenCalled();
   });
 

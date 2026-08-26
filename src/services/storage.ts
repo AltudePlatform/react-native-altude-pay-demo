@@ -5,6 +5,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   BalanceResponse,
+  GetHistorySummary,
   ThemePreference,
   TokenMetadata,
   TransactionRecord,
@@ -29,6 +30,17 @@ const DEFAULT_PREFERENCES: UserPreferences = {
 };
 
 const DEFAULT_THEME: ThemePreference = 'dark';
+const EMPTY_HISTORY: TransactionRecord = {
+  id: '',
+  walletAddress: '',
+  data: [],
+  page: 1,
+  pageSize: 0,
+  limit: 0,
+  offset: 0,
+  total: 0,
+  status: 'success',
+};
 
 const DEFAULT_TOKEN_LIST: TokenMetadata[] = [
   {
@@ -173,24 +185,35 @@ export async function clearWallet(): Promise<void> {
 }
 
 export async function getHistory(): Promise<TransactionRecord> {
-  return readJson(KEYS.HISTORY, {} as TransactionRecord);
+  return readJson(KEYS.HISTORY, EMPTY_HISTORY);
 }
 
 export async function appendToHistory(
   record: TransactionRecord,
 ): Promise<TransactionRecord> {
   const history = await getHistory();
-  await AsyncStorage.setItem(KEYS.HISTORY, JSON.stringify({data: [record.data, ...history.data]}));
-  return history;
+  const updated = {
+    ...history,
+    ...record,
+    data: [...record.data, ...history.data],
+    total: history.total + record.data.length,
+  };
+  await AsyncStorage.setItem(KEYS.HISTORY, JSON.stringify(updated));
+  return updated;
 }
 
 export async function updateHistoryRecord(
-  id: string,
-  patch: Partial<TransactionRecord>,
+  signature: string,
+  patch: Partial<GetHistorySummary>,
 ): Promise<void> {
   const history = await getHistory();
-  const updated = history.data.map((r: GetHistorySummary) => (r.id === id ? {...r, ...patch.data} : r));
-  await AsyncStorage.setItem(KEYS.HISTORY, JSON.stringify({data: updated}));
+  const updated = {
+    ...history,
+    data: history.data.map(record =>
+      record.signature === signature ? {...record, ...patch} : record,
+    ),
+  };
+  await AsyncStorage.setItem(KEYS.HISTORY, JSON.stringify(updated));
 }
 
 export async function clearHistory(): Promise<void> {

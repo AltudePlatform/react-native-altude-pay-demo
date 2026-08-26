@@ -26,7 +26,9 @@ describe('Solana RPC boundary', () => {
       ],
     });
     const getSignatureStatuses = jest.fn(() => ({send}));
-    const getRpcClient = jest.fn().mockResolvedValue({getSignatureStatuses});
+    const getRpcClient = jest.fn().mockResolvedValue({
+      rpc: {getSignatureStatuses},
+    });
     jest.doMock('../src/services/gasstationAdapter', () => ({
       getGasstation: jest.fn().mockResolvedValue({getRpcClient}),
     }));
@@ -44,6 +46,35 @@ describe('Solana RPC boundary', () => {
       ['relay-signature'],
       {searchTransactionHistory: true},
     );
+  });
+
+  it('uses a raw RPC client when an explicit URL is supplied', async () => {
+    const explicitSend = jest.fn().mockResolvedValue({value: [null]});
+    const explicitGetSignatureStatuses = jest.fn(() => ({
+      send: explicitSend,
+    }));
+    const createSolanaRpc = jest.fn(() => ({
+      getSignatureStatuses: explicitGetSignatureStatuses,
+    }));
+    jest.doMock('@solana/kit', () => ({createSolanaRpc}));
+    jest.doMock('../src/services/gasstationAdapter', () => ({
+      getGasstation: jest.fn(),
+    }));
+
+    const {getTransactionStatus: getExplicitTransactionStatus} = require('../src/services/solana');
+
+    await expect(
+      getExplicitTransactionStatus(
+        'relay-signature',
+        'https://rpc.example.com',
+      ),
+    ).resolves.toEqual({
+      signature: 'relay-signature',
+      status: 'pending',
+      confirmed: false,
+    });
+    expect(createSolanaRpc).toHaveBeenCalledWith('https://rpc.example.com');
+    expect(explicitGetSignatureStatuses).toHaveBeenCalledTimes(1);
   });
 
   it('uses SDK config rather than an application network setting', async () => {
