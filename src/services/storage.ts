@@ -607,7 +607,7 @@ export async function updateHistoryRecord(
 
   const updated = history.data.map(
     (r: GetHistorySummary) =>
-      r.id === patch.id
+      r.signature === signature
         ? {
             ...r,
             ...patch,
