@@ -219,7 +219,7 @@ function AppContent(): React.JSX.Element {
       if (existingWallet) {
         await saveUserProfile(profile);
 
-        hydrateWallet(existingWallet);
+        await useWalletStore.getState().setWallet(existingWallet);
 
         setOnboardingComplete(true);
 
