@@ -1,28 +1,49 @@
 import {create} from 'zustand';
+
 import {WalletInfo} from '../types';
-import {saveWallet, clearWallet} from '../services/storage';
+
+import {
+  saveWallet,
+  clearWallet,
+} from '../services/storage';
 
 interface WalletState {
   wallet: WalletInfo | null;
-  setWallet: (wallet: WalletInfo) => Promise<void>;
+
+  setWallet: (
+    wallet: WalletInfo,
+  ) => Promise<void>;
+
   removeWallet: () => Promise<void>;
-  hydrate: (wallet: WalletInfo | null) => void;
+
+  hydrate: (
+    wallet: WalletInfo | null,
+  ) => void;
 }
 
-export const useWalletStore = create<WalletState>(set => ({
-  wallet: null,
+export const useWalletStore =
+  create<WalletState>(set => ({
+    wallet: null,
 
-  setWallet: async (wallet: WalletInfo) => {
-    await saveWallet(wallet);
-    set({wallet});
-  },
+    setWallet: async wallet => {
+      await saveWallet(wallet);
 
-  removeWallet: async () => {
-    await clearWallet();
-    set({wallet: null});
-  },
+      set({
+        wallet,
+      });
+    },
 
-  hydrate: (wallet: WalletInfo | null) => {
-    set({wallet});
-  },
-}));
+    removeWallet: async () => {
+      await clearWallet();
+
+      set({
+        wallet: null,
+      });
+    },
+
+    hydrate: wallet => {
+      set({
+        wallet,
+      });
+    },
+  }));
