@@ -1,4 +1,4 @@
-import {WalletInfo} from '../types';
+import {UserProfile, WalletInfo} from '../types';
 import {createDevnetTokenAccount, generateDemoWallet} from './solana';
 import {getWallet, saveWallet, saveWalletForUser} from './storage';
 import {runtimeConfig} from '../config/runtimeConfig';
