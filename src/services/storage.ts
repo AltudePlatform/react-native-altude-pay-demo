@@ -577,7 +577,7 @@ export async function logout(): Promise<void> {
 export async function getHistory(): Promise<TransactionRecord> {
   return readJson(
     KEYS.HISTORY,
-    {} as TransactionRecord,
+    EMPTY_HISTORY,
   );
 }
 
