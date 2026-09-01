@@ -3,13 +3,14 @@
  */
 
 // Must come before any module that touches crypto.getRandomValues (uuid, @solana/kit).
+import 'react-native-url-polyfill/auto';
 import 'react-native-get-random-values';
 import {Buffer} from 'buffer';
 import {sha256} from '@noble/hashes/sha256';
 import 'react-native-gesture-handler';
 import {enableScreens} from 'react-native-screens';
 import {AppRegistry} from 'react-native';
-import App from './App';
+import App from './AppDynamic';
 import {name as appName} from './app.json';
 
 globalThis.Buffer = globalThis.Buffer || Buffer;
