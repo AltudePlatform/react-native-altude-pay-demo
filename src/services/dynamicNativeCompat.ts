@@ -35,17 +35,33 @@ export async function openAuthSessionAsync(
   url: string,
   redirectUrl: string,
 ): Promise<{type: 'success'; url: string}> {
-  const callback = new Promise<string>(resolve => {
-    const subscription = Linking.addEventListener('url', event => {
+  let subscription: {remove: () => void} | null = null;
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+
+  const callback = new Promise<string>((resolve, reject) => {
+    subscription = Linking.addEventListener('url', event => {
       if (event.url.startsWith(redirectUrl)) {
-        subscription.remove();
+        subscription?.remove();
+        subscription = null;
+        if (timeout) clearTimeout(timeout);
         resolve(event.url);
       }
     });
+
+    timeout = setTimeout(() => {
+      subscription?.remove();
+      subscription = null;
+      reject(new Error('Auth session timed out.'));
+    }, 60_000);
   });
 
-  await Linking.openURL(url);
-  return {type: 'success', url: await callback};
+  try {
+    await Linking.openURL(url);
+    return {type: 'success', url: await callback};
+  } finally {
+    subscription?.remove();
+    if (timeout) clearTimeout(timeout);
+  }
 }
 
 function keychainService(key: string): string {
