@@ -84,10 +84,29 @@ function AppContent(): React.JSX.Element {
     syncingUserId.current = syncKey ?? null;
 
     try {
-      const dynamicWallet = [
+      let dynamicWallet = [
         dynamicClient.wallets.primary,
         ...dynamicClient.wallets.userWallets,
       ].find(candidate => candidate?.chain.toLowerCase() === 'sol');
+
+      if (!dynamicWallet) {
+        // Embedded wallet creation/hydration can take a few seconds after authentication event
+        const timeoutMs = 10000;
+        const pollIntervalMs = 300;
+        const startTime = Date.now();
+
+        while (Date.now() - startTime < timeoutMs) {
+          await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+          dynamicWallet = [
+            dynamicClient.wallets.primary,
+            ...dynamicClient.wallets.userWallets,
+          ].find(candidate => candidate?.chain.toLowerCase() === 'sol');
+
+          if (dynamicWallet) {
+            break;
+          }
+        }
+      }
 
       if (!dynamicWallet) {
         throw new Error(

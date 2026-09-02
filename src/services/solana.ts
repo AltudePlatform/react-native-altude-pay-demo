@@ -5,6 +5,7 @@ import {WalletInfo, BalanceResponse, TransactionStatusResponse} from '../types';
 import {stableCoinMint} from '../config/paymentConfig';
 import {runtimeConfig} from '../config/runtimeConfig';
 import type {Wallet as DynamicWallet} from '@dynamic-labs/client';
+import {Message, PublicKey, Transaction} from '@solana/web3.js';
 import {dynamicClient} from './dynamicClient';
 type Commitment = 'processed' | 'confirmed' | 'finalized';
 
@@ -449,10 +450,14 @@ export async function generateDemoWallet(): Promise<WalletInfo> {
 /** Build a GaslessTransactionSigner from the hex private key stored in WalletInfo. */
 export function buildSigner(wallet: WalletInfo) {
   if (wallet.provider === 'dynamic') {
-    const dynamicWallet = dynamicClient.wallets.userWallets.find(
+    const candidates = [
+      dynamicClient.wallets.primary,
+      ...dynamicClient.wallets.userWallets,
+    ];
+    const dynamicWallet = candidates.find(
       candidate =>
-        candidate.address === wallet.publicKey &&
-        candidate.chain.toLowerCase() === 'sol',
+        candidate?.address === wallet.publicKey &&
+        candidate?.chain.toLowerCase() === 'sol',
     ) as DynamicWallet | undefined;
 
     if (!dynamicWallet) {
@@ -466,8 +471,24 @@ export function buildSigner(wallet: WalletInfo) {
     return {
       address: wallet.publicKey,
       async signTransactionMessage(txBytes: Uint8Array): Promise<Uint8Array> {
-        const {signature} = await dynamicSigner.signMessage(txBytes);
-        return signature;
+        const message = Message.from(txBytes);
+        const transaction = Transaction.populate(message);
+        const signedTransaction = await dynamicSigner.signTransaction(transaction);
+
+        if (!signedTransaction.serializeMessage().equals(Buffer.from(txBytes))) {
+          throw new Error('Dynamic changed the transaction message while signing.');
+        }
+
+        const signerPublicKey = new PublicKey(wallet.publicKey);
+        const signature = signedTransaction.signatures.find(candidate =>
+          candidate.publicKey.equals(signerPublicKey),
+        )?.signature;
+
+        if (!signature) {
+          throw new Error('Dynamic returned no Solana transaction signature.');
+        }
+
+        return new Uint8Array(signature);
       },
     };
   }

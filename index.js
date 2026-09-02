@@ -3,6 +3,7 @@
  */
 
 // Must come before any module that touches crypto.getRandomValues (uuid, @solana/kit).
+import 'fast-text-encoding';
 import 'react-native-url-polyfill/auto';
 import 'react-native-get-random-values';
 import {Buffer} from 'buffer';
@@ -14,6 +15,12 @@ import App from './AppDynamic';
 import {name as appName} from './app.json';
 
 globalThis.Buffer = globalThis.Buffer || Buffer;
+if (typeof globalThis.TextEncoder === 'undefined' && typeof TextEncoder !== 'undefined') {
+  globalThis.TextEncoder = TextEncoder;
+}
+if (typeof globalThis.TextDecoder === 'undefined' && typeof TextDecoder !== 'undefined') {
+  globalThis.TextDecoder = TextDecoder;
+}
 
 const crypto = globalThis.crypto || {};
 const subtle = crypto.subtle || {};
