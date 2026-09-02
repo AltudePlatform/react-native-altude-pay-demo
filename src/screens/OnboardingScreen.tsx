@@ -12,12 +12,20 @@ export default function OnboardingScreen({
   onContinueWithDynamic,
 }: OnboardingScreenProps): React.JSX.Element {
   const [isConnecting, setIsConnecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleContinue = async () => {
     setIsConnecting(true);
+    setError(null);
 
     try {
       await onContinueWithDynamic();
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : 'Something went wrong. Please try again.',
+      );
     } finally {
       setIsConnecting(false);
     }
@@ -31,6 +39,7 @@ export default function OnboardingScreen({
         <Text style={styles.subtitle}>
           Log in or create an account to access your secure wallet.
         </Text>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
 
       <Button
@@ -60,6 +69,10 @@ const styles = StyleSheet.create({
   subtitle: {
     ...tokens.type.body,
     color: tokens.color.textSecondary,
+  },
+  error: {
+    ...tokens.type.body,
+    color: tokens.color.error,
   },
   continue: {
     marginBottom: tokens.spacing.xl,
