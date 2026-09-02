@@ -72,7 +72,7 @@ export interface TransactionRecord {
 }
 
 export interface GetHistorySummary {
-  id: any;
+  id?: string;
   signature: string;
   slot: number;
   blockTime: number | null;
