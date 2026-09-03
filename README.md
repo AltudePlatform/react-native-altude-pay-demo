@@ -7,7 +7,7 @@ It demonstrates a payment that behaves like an everyday consumer transfer: you e
 amount, approve it on your device, and it arrives. There is no gas balance to top up,
 and the private key never leaves the phone.
 
-![Altude Pay presented as a polished consumer payment app, with its real balance screen beside the message: Solana payments, without the crypto friction](docs/images/hero-product.png)
+![Altude Pay presented as a polished consumer payment app, with its real balance screen beside the message: Solana payments, without the crypto friction](docs/images/hero-product-01.png)
 
 ## Paying with crypto is still too hard
 
