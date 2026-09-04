@@ -532,9 +532,9 @@ API directly.
 - `@altude/core` 0.1.1 and `@altude/gasstation` 2.1.0 resolve from public npm
   with lockfile integrity values. Spot checks indicate MIT licensing.
 - No resolved `git+`, `http:`, `file:`, or `link:` dependency was found.
-- `postinstall` runs `patch-package`. The tracked
-  `react-native-screens+4.27.0.patch` changes a React type and showed no
-  suspicious executable content.
+- `postinstall` runs `patch-package`. No patch files are tracked; the former
+  `react-native-screens+4.27.0.patch` React type workaround is obsolete for the
+  pinned `react-native-screens` 4.26.x line and was removed.
 - `smoke:startup` and `test:devnet-live` are opt-in scripts. The devnet
   integration script is guarded by `RUN_DEVNET_INTEGRATION=1` and was not run.
 - Android repositories are limited to Google and Maven Central in the reviewed

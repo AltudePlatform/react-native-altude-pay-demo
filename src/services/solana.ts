@@ -4,6 +4,9 @@
 import {WalletInfo, BalanceResponse, TransactionStatusResponse} from '../types';
 import {stableCoinMint} from '../config/paymentConfig';
 import {runtimeConfig} from '../config/runtimeConfig';
+import type {Wallet as DynamicWallet} from '@dynamic-labs/client';
+import {Message, PublicKey, Transaction} from '@solana/web3.js';
+import {dynamicClient} from './dynamicClient';
 type Commitment = 'processed' | 'confirmed' | 'finalized';
 
 
@@ -446,6 +449,54 @@ export async function generateDemoWallet(): Promise<WalletInfo> {
 
 /** Build a GaslessTransactionSigner from the hex private key stored in WalletInfo. */
 export function buildSigner(wallet: WalletInfo) {
+  if (wallet.provider === 'dynamic') {
+    const candidates = [
+      dynamicClient.wallets.primary,
+      ...dynamicClient.wallets.userWallets,
+    ];
+    const dynamicWallet = candidates.find(
+      candidate =>
+        candidate?.address === wallet.publicKey &&
+        candidate?.chain.toLowerCase() === 'sol',
+    ) as DynamicWallet | undefined;
+
+    if (!dynamicWallet) {
+      throw new Error('The connected Dynamic Solana wallet is unavailable.');
+    }
+
+    const dynamicSigner = dynamicClient.solana.getSigner({
+      wallet: dynamicWallet,
+    });
+
+    return {
+      address: wallet.publicKey,
+      async signTransactionMessage(txBytes: Uint8Array): Promise<Uint8Array> {
+        const message = Message.from(txBytes);
+        const transaction = Transaction.populate(message);
+        const signedTransaction = await dynamicSigner.signTransaction(transaction);
+
+        if (!signedTransaction.serializeMessage().equals(Buffer.from(txBytes))) {
+          throw new Error('Dynamic changed the transaction message while signing.');
+        }
+
+        const signerPublicKey = new PublicKey(wallet.publicKey);
+        const signature = signedTransaction.signatures.find(candidate =>
+          candidate.publicKey.equals(signerPublicKey),
+        )?.signature;
+
+        if (!signature) {
+          throw new Error('Dynamic returned no Solana transaction signature.');
+        }
+
+        return new Uint8Array(signature);
+      },
+    };
+  }
+
+  if (!wallet.privateKey) {
+    throw new Error('The wallet does not have a transaction signer.');
+  }
+
   const privateKeyBytes = hexToBytes(wallet.privateKey);
   return {
     address: wallet.publicKey,
@@ -530,6 +581,10 @@ export async function createDevnetTokenAccount(
   mint = STABLE_COIN_MINT,
   options?: DevnetTokenAccountOptions,
 ): Promise<DevnetTokenAccountBootstrapResult> {
+  if (!wallet.privateKey) {
+    throw new Error('Token-account bootstrap requires a local wallet.');
+  }
+
   const gasstation = await getSdkGasstation();
   const config = await gasstation.getConfig();
   if (config.RpcEnvironment?.trim().toLowerCase() !== 'devnet') {
