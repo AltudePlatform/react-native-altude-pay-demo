@@ -37,8 +37,9 @@ export interface AltudeHistoryEntry {
 
 export interface WalletInfo {
   publicKey: string;
-  /** 32-byte seed stored as lowercase hex – NEVER leaves the device */
-  privateKey: string;
+  /** Present only for the legacy local demo wallet. */
+  privateKey?: string;
+  provider?: 'dynamic' | 'local';
 }
 
 export interface BalanceResponse {
@@ -71,6 +72,7 @@ export interface TransactionRecord {
 }
 
 export interface GetHistorySummary {
+  id?: string;
   signature: string;
   slot: number;
   blockTime: number | null;

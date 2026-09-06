@@ -8,9 +8,11 @@ function loadEnv() {
   }
 
   for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
-    const match = line.match(/^\s*ALTUDE_API_KEY\s*=\s*(.*?)\s*$/);
+    const match = line.match(
+      /^\s*(ALTUDE_API_KEY|DYNAMIC_ENVIRONMENT_ID|DYNAMIC_APP_ORIGIN|DYNAMIC_APP_LOGO)\s*=\s*(.*?)\s*$/,
+    );
     if (match) {
-      process.env.ALTUDE_API_KEY = match[1].replace(/^['"]|['"]$/g, '');
+      process.env[match[1]] = match[2].replace(/^['"]|['"]$/g, '');
     }
   }
 }
@@ -24,6 +26,8 @@ module.exports = api => {
   return {
     presets: ['module:@react-native/babel-preset'],
     plugins: [
+      '@babel/plugin-transform-export-namespace-from',
+      '@babel/plugin-transform-class-static-block',
       ...(isTest
         ? []
         : [
@@ -34,7 +38,12 @@ module.exports = api => {
                 if (
                   node.computed ||
                   !t.isIdentifier(node.property) ||
-                  node.property.name !== 'ALTUDE_API_KEY' ||
+                  ![
+                    'ALTUDE_API_KEY',
+                    'DYNAMIC_ENVIRONMENT_ID',
+                    'DYNAMIC_APP_ORIGIN',
+                    'DYNAMIC_APP_LOGO',
+                  ].includes(node.property.name) ||
                   !t.isMemberExpression(node.object) ||
                   node.object.computed ||
                   !t.isIdentifier(node.object.property, {name: 'env'}) ||

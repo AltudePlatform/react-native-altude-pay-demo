@@ -13,6 +13,7 @@ ios/Podfile.lock
 # Generated files
 android/local.properties
 *.keystore
+.tmp-altude-npm-check/
 
 # Environment files
 .env

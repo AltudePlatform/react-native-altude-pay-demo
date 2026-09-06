@@ -7,6 +7,7 @@
  */
 /* eslint-env jest */
 
+require('fast-text-encoding');
 require('react-native-gesture-handler/jestSetup');
 
 jest.mock('react-native-reanimated', () => require('./reanimatedMock'));

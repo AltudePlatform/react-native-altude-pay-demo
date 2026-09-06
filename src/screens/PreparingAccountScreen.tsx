@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {BackHandler, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Animated, {FadeIn, FadeOut, useReducedMotion} from 'react-native-reanimated';
 
@@ -20,18 +20,13 @@ export default function PreparingAccountScreen({
   onPrepare,
 }: PreparingAccountScreenProps): React.JSX.Element {
   const [error, setError] = useState<string | null>(null);
-  const [attempt, setAttempt] = useState(0);
+  const [isConnecting, setIsConnecting] = useState(false);
   const [step, setStep] = useState(0);
-  const started = useRef(-1);
 
-  useEffect(() => {
-    if (started.current === attempt) {
-      return;
-    }
-    started.current = attempt;
-
+  const handleContinueWithDynamic = useCallback(() => {
     setError(null);
     setStep(0);
+    setIsConnecting(true);
 
     onPrepare(profile).catch((err: unknown) => {
       setError(
@@ -39,11 +34,12 @@ export default function PreparingAccountScreen({
           ? err.message
           : 'Something went wrong on our side.',
       );
+      setIsConnecting(false);
     });
-  }, [attempt, onPrepare, profile]);
+  }, [onPrepare, profile]);
 
   useEffect(() => {
-    if (error) {
+    if (error || !isConnecting) {
       return;
     }
 
@@ -52,15 +48,7 @@ export default function PreparingAccountScreen({
       3_000,
     );
     return () => clearTimeout(timer);
-  }, [error, step]);
-
-  // Setup must not be abandoned halfway, so swallow the hardware back button.
-  useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
-    return () => sub.remove();
-  }, []);
-
-  const handleRetry = useCallback(() => setAttempt(n => n + 1), []);
+  }, [error, isConnecting, step]);
 
   const reduceMotion = useReducedMotion();
   const enterDuration = reduceMotion ? 0 : tokens.motion.base;
@@ -88,9 +76,13 @@ export default function PreparingAccountScreen({
               exiting={FadeOut.duration(exitDuration)}
               style={styles.copy}
               accessibilityLiveRegion="polite">
-              <Text style={styles.title}>{REASSURANCE[step]}</Text>
+              <Text style={styles.title}>
+                {isConnecting ? REASSURANCE[step] : 'Secure your wallet'}
+              </Text>
               <Text style={styles.subtitle}>
-                This only happens once. Keep the app open.
+                {isConnecting
+                  ? 'Keep the app open while Dynamic connects your wallet.'
+                  : 'Continue with Dynamic to create or connect your wallet.'}
               </Text>
             </Animated.View>
           )}
@@ -98,8 +90,16 @@ export default function PreparingAccountScreen({
 
         <View style={styles.footer}>
           {error ? (
-            <TouchableOpacity style={styles.retryBtn} onPress={handleRetry}>
+            <TouchableOpacity
+              style={styles.retryBtn}
+              onPress={handleContinueWithDynamic}>
               <Text style={styles.retryBtnText}>Try again</Text>
+            </TouchableOpacity>
+          ) : !isConnecting ? (
+            <TouchableOpacity
+              style={styles.retryBtn}
+              onPress={handleContinueWithDynamic}>
+              <Text style={styles.retryBtnText}>Continue with Dynamic</Text>
             </TouchableOpacity>
           ) : (
             <Text style={styles.footerHint}>ALTUDE PAY</Text>

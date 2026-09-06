@@ -3,7 +3,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createStackNavigator} from '@react-navigation/stack';
 
-import {MainTabParamList, RootStackParamList, UserProfile} from '../types';
+import {MainTabParamList, RootStackParamList} from '../types';
 import HomeScreen from '../screens/HomeScreen';
 import SendScreen from '../screens/SendScreen';
 import HistoryScreen from '../screens/HistoryScreen';
@@ -23,7 +23,7 @@ const RootStack = createStackNavigator<RootStackParamList>();
 
 type AppNavigatorProps = {
   onboardingComplete: boolean;
-  onOnboardingComplete: (profile: UserProfile) => Promise<void>;
+  onOnboardingComplete: () => Promise<void>;
   onLogout: () => Promise<void>;
 };
 
@@ -68,7 +68,11 @@ export default function AppNavigator({
         }}>
         {!onboardingComplete ? (
           <RootStack.Screen name="Onboarding">
-            {() => <OnboardingScreen />}
+            {() => (
+              <OnboardingScreen
+                onContinueWithDynamic={onOnboardingComplete}
+              />
+            )}
           </RootStack.Screen>
         ) : null}
         <RootStack.Screen name="MainTabs">
