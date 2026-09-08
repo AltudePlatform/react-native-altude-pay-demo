@@ -45,6 +45,43 @@ jest.mock('react-native-vision-camera', () => {
 
 jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
+jest.mock('expo-modules-core', () => ({
+  EventEmitter: jest.fn(() => ({
+    addListener: jest.fn(),
+    removeSubscription: jest.fn(),
+  })),
+  NativeModulesProxy: {},
+  requireNativeModule: jest.fn(() => ({
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  })),
+  requireOptionalNativeModule: jest.fn(() => null),
+}));
+
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: jest.fn(async () => null),
+  setItemAsync: jest.fn(async () => undefined),
+  deleteItemAsync: jest.fn(async () => undefined),
+}));
+
+jest.mock('expo-linking', () => ({
+  createURL: jest.fn(path => path),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(async () => undefined),
+  getInitialURL: jest.fn(async () => null),
+  parse: jest.fn(() => ({path: '', queryParams: {}})),
+}));
+
+jest.mock('react-native-webview', () => {
+  const React = require('react');
+  const {View} = require('react-native');
+  return {
+    WebView: props => React.createElement(View, props),
+    default: props => React.createElement(View, props),
+  };
+});
+
 /**
  * React Native's Jest preset implements requestAnimationFrame with
  * `setTimeout(() => callback(jest.now()), 0)`. A frame scheduled during

@@ -23,7 +23,7 @@ const RootStack = createStackNavigator<RootStackParamList>();
 
 type AppNavigatorProps = {
   onboardingComplete: boolean;
-  onOnboardingComplete: () => Promise<void>;
+  onOnboardingComplete: (profile?: any) => Promise<void>;
   onLogout: () => Promise<void>;
 };
 
