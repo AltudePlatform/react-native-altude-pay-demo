@@ -99,6 +99,7 @@ describe('AppNavigator', () => {
 
     // Home rendered behind it.
     expect(texts).toContain('AVAILABLE BALANCE');
+    expect(texts).toContain('Receive');
 
     await act(async () => tree.unmount());
   });
@@ -124,7 +125,7 @@ describe('AppNavigator', () => {
 
   it('starts on onboarding when setup is incomplete', async () => {
     const tree = await renderApp(false);
-    expect(textsOf(tree)).toContain('Set up your payment profile');
+    expect(textsOf(tree)).toContain('Log in or register');
 
     await act(async () => tree.unmount());
   });

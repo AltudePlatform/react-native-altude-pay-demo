@@ -295,9 +295,7 @@ describe('Scan', () => {
   });
 });
 
-// Currently unreachable in the app; snapshotted so a token sweep cannot
-// silently break it if it is ever wired up.
-describe('QR (unreachable route)', () => {
+describe('QR (Receive screen)', () => {
   it('with wallet', async () => {
     expect(await renderScreen(QRScreen)).toMatchSnapshot();
   });

@@ -1,6 +1,5 @@
 import React, {useCallback, useState} from 'react';
 import {Alert, StyleSheet, Text, View} from 'react-native';
-import Clipboard from '@react-native-clipboard/clipboard';
 import {CompositeNavigationProp, useFocusEffect, useNavigation} from '@react-navigation/native';
 import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -12,7 +11,6 @@ import {getGasstation} from '../services/gasstationAdapter';
 import {formatUsd} from '../utils/format';
 import {getHistoryPresentation} from '../utils/historyPresentation';
 
-
 import {
   BalanceDisplay,
   Button,
@@ -22,7 +20,6 @@ import {
   Screen,
   ScreenHeader,
   SkeletonRows,
-  useToast,
 } from '../components/ui';
 import {
   MainTabParamList,
@@ -60,7 +57,6 @@ function emptyHistory(walletAddress = ''): TransactionRecord {
 export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Element {
   const navigation = useNavigation<NavProp>();
   const wallet = useWalletStore(s => s.wallet);
-  const {showToast} = useToast();
 
   const {data: balance, isLoading, refetch} = useBalance();
   const [historyPreview, setHistoryPreview] =
@@ -83,14 +79,6 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
       },
     ]);
   }, [onLogout]);
-
-  const handleCopyAddress = useCallback(() => {
-    if (!wallet?.publicKey) {
-      return;
-    }
-    Clipboard.setString(wallet.publicKey);
-    showToast('Payment address copied');
-  }, [showToast, wallet?.publicKey]);
 
   const loadHistoryPreview = useCallback(async () => {
     if (!wallet?.publicKey) {
@@ -171,10 +159,10 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
               accessibilityHint="Enter an amount to send"
             />
             <CircularAction
-              icon="copy"
-              label="Copy"
-              onPress={handleCopyAddress}
-              accessibilityHint="Copies your payment address"
+              icon="arrowDownLeft"
+              label="Receive"
+              onPress={() => navigation.navigate('QR')}
+              accessibilityHint="Show payment code and address to receive money"
             />
             <CircularAction
               icon="scan"

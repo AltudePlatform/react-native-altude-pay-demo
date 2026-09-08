@@ -35,13 +35,13 @@ export async function openAuthSessionAsync(
   url: string,
   redirectUrl: string,
 ): Promise<{type: 'success'; url: string}> {
-  let subscription: {remove: () => void} | null = null;
+  let subscription: any = null;
   let timeout: ReturnType<typeof setTimeout> | null = null;
 
   const callback = new Promise<string>((resolve, reject) => {
     subscription = Linking.addEventListener('url', event => {
       if (event.url.startsWith(redirectUrl)) {
-        subscription?.remove();
+        (subscription as any)?.remove();
         subscription = null;
         if (timeout) clearTimeout(timeout);
         resolve(event.url);
@@ -49,7 +49,7 @@ export async function openAuthSessionAsync(
     });
 
     timeout = setTimeout(() => {
-      subscription?.remove();
+      (subscription as any)?.remove();
       subscription = null;
       reject(new Error('Auth session timed out.'));
     }, 60_000);
@@ -59,7 +59,7 @@ export async function openAuthSessionAsync(
     await Linking.openURL(url);
     return {type: 'success', url: await callback};
   } finally {
-    subscription?.remove();
+    (subscription as any)?.remove();
     if (timeout) clearTimeout(timeout);
   }
 }

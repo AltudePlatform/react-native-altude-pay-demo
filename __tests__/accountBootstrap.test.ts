@@ -9,22 +9,23 @@ describe('account bootstrap', () => {
       publicKey: 'DemoPublicKey11111111111111111111111111111111',
       privateKey: 'abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789',
     };
-    const saveWallet = jest.fn().mockResolvedValue(undefined);
+    const profile = {name: 'Ada', countryCode: '+1', phoneNumber: '5551234567', email: '', completedAt: '2026-08-17T10:00:00.000Z'};
+    const saveWalletForUser = jest.fn().mockResolvedValue(undefined);
 
     jest.doMock('../src/services/solana', () => ({
       generateDemoWallet: jest.fn().mockResolvedValue(generatedWallet),
       createDevnetTokenAccount: jest.fn().mockResolvedValue(undefined),
     }));
     jest.doMock('../src/services/storage', () => ({
-      saveWallet,
+      saveWallet: jest.fn().mockResolvedValue(undefined),
+      saveWalletForUser,
     }));
 
     const {createDemoAccount} = require('../src/services/accountBootstrap');
-    const wallet = await createDemoAccount();
+    const wallet = await createDemoAccount(profile);
 
     expect(wallet).toEqual(generatedWallet);
-    expect(saveWallet).toHaveBeenCalledTimes(1);
-    expect(saveWallet).toHaveBeenCalledWith(generatedWallet);
+    expect(saveWalletForUser).toHaveBeenCalledTimes(1);
   });
 
   it('still returns the generated wallet even if persistence fails', async () => {
@@ -32,21 +33,23 @@ describe('account bootstrap', () => {
       publicKey: 'DemoPublicKey22222222222222222222222222222222',
       privateKey: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
     };
-    const saveWallet = jest.fn().mockRejectedValue(new Error('storage offline'));
+    const profile = {name: 'Ada', countryCode: '+1', phoneNumber: '5551234567', email: '', completedAt: '2026-08-17T10:00:00.000Z'};
+    const saveWalletForUser = jest.fn().mockRejectedValue(new Error('storage offline'));
 
     jest.doMock('../src/services/solana', () => ({
       generateDemoWallet: jest.fn().mockResolvedValue(generatedWallet),
       createDevnetTokenAccount: jest.fn().mockResolvedValue(undefined),
     }));
     jest.doMock('../src/services/storage', () => ({
-      saveWallet,
+      saveWallet: jest.fn().mockResolvedValue(undefined),
+      saveWalletForUser,
     }));
 
     const {createDemoAccount} = require('../src/services/accountBootstrap');
-    const wallet = await createDemoAccount();
+    const wallet = await createDemoAccount(profile);
 
     expect(wallet).toEqual(generatedWallet);
-    expect(saveWallet).toHaveBeenCalledTimes(1);
+    expect(saveWalletForUser).toHaveBeenCalledTimes(1);
   });
 
   it('starts devnet token account setup without delaying wallet creation', async () => {
@@ -54,13 +57,14 @@ describe('account bootstrap', () => {
       publicKey: 'DemoPublicKey33333333333333333333333333333333',
       privateKey: 'fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210',
     };
+    const profile = {name: 'Ada', countryCode: '+1', phoneNumber: '5551234567', email: '', completedAt: '2026-08-17T10:00:00.000Z'};
     let resolveTokenAccount: (() => void) | undefined;
     const createDevnetTokenAccount = jest.fn(
       () => new Promise<void>(resolve => {
         resolveTokenAccount = resolve;
       }),
     );
-    const saveWallet = jest.fn().mockResolvedValue(undefined);
+    const saveWalletForUser = jest.fn().mockResolvedValue(undefined);
 
     jest.doMock('../src/config/runtimeConfig', () => ({
       runtimeConfig: {
@@ -77,11 +81,12 @@ describe('account bootstrap', () => {
       createDevnetTokenAccount,
     }));
     jest.doMock('../src/services/storage', () => ({
-      saveWallet,
+      saveWallet: jest.fn().mockResolvedValue(undefined),
+      saveWalletForUser,
     }));
 
     const {createDemoAccount} = require('../src/services/accountBootstrap');
-    const wallet = await createDemoAccount();
+    const wallet = await createDemoAccount(profile);
 
     expect(wallet).toEqual(generatedWallet);
     expect(createDevnetTokenAccount).toHaveBeenCalledTimes(1);
@@ -93,7 +98,7 @@ describe('account bootstrap', () => {
         strict: false,
       },
     );
-    expect(saveWallet).toHaveBeenCalledTimes(1);
+    expect(saveWalletForUser).toHaveBeenCalledTimes(1);
     resolveTokenAccount?.();
   });
 
@@ -113,8 +118,9 @@ describe('account bootstrap', () => {
       saveWallet: jest.fn(),
     }));
 
+    const profile = {name: 'Ada', countryCode: '+1', phoneNumber: '5551234567', email: '', completedAt: '2026-08-17T10:00:00.000Z'};
     const {ensureDemoAccount} = require('../src/services/accountBootstrap');
-    const wallet = await ensureDemoAccount();
+    const wallet = await ensureDemoAccount(profile);
 
     expect(wallet).toEqual(storedWallet);
     expect(generateDemoWallet).not.toHaveBeenCalled();
@@ -142,9 +148,10 @@ describe('account bootstrap', () => {
       saveWallet: jest.fn().mockResolvedValue(undefined),
     }));
 
+    const profile = {name: 'Ada', countryCode: '+1', phoneNumber: '5551234567', email: '', completedAt: '2026-08-17T10:00:00.000Z'};
     const {ensureDemoAccount} = require('../src/services/accountBootstrap');
-    const first = ensureDemoAccount();
-    const second = ensureDemoAccount();
+    const first = ensureDemoAccount(profile);
+    const second = ensureDemoAccount(profile);
 
     await Promise.resolve();
     expect(generateDemoWallet).toHaveBeenCalledTimes(1);
