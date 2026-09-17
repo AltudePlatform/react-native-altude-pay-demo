@@ -585,18 +585,23 @@ export async function appendToHistory(
   record: TransactionRecord,
 ): Promise<TransactionRecord> {
   const history = await getHistory();
+  const nextData = [
+    ...(Array.isArray(record.data) ? record.data : [record.data]),
+    ...history.data,
+  ];
+  const updatedHistory: TransactionRecord = {
+    ...history,
+    ...record,
+    data: nextData,
+    total: nextData.length,
+  };
 
   await AsyncStorage.setItem(
     KEYS.HISTORY,
-    JSON.stringify({
-      data: [
-        record.data,
-        ...history.data,
-      ],
-    }),
+    JSON.stringify(updatedHistory),
   );
 
-  return history;
+  return updatedHistory;
 }
 
 export async function updateHistoryRecord(
@@ -618,6 +623,7 @@ export async function updateHistoryRecord(
   await AsyncStorage.setItem(
     KEYS.HISTORY,
     JSON.stringify({
+      ...history,
       data: updated,
     }),
   );

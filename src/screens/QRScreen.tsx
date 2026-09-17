@@ -8,22 +8,32 @@
  * additional QR library, keeping the dependency count low.
  * For production quality, swap in react-native-qrcode-svg.
  */
-import React, {useMemo} from 'react';
-import {View, Text, StyleSheet, Share, Alert} from 'react-native';
+import React, {useCallback, useMemo} from 'react';
+import {View, Text, StyleSheet, Share, Alert, Pressable} from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import {useWalletStore} from '../store/walletStore';
 import {truncateAddress} from '../services/solana';
 import QRCodeMatrix from '../components/QRCodeMatrix';
-import {Button, Screen, ScreenHeader, Surface} from '../components/ui';
+import {Button, Screen, ScreenHeader, Surface, useToast} from '../components/ui';
 import {stableCoinMint} from '../config/paymentConfig';
 import {tokens} from '../theme/tokens';
 
 export default function QRScreen(): React.JSX.Element {
   const wallet = useWalletStore(s => s.wallet);
+  const {showToast} = useToast();
 
   const solanaPayUrl = useMemo(() => {
     if (!wallet) {return '';}
     return `solana:${wallet.publicKey}?spl-token=${stableCoinMint}`;
   }, [wallet]);
+
+  const handleCopyAddress = useCallback(() => {
+    if (!wallet?.publicKey) {
+      return;
+    }
+    Clipboard.setString(wallet.publicKey);
+    showToast('Payment address copied');
+  }, [showToast, wallet?.publicKey]);
 
   const handleShare = async () => {
     if (!wallet) {return;}
@@ -59,19 +69,34 @@ export default function QRScreen(): React.JSX.Element {
         <QRCodeMatrix value={solanaPayUrl} size={232} />
       </View>
 
-      <Surface style={styles.accountPanel}>
-        <Text style={styles.address}>{truncateAddress(wallet.publicKey, 8)}</Text>
-        <Text style={styles.fullAddress} selectable>
-          {wallet.publicKey}
-        </Text>
-      </Surface>
+      <Pressable
+        onPress={handleCopyAddress}
+        accessibilityRole="button"
+        accessibilityLabel={`Payment address: ${wallet.publicKey}`}
+        accessibilityHint="Double tap to copy payment address">
+        <Surface style={styles.accountPanel}>
+          <Text style={styles.address}>{truncateAddress(wallet.publicKey, 8)}</Text>
+          <Text style={styles.fullAddress} selectable>
+            {wallet.publicKey}
+          </Text>
+        </Surface>
+      </Pressable>
 
-      <Button
-        label="Share payment code"
-        icon="share"
-        onPress={handleShare}
-        style={styles.shareBtn}
-      />
+      <View style={styles.actionButtons}>
+        <Button
+          label="Copy address"
+          icon="copy"
+          variant="secondary"
+          onPress={handleCopyAddress}
+          style={styles.actionBtn}
+        />
+        <Button
+          label="Share payment code"
+          icon="share"
+          onPress={handleShare}
+          style={styles.actionBtn}
+        />
+      </View>
 
       <Text style={styles.urlLabel}>PAYMENT LINK</Text>
       <Text style={styles.url} selectable>
@@ -128,8 +153,13 @@ const styles = StyleSheet.create({
     color: tokens.color.textMuted,
     textAlign: 'center',
   },
-  shareBtn: {
+  actionButtons: {
+    width: '100%',
+    gap: tokens.spacing.md,
     marginBottom: tokens.spacing.xxl,
+  },
+  actionBtn: {
+    width: '100%',
   },
   urlLabel: {
     ...tokens.type.eyebrow,

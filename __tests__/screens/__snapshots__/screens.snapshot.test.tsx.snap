@@ -667,7 +667,6 @@ exports[`History empty 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -1440,7 +1439,6 @@ exports[`History error 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -2617,7 +2615,6 @@ exports[`History with entries 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -3096,7 +3093,7 @@ exports[`Home activity load error 1`] = `
                                                                                 {
                                                                                   "children": null,
                                                                                   "props": {
-                                                                                    "d": "M9 9 H19 V19 H9 Z",
+                                                                                    "d": "M17 7 L7 17",
                                                                                     "fill": null,
                                                                                     "propList": [
                                                                                       "fill",
@@ -3118,7 +3115,7 @@ exports[`Home activity load error 1`] = `
                                                                                 {
                                                                                   "children": null,
                                                                                   "props": {
-                                                                                    "d": "M15 9 V5 H5 V15 H9",
+                                                                                    "d": "M17 17 L7 17 L7 7",
                                                                                     "fill": null,
                                                                                     "propList": [
                                                                                       "fill",
@@ -3186,7 +3183,7 @@ exports[`Home activity load error 1`] = `
                                                                     },
                                                                     {
                                                                       "children": [
-                                                                        "Copy",
+                                                                        "Receive",
                                                                       ],
                                                                       "props": {
                                                                         "numberOfLines": 1,
@@ -3199,8 +3196,8 @@ exports[`Home activity load error 1`] = `
                                                                     },
                                                                   ],
                                                                   "props": {
-                                                                    "accessibilityHint": "Copies your payment address",
-                                                                    "accessibilityLabel": "Copy",
+                                                                    "accessibilityHint": "Show payment code and address to receive money",
+                                                                    "accessibilityLabel": "Receive",
                                                                     "accessibilityRole": "button",
                                                                     "accessibilityState": {
                                                                       "busy": undefined,
@@ -3931,7 +3928,6 @@ exports[`Home activity load error 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -4398,7 +4394,7 @@ exports[`Home balance loading 1`] = `
                                                                                 {
                                                                                   "children": null,
                                                                                   "props": {
-                                                                                    "d": "M9 9 H19 V19 H9 Z",
+                                                                                    "d": "M17 7 L7 17",
                                                                                     "fill": null,
                                                                                     "propList": [
                                                                                       "fill",
@@ -4420,7 +4416,7 @@ exports[`Home balance loading 1`] = `
                                                                                 {
                                                                                   "children": null,
                                                                                   "props": {
-                                                                                    "d": "M15 9 V5 H5 V15 H9",
+                                                                                    "d": "M17 17 L7 17 L7 7",
                                                                                     "fill": null,
                                                                                     "propList": [
                                                                                       "fill",
@@ -4488,7 +4484,7 @@ exports[`Home balance loading 1`] = `
                                                                     },
                                                                     {
                                                                       "children": [
-                                                                        "Copy",
+                                                                        "Receive",
                                                                       ],
                                                                       "props": {
                                                                         "numberOfLines": 1,
@@ -4501,8 +4497,8 @@ exports[`Home balance loading 1`] = `
                                                                     },
                                                                   ],
                                                                   "props": {
-                                                                    "accessibilityHint": "Copies your payment address",
-                                                                    "accessibilityLabel": "Copy",
+                                                                    "accessibilityHint": "Show payment code and address to receive money",
+                                                                    "accessibilityLabel": "Receive",
                                                                     "accessibilityRole": "button",
                                                                     "accessibilityState": {
                                                                       "busy": undefined,
@@ -5211,7 +5207,6 @@ exports[`Home balance loading 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -5690,7 +5685,7 @@ exports[`Home empty activity 1`] = `
                                                                                 {
                                                                                   "children": null,
                                                                                   "props": {
-                                                                                    "d": "M9 9 H19 V19 H9 Z",
+                                                                                    "d": "M17 7 L7 17",
                                                                                     "fill": null,
                                                                                     "propList": [
                                                                                       "fill",
@@ -5712,7 +5707,7 @@ exports[`Home empty activity 1`] = `
                                                                                 {
                                                                                   "children": null,
                                                                                   "props": {
-                                                                                    "d": "M15 9 V5 H5 V15 H9",
+                                                                                    "d": "M17 17 L7 17 L7 7",
                                                                                     "fill": null,
                                                                                     "propList": [
                                                                                       "fill",
@@ -5780,7 +5775,7 @@ exports[`Home empty activity 1`] = `
                                                                     },
                                                                     {
                                                                       "children": [
-                                                                        "Copy",
+                                                                        "Receive",
                                                                       ],
                                                                       "props": {
                                                                         "numberOfLines": 1,
@@ -5793,8 +5788,8 @@ exports[`Home empty activity 1`] = `
                                                                     },
                                                                   ],
                                                                   "props": {
-                                                                    "accessibilityHint": "Copies your payment address",
-                                                                    "accessibilityLabel": "Copy",
+                                                                    "accessibilityHint": "Show payment code and address to receive money",
+                                                                    "accessibilityLabel": "Receive",
                                                                     "accessibilityRole": "button",
                                                                     "accessibilityState": {
                                                                       "busy": undefined,
@@ -6503,7 +6498,6 @@ exports[`Home empty activity 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -6955,7 +6949,6 @@ exports[`Home no wallet on device 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -7434,7 +7427,7 @@ exports[`Home with balance and activity 1`] = `
                                                                                 {
                                                                                   "children": null,
                                                                                   "props": {
-                                                                                    "d": "M9 9 H19 V19 H9 Z",
+                                                                                    "d": "M17 7 L7 17",
                                                                                     "fill": null,
                                                                                     "propList": [
                                                                                       "fill",
@@ -7456,7 +7449,7 @@ exports[`Home with balance and activity 1`] = `
                                                                                 {
                                                                                   "children": null,
                                                                                   "props": {
-                                                                                    "d": "M15 9 V5 H5 V15 H9",
+                                                                                    "d": "M17 17 L7 17 L7 7",
                                                                                     "fill": null,
                                                                                     "propList": [
                                                                                       "fill",
@@ -7524,7 +7517,7 @@ exports[`Home with balance and activity 1`] = `
                                                                     },
                                                                     {
                                                                       "children": [
-                                                                        "Copy",
+                                                                        "Receive",
                                                                       ],
                                                                       "props": {
                                                                         "numberOfLines": 1,
@@ -7537,8 +7530,8 @@ exports[`Home with balance and activity 1`] = `
                                                                     },
                                                                   ],
                                                                   "props": {
-                                                                    "accessibilityHint": "Copies your payment address",
-                                                                    "accessibilityLabel": "Copy",
+                                                                    "accessibilityHint": "Show payment code and address to receive money",
+                                                                    "accessibilityLabel": "Receive",
                                                                     "accessibilityRole": "button",
                                                                     "accessibilityState": {
                                                                       "busy": undefined,
@@ -8815,7 +8808,6 @@ exports[`Home with balance and activity 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -8965,674 +8957,165 @@ exports[`Onboarding phone contact method 1`] = `
                                                           "children": [
                                                             {
                                                               "children": [
-                                                                {
-                                                                  "children": [
-                                                                    {
-                                                                      "children": [
-                                                                        "WELCOME",
-                                                                      ],
-                                                                      "props": {
-                                                                        "style": {
-                                                                          "color": "#8FA3AD",
-                                                                          "fontFamily": undefined,
-                                                                          "fontSize": 11,
-                                                                          "fontWeight": "700",
-                                                                          "letterSpacing": 1.6,
-                                                                          "lineHeight": 14,
-                                                                        },
-                                                                      },
-                                                                      "type": "Text",
-                                                                    },
-                                                                    {
-                                                                      "children": [
-                                                                        "Set up your payment profile",
-                                                                      ],
-                                                                      "props": {
-                                                                        "style": {
-                                                                          "color": "#F2EFE9",
-                                                                          "fontFamily": undefined,
-                                                                          "fontSize": 34,
-                                                                          "fontWeight": "800",
-                                                                          "letterSpacing": -0.6,
-                                                                          "lineHeight": 40,
-                                                                        },
-                                                                      },
-                                                                      "type": "Text",
-                                                                    },
-                                                                    {
-                                                                      "children": [
-                                                                        "This information helps personalize your dashboard on this device.",
-                                                                      ],
-                                                                      "props": {
-                                                                        "style": {
-                                                                          "color": "#9BB0BA",
-                                                                          "fontFamily": undefined,
-                                                                          "fontSize": 15,
-                                                                          "fontWeight": "500",
-                                                                          "lineHeight": 21,
-                                                                        },
-                                                                      },
-                                                                      "type": "Text",
-                                                                    },
-                                                                  ],
-                                                                  "props": {
-                                                                    "style": {
-                                                                      "gap": 10,
-                                                                      "paddingTop": 32,
-                                                                    },
-                                                                  },
-                                                                  "type": "View",
+                                                                "ALTUDE PAY",
+                                                              ],
+                                                              "props": {
+                                                                "style": {
+                                                                  "color": "#8FA3AD",
+                                                                  "fontFamily": undefined,
+                                                                  "fontSize": 11,
+                                                                  "fontWeight": "700",
+                                                                  "letterSpacing": 1.6,
+                                                                  "lineHeight": 14,
                                                                 },
+                                                              },
+                                                              "type": "Text",
+                                                            },
+                                                            {
+                                                              "children": [
+                                                                "Pay with USDC",
+                                                              ],
+                                                              "props": {
+                                                                "style": {
+                                                                  "color": "#F2EFE9",
+                                                                  "fontFamily": undefined,
+                                                                  "fontSize": 34,
+                                                                  "fontWeight": "800",
+                                                                  "letterSpacing": -0.6,
+                                                                  "lineHeight": 40,
+                                                                },
+                                                              },
+                                                              "type": "Text",
+                                                            },
+                                                            {
+                                                              "children": [
+                                                                "Log in or create an account to access your secure wallet.",
+                                                              ],
+                                                              "props": {
+                                                                "style": {
+                                                                  "color": "#9BB0BA",
+                                                                  "fontFamily": undefined,
+                                                                  "fontSize": 15,
+                                                                  "fontWeight": "500",
+                                                                  "lineHeight": 21,
+                                                                },
+                                                              },
+                                                              "type": "Text",
+                                                            },
+                                                          ],
+                                                          "props": {
+                                                            "style": {
+                                                              "flex": 1,
+                                                              "gap": 10,
+                                                              "justifyContent": "center",
+                                                            },
+                                                          },
+                                                          "type": "View",
+                                                        },
+                                                        {
+                                                          "children": [
+                                                            {
+                                                              "children": [
                                                                 {
                                                                   "children": [
-                                                                    {
-                                                                      "children": [
-                                                                        {
-                                                                          "children": [
-                                                                            {
-                                                                              "children": [
-                                                                                "Name (optional)",
-                                                                              ],
-                                                                              "props": {
-                                                                                "style": {
-                                                                                  "color": "#9BB0BA",
-                                                                                  "fontFamily": undefined,
-                                                                                  "fontSize": 13,
-                                                                                  "fontWeight": "600",
-                                                                                  "lineHeight": 18,
-                                                                                },
-                                                                              },
-                                                                              "type": "Text",
-                                                                            },
-                                                                          ],
-                                                                          "props": {
-                                                                            "style": {
-                                                                              "alignItems": "center",
-                                                                              "flexDirection": "row",
-                                                                              "justifyContent": "space-between",
-                                                                              "minHeight": 24,
-                                                                            },
-                                                                          },
-                                                                          "type": "View",
-                                                                        },
-                                                                        {
-                                                                          "children": null,
-                                                                          "props": {
-                                                                            "accessibilityLabel": "Name (optional)",
-                                                                            "autoCapitalize": "words",
-                                                                            "autoCorrect": true,
-                                                                            "multiline": false,
-                                                                            "onBlur": [Function],
-                                                                            "onChangeText": [Function],
-                                                                            "onFocus": [Function],
-                                                                            "placeholder": "Your name",
-                                                                            "placeholderTextColor": "#5B7079",
-                                                                            "selectionColor": "#3DBFF2",
-                                                                            "style": [
-                                                                              {
-                                                                                "backgroundColor": "#0E262F",
-                                                                                "borderColor": "#17323C",
-                                                                                "borderRadius": 16,
-                                                                                "borderWidth": 1,
-                                                                                "color": "#F2EFE9",
-                                                                                "fontFamily": undefined,
-                                                                                "fontSize": 15,
-                                                                                "fontWeight": "500",
-                                                                                "lineHeight": 21,
-                                                                                "minHeight": 54,
-                                                                                "paddingHorizontal": 16,
-                                                                                "paddingVertical": 16,
-                                                                              },
-                                                                              false,
-                                                                              false,
-                                                                              false,
-                                                                              false,
-                                                                            ],
-                                                                            "value": "",
-                                                                          },
-                                                                          "type": "TextInput",
-                                                                        },
-                                                                      ],
-                                                                      "props": {
-                                                                        "style": [
-                                                                          {
-                                                                            "gap": 10,
-                                                                          },
-                                                                          undefined,
-                                                                        ],
-                                                                      },
-                                                                      "type": "View",
-                                                                    },
-                                                                    {
-                                                                      "children": [
-                                                                        {
-                                                                          "children": [
-                                                                            "Preferred contact method",
-                                                                          ],
-                                                                          "props": {
-                                                                            "style": {
-                                                                              "color": "#9BB0BA",
-                                                                              "fontFamily": undefined,
-                                                                              "fontSize": 13,
-                                                                              "fontWeight": "600",
-                                                                              "lineHeight": 18,
-                                                                            },
-                                                                          },
-                                                                          "type": "Text",
-                                                                        },
-                                                                        {
-                                                                          "children": [
-                                                                            {
-                                                                              "children": [
-                                                                                {
-                                                                                  "children": [
-                                                                                    {
-                                                                                      "children": null,
-                                                                                      "props": {
-                                                                                        "style": {
-                                                                                          "backgroundColor": "#3DBFF2",
-                                                                                          "borderRadius": 999,
-                                                                                          "height": 10,
-                                                                                          "width": 10,
-                                                                                        },
-                                                                                      },
-                                                                                      "type": "View",
-                                                                                    },
-                                                                                  ],
-                                                                                  "props": {
-                                                                                    "style": [
-                                                                                      {
-                                                                                        "alignItems": "center",
-                                                                                        "borderColor": "#24454F",
-                                                                                        "borderRadius": 999,
-                                                                                        "borderWidth": 2,
-                                                                                        "height": 20,
-                                                                                        "justifyContent": "center",
-                                                                                        "width": 20,
-                                                                                      },
-                                                                                      {
-                                                                                        "borderColor": "#3DBFF2",
-                                                                                      },
-                                                                                    ],
-                                                                                  },
-                                                                                  "type": "View",
-                                                                                },
-                                                                                {
-                                                                                  "children": [
-                                                                                    "Phone number",
-                                                                                  ],
-                                                                                  "props": {
-                                                                                    "numberOfLines": 1,
-                                                                                    "style": [
-                                                                                      {
-                                                                                        "color": "#9BB0BA",
-                                                                                        "flexShrink": 1,
-                                                                                        "fontFamily": undefined,
-                                                                                        "fontSize": 13,
-                                                                                        "fontWeight": "600",
-                                                                                        "lineHeight": 18,
-                                                                                      },
-                                                                                      {
-                                                                                        "color": "#F2EFE9",
-                                                                                      },
-                                                                                    ],
-                                                                                  },
-                                                                                  "type": "Text",
-                                                                                },
-                                                                              ],
-                                                                              "props": {
-                                                                                "accessibilityLabel": "Phone number",
-                                                                                "accessibilityRole": "radio",
-                                                                                "accessibilityState": {
-                                                                                  "busy": undefined,
-                                                                                  "checked": undefined,
-                                                                                  "disabled": undefined,
-                                                                                  "expanded": undefined,
-                                                                                  "selected": true,
-                                                                                },
-                                                                                "accessibilityValue": {
-                                                                                  "max": undefined,
-                                                                                  "min": undefined,
-                                                                                  "now": undefined,
-                                                                                  "text": undefined,
-                                                                                },
-                                                                                "accessible": true,
-                                                                                "collapsable": false,
-                                                                                "focusable": true,
-                                                                                "onBlur": [Function],
-                                                                                "onClick": [Function],
-                                                                                "onFocus": [Function],
-                                                                                "onResponderGrant": [Function],
-                                                                                "onResponderMove": [Function],
-                                                                                "onResponderRelease": [Function],
-                                                                                "onResponderTerminate": [Function],
-                                                                                "onResponderTerminationRequest": [Function],
-                                                                                "onStartShouldSetResponder": [Function],
-                                                                                "style": [
-                                                                                  {
-                                                                                    "alignItems": "center",
-                                                                                    "backgroundColor": "#0E262F",
-                                                                                    "borderColor": "#17323C",
-                                                                                    "borderRadius": 16,
-                                                                                    "borderWidth": 1,
-                                                                                    "flex": 1,
-                                                                                    "flexDirection": "row",
-                                                                                    "gap": 10,
-                                                                                    "minHeight": 50,
-                                                                                    "paddingHorizontal": 16,
-                                                                                  },
-                                                                                  {
-                                                                                    "backgroundColor": "#132E38",
-                                                                                    "borderColor": "#3DBFF2",
-                                                                                  },
-                                                                                  false,
-                                                                                ],
-                                                                              },
-                                                                              "type": "View",
-                                                                            },
-                                                                            {
-                                                                              "children": [
-                                                                                {
-                                                                                  "children": null,
-                                                                                  "props": {
-                                                                                    "style": [
-                                                                                      "[Circular]",
-                                                                                      false,
-                                                                                    ],
-                                                                                  },
-                                                                                  "type": "View",
-                                                                                },
-                                                                                {
-                                                                                  "children": [
-                                                                                    "Email",
-                                                                                  ],
-                                                                                  "props": {
-                                                                                    "numberOfLines": 1,
-                                                                                    "style": [
-                                                                                      "[Circular]",
-                                                                                      false,
-                                                                                    ],
-                                                                                  },
-                                                                                  "type": "Text",
-                                                                                },
-                                                                              ],
-                                                                              "props": {
-                                                                                "accessibilityLabel": "Email",
-                                                                                "accessibilityRole": "radio",
-                                                                                "accessibilityState": {
-                                                                                  "busy": undefined,
-                                                                                  "checked": undefined,
-                                                                                  "disabled": undefined,
-                                                                                  "expanded": undefined,
-                                                                                  "selected": false,
-                                                                                },
-                                                                                "accessibilityValue": {
-                                                                                  "max": undefined,
-                                                                                  "min": undefined,
-                                                                                  "now": undefined,
-                                                                                  "text": undefined,
-                                                                                },
-                                                                                "accessible": true,
-                                                                                "collapsable": false,
-                                                                                "focusable": true,
-                                                                                "onBlur": [Function],
-                                                                                "onClick": [Function],
-                                                                                "onFocus": [Function],
-                                                                                "onResponderGrant": [Function],
-                                                                                "onResponderMove": [Function],
-                                                                                "onResponderRelease": [Function],
-                                                                                "onResponderTerminate": [Function],
-                                                                                "onResponderTerminationRequest": [Function],
-                                                                                "onStartShouldSetResponder": [Function],
-                                                                                "style": [
-                                                                                  "[Circular]",
-                                                                                  false,
-                                                                                  false,
-                                                                                ],
-                                                                              },
-                                                                              "type": "View",
-                                                                            },
-                                                                          ],
-                                                                          "props": {
-                                                                            "style": {
-                                                                              "flexDirection": "row",
-                                                                              "gap": 10,
-                                                                            },
-                                                                          },
-                                                                          "type": "View",
-                                                                        },
-                                                                      ],
-                                                                      "props": {
-                                                                        "style": {
-                                                                          "gap": 10,
-                                                                        },
-                                                                      },
-                                                                      "type": "View",
-                                                                    },
-                                                                    {
-                                                                      "children": [
-                                                                        {
-                                                                          "children": [
-                                                                            "Mobile number",
-                                                                          ],
-                                                                          "props": {
-                                                                            "style": "[Circular]",
-                                                                          },
-                                                                          "type": "Text",
-                                                                        },
-                                                                        {
-                                                                          "children": [
-                                                                            {
-                                                                              "children": [
-                                                                                {
-                                                                                  "children": [
-                                                                                    "+1",
-                                                                                  ],
-                                                                                  "props": {
-                                                                                    "style": {
-                                                                                      "color": "#F2EFE9",
-                                                                                      "fontFamily": undefined,
-                                                                                      "fontSize": 15,
-                                                                                      "fontWeight": "700",
-                                                                                      "lineHeight": 21,
-                                                                                    },
-                                                                                  },
-                                                                                  "type": "Text",
-                                                                                },
-                                                                                {
-                                                                                  "children": [
-                                                                                    {
-                                                                                      "children": [
-                                                                                        {
-                                                                                          "children": null,
-                                                                                          "props": {
-                                                                                            "d": "M10 6 L16 12 L10 18",
-                                                                                            "fill": null,
-                                                                                            "propList": [
-                                                                                              "fill",
-                                                                                              "stroke",
-                                                                                              "strokeWidth",
-                                                                                              "strokeLinecap",
-                                                                                              "strokeLinejoin",
-                                                                                            ],
-                                                                                            "stroke": {
-                                                                                              "payload": 4287603629,
-                                                                                              "type": 0,
-                                                                                            },
-                                                                                            "strokeLinecap": 1,
-                                                                                            "strokeLinejoin": 1,
-                                                                                            "strokeWidth": 1.75,
-                                                                                          },
-                                                                                          "type": "RNSVGPath",
-                                                                                        },
-                                                                                      ],
-                                                                                      "props": {
-                                                                                        "fill": null,
-                                                                                        "propList": [
-                                                                                          "fill",
-                                                                                        ],
-                                                                                      },
-                                                                                      "type": "RNSVGGroup",
-                                                                                    },
-                                                                                  ],
-                                                                                  "props": {
-                                                                                    "align": "xMidYMid",
-                                                                                    "bbHeight": 16,
-                                                                                    "bbWidth": 16,
-                                                                                    "fill": "none",
-                                                                                    "focusable": false,
-                                                                                    "height": 16,
-                                                                                    "meetOrSlice": 0,
-                                                                                    "minX": 0,
-                                                                                    "minY": 0,
-                                                                                    "style": [
-                                                                                      {
-                                                                                        "backgroundColor": "transparent",
-                                                                                        "borderWidth": 0,
-                                                                                      },
-                                                                                      {
-                                                                                        "flex": 0,
-                                                                                        "height": 16,
-                                                                                        "width": 16,
-                                                                                      },
-                                                                                    ],
-                                                                                    "vbHeight": 24,
-                                                                                    "vbWidth": 24,
-                                                                                    "width": 16,
-                                                                                  },
-                                                                                  "type": "RNSVGSvgView",
-                                                                                },
-                                                                              ],
-                                                                              "props": {
-                                                                                "accessibilityLabel": "Country code +1. Change",
-                                                                                "accessibilityRole": "button",
-                                                                                "accessibilityState": {
-                                                                                  "busy": undefined,
-                                                                                  "checked": undefined,
-                                                                                  "disabled": undefined,
-                                                                                  "expanded": undefined,
-                                                                                  "selected": undefined,
-                                                                                },
-                                                                                "accessibilityValue": {
-                                                                                  "max": undefined,
-                                                                                  "min": undefined,
-                                                                                  "now": undefined,
-                                                                                  "text": undefined,
-                                                                                },
-                                                                                "accessible": true,
-                                                                                "collapsable": false,
-                                                                                "focusable": true,
-                                                                                "onBlur": [Function],
-                                                                                "onClick": [Function],
-                                                                                "onFocus": [Function],
-                                                                                "onResponderGrant": [Function],
-                                                                                "onResponderMove": [Function],
-                                                                                "onResponderRelease": [Function],
-                                                                                "onResponderTerminate": [Function],
-                                                                                "onResponderTerminationRequest": [Function],
-                                                                                "onStartShouldSetResponder": [Function],
-                                                                                "style": [
-                                                                                  {
-                                                                                    "alignItems": "center",
-                                                                                    "backgroundColor": "#0E262F",
-                                                                                    "borderColor": "#17323C",
-                                                                                    "borderRadius": 16,
-                                                                                    "borderWidth": 1,
-                                                                                    "flexDirection": "row",
-                                                                                    "gap": 6,
-                                                                                    "minHeight": 54,
-                                                                                    "paddingHorizontal": 16,
-                                                                                  },
-                                                                                  false,
-                                                                                ],
-                                                                              },
-                                                                              "type": "View",
-                                                                            },
-                                                                            {
-                                                                              "children": [
-                                                                                {
-                                                                                  "children": null,
-                                                                                  "props": {
-                                                                                    "autoCapitalize": "sentences",
-                                                                                    "autoCorrect": true,
-                                                                                    "keyboardType": "phone-pad",
-                                                                                    "multiline": false,
-                                                                                    "onBlur": [Function],
-                                                                                    "onChangeText": [Function],
-                                                                                    "onFocus": [Function],
-                                                                                    "placeholder": "Enter mobile number",
-                                                                                    "placeholderTextColor": "#5B7079",
-                                                                                    "selectionColor": "#3DBFF2",
-                                                                                    "style": [
-                                                                                      "[Circular]",
-                                                                                      false,
-                                                                                      false,
-                                                                                      false,
-                                                                                      false,
-                                                                                    ],
-                                                                                    "value": "",
-                                                                                  },
-                                                                                  "type": "TextInput",
-                                                                                },
-                                                                              ],
-                                                                              "props": {
-                                                                                "style": [
-                                                                                  "[Circular]",
-                                                                                  {
-                                                                                    "flex": 1,
-                                                                                  },
-                                                                                ],
-                                                                              },
-                                                                              "type": "View",
-                                                                            },
-                                                                          ],
-                                                                          "props": {
-                                                                            "style": {
-                                                                              "alignItems": "flex-start",
-                                                                              "flexDirection": "row",
-                                                                              "gap": 10,
-                                                                            },
-                                                                          },
-                                                                          "type": "View",
-                                                                        },
-                                                                      ],
-                                                                      "props": {
-                                                                        "style": "[Circular]",
-                                                                      },
-                                                                      "type": "View",
-                                                                    },
-                                                                    {
-                                                                      "children": [
-                                                                        {
-                                                                          "children": [
-                                                                            {
-                                                                              "children": [
-                                                                                "Continue",
-                                                                              ],
-                                                                              "props": {
-                                                                                "numberOfLines": 1,
-                                                                                "style": [
-                                                                                  {
-                                                                                    "fontFamily": undefined,
-                                                                                    "fontSize": 16,
-                                                                                    "fontWeight": "700",
-                                                                                    "letterSpacing": -0.1,
-                                                                                  },
-                                                                                  {
-                                                                                    "color": "#F2EFE9",
-                                                                                  },
-                                                                                ],
-                                                                              },
-                                                                              "type": "Text",
-                                                                            },
-                                                                          ],
-                                                                          "props": {
-                                                                            "style": {
-                                                                              "alignItems": "center",
-                                                                              "flexDirection": "row",
-                                                                              "gap": 10,
-                                                                            },
-                                                                          },
-                                                                          "type": "View",
-                                                                        },
-                                                                      ],
-                                                                      "props": {
-                                                                        "accessibilityLabel": "Continue",
-                                                                        "accessibilityRole": "button",
-                                                                        "accessibilityState": {
-                                                                          "busy": false,
-                                                                          "checked": undefined,
-                                                                          "disabled": false,
-                                                                          "expanded": undefined,
-                                                                          "selected": undefined,
-                                                                        },
-                                                                        "accessibilityValue": {
-                                                                          "max": undefined,
-                                                                          "min": undefined,
-                                                                          "now": undefined,
-                                                                          "text": undefined,
-                                                                        },
-                                                                        "accessible": true,
-                                                                        "collapsable": false,
-                                                                        "focusable": true,
-                                                                        "onBlur": [Function],
-                                                                        "onClick": [Function],
-                                                                        "onFocus": [Function],
-                                                                        "onResponderGrant": [Function],
-                                                                        "onResponderMove": [Function],
-                                                                        "onResponderRelease": [Function],
-                                                                        "onResponderTerminate": [Function],
-                                                                        "onResponderTerminationRequest": [Function],
-                                                                        "onStartShouldSetResponder": [Function],
-                                                                        "style": [
-                                                                          {
-                                                                            "alignItems": "center",
-                                                                            "borderRadius": 999,
-                                                                            "borderWidth": 1,
-                                                                            "justifyContent": "center",
-                                                                            "paddingHorizontal": 24,
-                                                                          },
-                                                                          {
-                                                                            "height": 56,
-                                                                          },
-                                                                          {
-                                                                            "alignSelf": "stretch",
-                                                                          },
-                                                                          {
-                                                                            "backgroundColor": "#048ABF",
-                                                                            "borderColor": "#048ABF",
-                                                                          },
-                                                                          false,
-                                                                          {
-                                                                            "marginTop": 10,
-                                                                          },
-                                                                        ],
-                                                                      },
-                                                                      "type": "View",
-                                                                    },
+                                                                    "Log in or register",
                                                                   ],
                                                                   "props": {
-                                                                    "style": {
-                                                                      "gap": 20,
-                                                                      "marginTop": 40,
-                                                                    },
+                                                                    "numberOfLines": 1,
+                                                                    "style": [
+                                                                      {
+                                                                        "fontFamily": undefined,
+                                                                        "fontSize": 16,
+                                                                        "fontWeight": "700",
+                                                                        "letterSpacing": -0.1,
+                                                                      },
+                                                                      {
+                                                                        "color": "#F2EFE9",
+                                                                      },
+                                                                    ],
                                                                   },
-                                                                  "type": "View",
+                                                                  "type": "Text",
                                                                 },
                                                               ],
-                                                              "props": {},
+                                                              "props": {
+                                                                "style": {
+                                                                  "alignItems": "center",
+                                                                  "flexDirection": "row",
+                                                                  "gap": 10,
+                                                                },
+                                                              },
                                                               "type": "View",
                                                             },
                                                           ],
                                                           "props": {
-                                                            "contentContainerStyle": [
+                                                            "accessibilityLabel": "Log in or register",
+                                                            "accessibilityRole": "button",
+                                                            "accessibilityState": {
+                                                              "busy": false,
+                                                              "checked": undefined,
+                                                              "disabled": false,
+                                                              "expanded": undefined,
+                                                              "selected": undefined,
+                                                            },
+                                                            "accessibilityValue": {
+                                                              "max": undefined,
+                                                              "min": undefined,
+                                                              "now": undefined,
+                                                              "text": undefined,
+                                                            },
+                                                            "accessible": true,
+                                                            "collapsable": false,
+                                                            "focusable": true,
+                                                            "onBlur": [Function],
+                                                            "onClick": [Function],
+                                                            "onFocus": [Function],
+                                                            "onResponderGrant": [Function],
+                                                            "onResponderMove": [Function],
+                                                            "onResponderRelease": [Function],
+                                                            "onResponderTerminate": [Function],
+                                                            "onResponderTerminationRequest": [Function],
+                                                            "onStartShouldSetResponder": [Function],
+                                                            "style": [
                                                               {
-                                                                "paddingLeft": 20,
-                                                                "paddingRight": 20,
-                                                                "paddingTop": 47,
+                                                                "alignItems": "center",
+                                                                "borderRadius": 999,
+                                                                "borderWidth": 1,
+                                                                "justifyContent": "center",
+                                                                "paddingHorizontal": 24,
                                                               },
                                                               {
-                                                                "paddingBottom": 58,
+                                                                "height": 56,
                                                               },
-                                                              undefined,
+                                                              {
+                                                                "alignSelf": "stretch",
+                                                              },
+                                                              {
+                                                                "backgroundColor": "#048ABF",
+                                                                "borderColor": "#048ABF",
+                                                              },
+                                                              false,
+                                                              {
+                                                                "marginBottom": 20,
+                                                              },
                                                             ],
-                                                            "keyboardShouldPersistTaps": "handled",
-                                                            "refreshControl": undefined,
-                                                            "showsVerticalScrollIndicator": false,
-                                                            "style": "[Circular]",
                                                           },
-                                                          "type": "RCTScrollView",
+                                                          "type": "View",
                                                         },
                                                       ],
                                                       "props": {
-                                                        "onLayout": [Function],
                                                         "style": [
                                                           {
                                                             "flex": 1,
                                                           },
                                                           {
-                                                            "paddingBottom": 0,
+                                                            "paddingLeft": 20,
+                                                            "paddingRight": 20,
+                                                            "paddingTop": 47,
                                                           },
+                                                          {
+                                                            "paddingBottom": 58,
+                                                          },
+                                                          undefined,
                                                         ],
                                                       },
                                                       "type": "View",
@@ -9754,7 +9237,6 @@ exports[`Onboarding phone contact method 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -10893,7 +10375,6 @@ exports[`PayAddress amount exceeds balance 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -11870,7 +11351,6 @@ exports[`PayAddress empty recipient 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -12945,7 +12425,6 @@ exports[`PayAddress with recent recipients 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -13889,7 +13368,6 @@ exports[`PaymentStatus in flight 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -14463,7 +13941,7 @@ exports[`Preparing in progress 1`] = `
                                                               "children": [
                                                                 {
                                                                   "children": [
-                                                                    "Setting up your account",
+                                                                    "Secure your wallet",
                                                                   ],
                                                                   "props": {
                                                                     "style": {
@@ -14480,7 +13958,7 @@ exports[`Preparing in progress 1`] = `
                                                                 },
                                                                 {
                                                                   "children": [
-                                                                    "This only happens once. Keep the app open.",
+                                                                    "Continue with Dynamic to create or connect your wallet.",
                                                                   ],
                                                                   "props": {
                                                                     "style": {
@@ -14534,19 +14012,56 @@ exports[`Preparing in progress 1`] = `
                                                           "children": [
                                                             {
                                                               "children": [
-                                                                "ALTUDE PAY",
+                                                                {
+                                                                  "children": [
+                                                                    "Continue with Dynamic",
+                                                                  ],
+                                                                  "props": {
+                                                                    "style": {
+                                                                      "color": "#F2EFE9",
+                                                                      "fontFamily": undefined,
+                                                                      "fontSize": 16,
+                                                                      "fontWeight": "700",
+                                                                      "letterSpacing": -0.1,
+                                                                    },
+                                                                  },
+                                                                  "type": "Text",
+                                                                },
                                                               ],
                                                               "props": {
+                                                                "accessibilityState": {
+                                                                  "busy": undefined,
+                                                                  "checked": undefined,
+                                                                  "disabled": undefined,
+                                                                  "expanded": undefined,
+                                                                  "selected": undefined,
+                                                                },
+                                                                "accessibilityValue": {
+                                                                  "max": undefined,
+                                                                  "min": undefined,
+                                                                  "now": undefined,
+                                                                  "text": undefined,
+                                                                },
+                                                                "accessible": true,
+                                                                "collapsable": false,
+                                                                "focusable": true,
+                                                                "onClick": [Function],
+                                                                "onResponderGrant": [Function],
+                                                                "onResponderMove": [Function],
+                                                                "onResponderRelease": [Function],
+                                                                "onResponderTerminate": [Function],
+                                                                "onResponderTerminationRequest": [Function],
+                                                                "onStartShouldSetResponder": [Function],
                                                                 "style": {
-                                                                  "color": "#8FA3AD",
-                                                                  "fontFamily": undefined,
-                                                                  "fontSize": 11,
-                                                                  "fontWeight": "700",
-                                                                  "letterSpacing": 3,
-                                                                  "lineHeight": 14,
+                                                                  "alignItems": "center",
+                                                                  "alignSelf": "stretch",
+                                                                  "backgroundColor": "#048ABF",
+                                                                  "borderRadius": 999,
+                                                                  "opacity": 1,
+                                                                  "paddingVertical": 16,
                                                                 },
                                                               },
-                                                              "type": "Text",
+                                                              "type": "View",
                                                             },
                                                           ],
                                                           "props": {
@@ -14686,7 +14201,6 @@ exports[`Preparing in progress 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -14770,7 +14284,7 @@ exports[`Preparing in progress 1`] = `
 }
 `;
 
-exports[`QR (unreachable route) with wallet 1`] = `
+exports[`QR (Receive screen) with wallet 1`] = `
 {
   "children": [
     {
@@ -14958,211 +14472,73 @@ exports[`QR (unreachable route) with wallet 1`] = `
                                                               "children": [
                                                                 {
                                                                   "children": [
-                                                                    "7VfCXTUX...b963voxs",
-                                                                  ],
-                                                                  "props": {
-                                                                    "style": {
-                                                                      "color": "#F2EFE9",
-                                                                      "fontFamily": "Menlo",
-                                                                      "fontSize": 15,
-                                                                      "fontWeight": "600",
-                                                                      "lineHeight": 20,
-                                                                      "textAlign": "center",
-                                                                    },
-                                                                  },
-                                                                  "type": "Text",
-                                                                },
-                                                                {
-                                                                  "children": [
-                                                                    "7VfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
-                                                                  ],
-                                                                  "props": {
-                                                                    "selectable": true,
-                                                                    "style": {
-                                                                      "color": "#8FA3AD",
-                                                                      "fontFamily": "Menlo",
-                                                                      "fontSize": 12,
-                                                                      "fontWeight": "400",
-                                                                      "lineHeight": 18,
-                                                                      "textAlign": "center",
-                                                                    },
-                                                                  },
-                                                                  "type": "Text",
-                                                                },
-                                                              ],
-                                                              "props": {
-                                                                "style": [
-                                                                  {
-                                                                    "backgroundColor": "#0E262F",
-                                                                    "borderRadius": 24,
-                                                                  },
-                                                                  {
-                                                                    "padding": 20,
-                                                                  },
-                                                                  {
-                                                                    "borderColor": "#17323C",
-                                                                    "borderWidth": 1,
-                                                                  },
-                                                                  false,
-                                                                  {
-                                                                    "alignItems": "center",
-                                                                    "gap": 4,
-                                                                    "marginBottom": 16,
-                                                                    "width": "100%",
-                                                                  },
-                                                                ],
-                                                              },
-                                                              "type": "View",
-                                                            },
-                                                            {
-                                                              "children": [
-                                                                {
-                                                                  "children": [
                                                                     {
                                                                       "children": [
-                                                                        {
-                                                                          "children": [
-                                                                            {
-                                                                              "children": null,
-                                                                              "props": {
-                                                                                "d": "M12 15 L12 4",
-                                                                                "fill": null,
-                                                                                "propList": [
-                                                                                  "fill",
-                                                                                  "stroke",
-                                                                                  "strokeWidth",
-                                                                                  "strokeLinecap",
-                                                                                  "strokeLinejoin",
-                                                                                ],
-                                                                                "stroke": {
-                                                                                  "payload": 4294111209,
-                                                                                  "type": 0,
-                                                                                },
-                                                                                "strokeLinecap": 1,
-                                                                                "strokeLinejoin": 1,
-                                                                                "strokeWidth": 1.75,
-                                                                              },
-                                                                              "type": "RNSVGPath",
-                                                                            },
-                                                                            {
-                                                                              "children": null,
-                                                                              "props": {
-                                                                                "d": "M8 8 L12 4 L16 8",
-                                                                                "fill": null,
-                                                                                "propList": [
-                                                                                  "fill",
-                                                                                  "stroke",
-                                                                                  "strokeWidth",
-                                                                                  "strokeLinecap",
-                                                                                  "strokeLinejoin",
-                                                                                ],
-                                                                                "stroke": {
-                                                                                  "payload": 4294111209,
-                                                                                  "type": 0,
-                                                                                },
-                                                                                "strokeLinecap": 1,
-                                                                                "strokeLinejoin": 1,
-                                                                                "strokeWidth": 1.75,
-                                                                              },
-                                                                              "type": "RNSVGPath",
-                                                                            },
-                                                                            {
-                                                                              "children": null,
-                                                                              "props": {
-                                                                                "d": "M5 14 V19 H19 V14",
-                                                                                "fill": null,
-                                                                                "propList": [
-                                                                                  "fill",
-                                                                                  "stroke",
-                                                                                  "strokeWidth",
-                                                                                  "strokeLinecap",
-                                                                                  "strokeLinejoin",
-                                                                                ],
-                                                                                "stroke": {
-                                                                                  "payload": 4294111209,
-                                                                                  "type": 0,
-                                                                                },
-                                                                                "strokeLinecap": 1,
-                                                                                "strokeLinejoin": 1,
-                                                                                "strokeWidth": 1.75,
-                                                                              },
-                                                                              "type": "RNSVGPath",
-                                                                            },
-                                                                          ],
-                                                                          "props": {
-                                                                            "fill": null,
-                                                                            "propList": [
-                                                                              "fill",
-                                                                            ],
-                                                                          },
-                                                                          "type": "RNSVGGroup",
+                                                                        "7VfCXTUX...b963voxs",
+                                                                      ],
+                                                                      "props": {
+                                                                        "style": {
+                                                                          "color": "#F2EFE9",
+                                                                          "fontFamily": "Menlo",
+                                                                          "fontSize": 15,
+                                                                          "fontWeight": "600",
+                                                                          "lineHeight": 20,
+                                                                          "textAlign": "center",
                                                                         },
-                                                                      ],
-                                                                      "props": {
-                                                                        "align": "xMidYMid",
-                                                                        "bbHeight": 20,
-                                                                        "bbWidth": 20,
-                                                                        "fill": "none",
-                                                                        "focusable": false,
-                                                                        "height": 20,
-                                                                        "meetOrSlice": 0,
-                                                                        "minX": 0,
-                                                                        "minY": 0,
-                                                                        "style": [
-                                                                          {
-                                                                            "backgroundColor": "transparent",
-                                                                            "borderWidth": 0,
-                                                                          },
-                                                                          {
-                                                                            "flex": 0,
-                                                                            "height": 20,
-                                                                            "width": 20,
-                                                                          },
-                                                                        ],
-                                                                        "vbHeight": 24,
-                                                                        "vbWidth": 24,
-                                                                        "width": 20,
                                                                       },
-                                                                      "type": "RNSVGSvgView",
+                                                                      "type": "Text",
                                                                     },
                                                                     {
                                                                       "children": [
-                                                                        "Share payment code",
+                                                                        "7VfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
                                                                       ],
                                                                       "props": {
-                                                                        "numberOfLines": 1,
-                                                                        "style": [
-                                                                          {
-                                                                            "fontFamily": undefined,
-                                                                            "fontSize": 16,
-                                                                            "fontWeight": "700",
-                                                                            "letterSpacing": -0.1,
-                                                                          },
-                                                                          {
-                                                                            "color": "#F2EFE9",
-                                                                          },
-                                                                        ],
+                                                                        "selectable": true,
+                                                                        "style": {
+                                                                          "color": "#8FA3AD",
+                                                                          "fontFamily": "Menlo",
+                                                                          "fontSize": 12,
+                                                                          "fontWeight": "400",
+                                                                          "lineHeight": 18,
+                                                                          "textAlign": "center",
+                                                                        },
                                                                       },
                                                                       "type": "Text",
                                                                     },
                                                                   ],
                                                                   "props": {
-                                                                    "style": {
-                                                                      "alignItems": "center",
-                                                                      "flexDirection": "row",
-                                                                      "gap": 10,
-                                                                    },
+                                                                    "style": [
+                                                                      {
+                                                                        "backgroundColor": "#0E262F",
+                                                                        "borderRadius": 24,
+                                                                      },
+                                                                      {
+                                                                        "padding": 20,
+                                                                      },
+                                                                      {
+                                                                        "borderColor": "#17323C",
+                                                                        "borderWidth": 1,
+                                                                      },
+                                                                      false,
+                                                                      {
+                                                                        "alignItems": "center",
+                                                                        "gap": 4,
+                                                                        "marginBottom": 16,
+                                                                        "width": "100%",
+                                                                      },
+                                                                    ],
                                                                   },
                                                                   "type": "View",
                                                                 },
                                                               ],
                                                               "props": {
-                                                                "accessibilityLabel": "Share payment code",
+                                                                "accessibilityHint": "Double tap to copy payment address",
+                                                                "accessibilityLabel": "Payment address: 7VfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
                                                                 "accessibilityRole": "button",
                                                                 "accessibilityState": {
-                                                                  "busy": false,
+                                                                  "busy": undefined,
                                                                   "checked": undefined,
-                                                                  "disabled": false,
+                                                                  "disabled": undefined,
                                                                   "expanded": undefined,
                                                                   "selected": undefined,
                                                                 },
@@ -15184,29 +14560,366 @@ exports[`QR (unreachable route) with wallet 1`] = `
                                                                 "onResponderTerminate": [Function],
                                                                 "onResponderTerminationRequest": [Function],
                                                                 "onStartShouldSetResponder": [Function],
-                                                                "style": [
-                                                                  {
-                                                                    "alignItems": "center",
-                                                                    "borderRadius": 999,
-                                                                    "borderWidth": 1,
-                                                                    "justifyContent": "center",
-                                                                    "paddingHorizontal": 24,
+                                                              },
+                                                              "type": "View",
+                                                            },
+                                                            {
+                                                              "children": [
+                                                                {
+                                                                  "children": [
+                                                                    {
+                                                                      "children": [
+                                                                        {
+                                                                          "children": [
+                                                                            {
+                                                                              "children": [
+                                                                                {
+                                                                                  "children": null,
+                                                                                  "props": {
+                                                                                    "d": "M9 9 H19 V19 H9 Z",
+                                                                                    "fill": null,
+                                                                                    "propList": [
+                                                                                      "fill",
+                                                                                      "stroke",
+                                                                                      "strokeWidth",
+                                                                                      "strokeLinecap",
+                                                                                      "strokeLinejoin",
+                                                                                    ],
+                                                                                    "stroke": {
+                                                                                      "payload": 4294111209,
+                                                                                      "type": 0,
+                                                                                    },
+                                                                                    "strokeLinecap": 1,
+                                                                                    "strokeLinejoin": 1,
+                                                                                    "strokeWidth": 1.75,
+                                                                                  },
+                                                                                  "type": "RNSVGPath",
+                                                                                },
+                                                                                {
+                                                                                  "children": null,
+                                                                                  "props": {
+                                                                                    "d": "M15 9 V5 H5 V15 H9",
+                                                                                    "fill": null,
+                                                                                    "propList": [
+                                                                                      "fill",
+                                                                                      "stroke",
+                                                                                      "strokeWidth",
+                                                                                      "strokeLinecap",
+                                                                                      "strokeLinejoin",
+                                                                                    ],
+                                                                                    "stroke": {
+                                                                                      "payload": 4294111209,
+                                                                                      "type": 0,
+                                                                                    },
+                                                                                    "strokeLinecap": 1,
+                                                                                    "strokeLinejoin": 1,
+                                                                                    "strokeWidth": 1.75,
+                                                                                  },
+                                                                                  "type": "RNSVGPath",
+                                                                                },
+                                                                              ],
+                                                                              "props": {
+                                                                                "fill": null,
+                                                                                "propList": [
+                                                                                  "fill",
+                                                                                ],
+                                                                              },
+                                                                              "type": "RNSVGGroup",
+                                                                            },
+                                                                          ],
+                                                                          "props": {
+                                                                            "align": "xMidYMid",
+                                                                            "bbHeight": 20,
+                                                                            "bbWidth": 20,
+                                                                            "fill": "none",
+                                                                            "focusable": false,
+                                                                            "height": 20,
+                                                                            "meetOrSlice": 0,
+                                                                            "minX": 0,
+                                                                            "minY": 0,
+                                                                            "style": [
+                                                                              {
+                                                                                "backgroundColor": "transparent",
+                                                                                "borderWidth": 0,
+                                                                              },
+                                                                              {
+                                                                                "flex": 0,
+                                                                                "height": 20,
+                                                                                "width": 20,
+                                                                              },
+                                                                            ],
+                                                                            "vbHeight": 24,
+                                                                            "vbWidth": 24,
+                                                                            "width": 20,
+                                                                          },
+                                                                          "type": "RNSVGSvgView",
+                                                                        },
+                                                                        {
+                                                                          "children": [
+                                                                            "Copy address",
+                                                                          ],
+                                                                          "props": {
+                                                                            "numberOfLines": 1,
+                                                                            "style": [
+                                                                              {
+                                                                                "fontFamily": undefined,
+                                                                                "fontSize": 16,
+                                                                                "fontWeight": "700",
+                                                                                "letterSpacing": -0.1,
+                                                                              },
+                                                                              {
+                                                                                "color": "#F2EFE9",
+                                                                              },
+                                                                            ],
+                                                                          },
+                                                                          "type": "Text",
+                                                                        },
+                                                                      ],
+                                                                      "props": {
+                                                                        "style": {
+                                                                          "alignItems": "center",
+                                                                          "flexDirection": "row",
+                                                                          "gap": 10,
+                                                                        },
+                                                                      },
+                                                                      "type": "View",
+                                                                    },
+                                                                  ],
+                                                                  "props": {
+                                                                    "accessibilityLabel": "Copy address",
+                                                                    "accessibilityRole": "button",
+                                                                    "accessibilityState": {
+                                                                      "busy": false,
+                                                                      "checked": undefined,
+                                                                      "disabled": false,
+                                                                      "expanded": undefined,
+                                                                      "selected": undefined,
+                                                                    },
+                                                                    "accessibilityValue": {
+                                                                      "max": undefined,
+                                                                      "min": undefined,
+                                                                      "now": undefined,
+                                                                      "text": undefined,
+                                                                    },
+                                                                    "accessible": true,
+                                                                    "collapsable": false,
+                                                                    "focusable": true,
+                                                                    "onBlur": [Function],
+                                                                    "onClick": [Function],
+                                                                    "onFocus": [Function],
+                                                                    "onResponderGrant": [Function],
+                                                                    "onResponderMove": [Function],
+                                                                    "onResponderRelease": [Function],
+                                                                    "onResponderTerminate": [Function],
+                                                                    "onResponderTerminationRequest": [Function],
+                                                                    "onStartShouldSetResponder": [Function],
+                                                                    "style": [
+                                                                      {
+                                                                        "alignItems": "center",
+                                                                        "borderRadius": 999,
+                                                                        "borderWidth": 1,
+                                                                        "justifyContent": "center",
+                                                                        "paddingHorizontal": 24,
+                                                                      },
+                                                                      {
+                                                                        "height": 56,
+                                                                      },
+                                                                      {
+                                                                        "alignSelf": "stretch",
+                                                                      },
+                                                                      {
+                                                                        "backgroundColor": "#0E262F",
+                                                                        "borderColor": "#24454F",
+                                                                      },
+                                                                      false,
+                                                                      {
+                                                                        "width": "100%",
+                                                                      },
+                                                                    ],
                                                                   },
-                                                                  {
-                                                                    "height": 56,
+                                                                  "type": "View",
+                                                                },
+                                                                {
+                                                                  "children": [
+                                                                    {
+                                                                      "children": [
+                                                                        {
+                                                                          "children": [
+                                                                            {
+                                                                              "children": [
+                                                                                {
+                                                                                  "children": null,
+                                                                                  "props": {
+                                                                                    "d": "M12 15 L12 4",
+                                                                                    "fill": null,
+                                                                                    "propList": [
+                                                                                      "fill",
+                                                                                      "stroke",
+                                                                                      "strokeWidth",
+                                                                                      "strokeLinecap",
+                                                                                      "strokeLinejoin",
+                                                                                    ],
+                                                                                    "stroke": {
+                                                                                      "payload": 4294111209,
+                                                                                      "type": 0,
+                                                                                    },
+                                                                                    "strokeLinecap": 1,
+                                                                                    "strokeLinejoin": 1,
+                                                                                    "strokeWidth": 1.75,
+                                                                                  },
+                                                                                  "type": "RNSVGPath",
+                                                                                },
+                                                                                {
+                                                                                  "children": null,
+                                                                                  "props": {
+                                                                                    "d": "M8 8 L12 4 L16 8",
+                                                                                    "fill": null,
+                                                                                    "propList": [
+                                                                                      "fill",
+                                                                                      "stroke",
+                                                                                      "strokeWidth",
+                                                                                      "strokeLinecap",
+                                                                                      "strokeLinejoin",
+                                                                                    ],
+                                                                                    "stroke": {
+                                                                                      "payload": 4294111209,
+                                                                                      "type": 0,
+                                                                                    },
+                                                                                    "strokeLinecap": 1,
+                                                                                    "strokeLinejoin": 1,
+                                                                                    "strokeWidth": 1.75,
+                                                                                  },
+                                                                                  "type": "RNSVGPath",
+                                                                                },
+                                                                                {
+                                                                                  "children": null,
+                                                                                  "props": {
+                                                                                    "d": "M5 14 V19 H19 V14",
+                                                                                    "fill": null,
+                                                                                    "propList": [
+                                                                                      "fill",
+                                                                                      "stroke",
+                                                                                      "strokeWidth",
+                                                                                      "strokeLinecap",
+                                                                                      "strokeLinejoin",
+                                                                                    ],
+                                                                                    "stroke": {
+                                                                                      "payload": 4294111209,
+                                                                                      "type": 0,
+                                                                                    },
+                                                                                    "strokeLinecap": 1,
+                                                                                    "strokeLinejoin": 1,
+                                                                                    "strokeWidth": 1.75,
+                                                                                  },
+                                                                                  "type": "RNSVGPath",
+                                                                                },
+                                                                              ],
+                                                                              "props": {
+                                                                                "fill": null,
+                                                                                "propList": [
+                                                                                  "fill",
+                                                                                ],
+                                                                              },
+                                                                              "type": "RNSVGGroup",
+                                                                            },
+                                                                          ],
+                                                                          "props": {
+                                                                            "align": "xMidYMid",
+                                                                            "bbHeight": 20,
+                                                                            "bbWidth": 20,
+                                                                            "fill": "none",
+                                                                            "focusable": false,
+                                                                            "height": 20,
+                                                                            "meetOrSlice": 0,
+                                                                            "minX": 0,
+                                                                            "minY": 0,
+                                                                            "style": [
+                                                                              "[Circular]",
+                                                                              {
+                                                                                "flex": 0,
+                                                                                "height": 20,
+                                                                                "width": 20,
+                                                                              },
+                                                                            ],
+                                                                            "vbHeight": 24,
+                                                                            "vbWidth": 24,
+                                                                            "width": 20,
+                                                                          },
+                                                                          "type": "RNSVGSvgView",
+                                                                        },
+                                                                        {
+                                                                          "children": [
+                                                                            "Share payment code",
+                                                                          ],
+                                                                          "props": {
+                                                                            "numberOfLines": 1,
+                                                                            "style": [
+                                                                              "[Circular]",
+                                                                              {
+                                                                                "color": "#F2EFE9",
+                                                                              },
+                                                                            ],
+                                                                          },
+                                                                          "type": "Text",
+                                                                        },
+                                                                      ],
+                                                                      "props": {
+                                                                        "style": "[Circular]",
+                                                                      },
+                                                                      "type": "View",
+                                                                    },
+                                                                  ],
+                                                                  "props": {
+                                                                    "accessibilityLabel": "Share payment code",
+                                                                    "accessibilityRole": "button",
+                                                                    "accessibilityState": {
+                                                                      "busy": false,
+                                                                      "checked": undefined,
+                                                                      "disabled": false,
+                                                                      "expanded": undefined,
+                                                                      "selected": undefined,
+                                                                    },
+                                                                    "accessibilityValue": {
+                                                                      "max": undefined,
+                                                                      "min": undefined,
+                                                                      "now": undefined,
+                                                                      "text": undefined,
+                                                                    },
+                                                                    "accessible": true,
+                                                                    "collapsable": false,
+                                                                    "focusable": true,
+                                                                    "onBlur": [Function],
+                                                                    "onClick": [Function],
+                                                                    "onFocus": [Function],
+                                                                    "onResponderGrant": [Function],
+                                                                    "onResponderMove": [Function],
+                                                                    "onResponderRelease": [Function],
+                                                                    "onResponderTerminate": [Function],
+                                                                    "onResponderTerminationRequest": [Function],
+                                                                    "onStartShouldSetResponder": [Function],
+                                                                    "style": [
+                                                                      "[Circular]",
+                                                                      {
+                                                                        "height": 56,
+                                                                      },
+                                                                      "[Circular]",
+                                                                      {
+                                                                        "backgroundColor": "#048ABF",
+                                                                        "borderColor": "#048ABF",
+                                                                      },
+                                                                      false,
+                                                                      "[Circular]",
+                                                                    ],
                                                                   },
-                                                                  {
-                                                                    "alignSelf": "stretch",
-                                                                  },
-                                                                  {
-                                                                    "backgroundColor": "#048ABF",
-                                                                    "borderColor": "#048ABF",
-                                                                  },
-                                                                  false,
-                                                                  {
-                                                                    "marginBottom": 24,
-                                                                  },
-                                                                ],
+                                                                  "type": "View",
+                                                                },
+                                                              ],
+                                                              "props": {
+                                                                "style": {
+                                                                  "gap": 10,
+                                                                  "marginBottom": 24,
+                                                                  "width": "100%",
+                                                                },
                                                               },
                                                               "type": "View",
                                                             },
@@ -15395,7 +15108,6 @@ exports[`QR (unreachable route) with wallet 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -15479,7 +15191,7 @@ exports[`QR (unreachable route) with wallet 1`] = `
 }
 `;
 
-exports[`QR (unreachable route) without wallet 1`] = `
+exports[`QR (Receive screen) without wallet 1`] = `
 {
   "children": [
     {
@@ -15687,7 +15399,6 @@ exports[`QR (unreachable route) without wallet 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -16245,7 +15956,7 @@ exports[`Receipt shows a received payment with its sender 1`] = `
                                                                     },
                                                                     {
                                                                       "children": [
-                                                                        "Aug 16, 2026, 3:02 AM",
+                                                                        "Aug 16, 2026, 4:02 PM",
                                                                       ],
                                                                       "props": {
                                                                         "numberOfLines": 2,
@@ -16843,7 +16554,6 @@ exports[`Receipt shows a received payment with its sender 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -17401,7 +17111,7 @@ exports[`Receipt shows a sent payment 1`] = `
                                                                     },
                                                                     {
                                                                       "children": [
-                                                                        "Aug 17, 2026, 5:24 AM",
+                                                                        "Aug 17, 2026, 6:24 PM",
                                                                       ],
                                                                       "props": {
                                                                         "numberOfLines": 2,
@@ -17999,7 +17709,6 @@ exports[`Receipt shows a sent payment 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -19106,7 +18815,6 @@ exports[`Receipt shows an unknown transaction without inventing a direction 1`] 
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -19585,7 +19293,6 @@ exports[`Scan camera permission state 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -20727,7 +20434,6 @@ exports[`Send (protected) balance unavailable 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,
@@ -21869,7 +21575,6 @@ exports[`Send (protected) default zero amount 1`] = `
                           "top": -1,
                         },
                         "homeIndicatorHidden": undefined,
-                        "iosOrientationInheritanceFixEnabled": true,
                         "leftScrollEdgeEffect": undefined,
                         "onAppear": undefined,
                         "onDisappear": undefined,

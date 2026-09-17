@@ -272,6 +272,12 @@ function AppContent(): React.JSX.Element {
     [hydrateWallet],
   );
 
+  const handleContinueWithDynamic = useCallback(async () => {
+    throw new Error(
+      'Dynamic login is only available through the Dynamic app entry point.',
+    );
+  }, []);
+
   /**
    * Logout the current user.
    *
@@ -331,9 +337,8 @@ function AppContent(): React.JSX.Element {
 
       <AppNavigator
         onboardingComplete={onboardingComplete}
-        onOnboardingComplete={
-          handleOnboardingComplete
-        }
+        onContinueWithDynamic={handleContinueWithDynamic}
+        onPrepare={handleOnboardingComplete}
         onLogout={handleLogout}
       />
     </>

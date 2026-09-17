@@ -23,7 +23,8 @@ const RootStack = createStackNavigator<RootStackParamList>();
 
 type AppNavigatorProps = {
   onboardingComplete: boolean;
-  onOnboardingComplete: (profile: UserProfile) => Promise<void>;
+  onContinueWithDynamic: () => Promise<void>;
+  onPrepare: (profile: UserProfile) => Promise<void>;
   onLogout: () => Promise<void>;
 };
 
@@ -53,7 +54,8 @@ function MainTabs({onLogout}: {onLogout: () => Promise<void>}): React.JSX.Elemen
 
 export default function AppNavigator({
   onboardingComplete,
-  onOnboardingComplete,
+  onContinueWithDynamic,
+  onPrepare,
   onLogout,
 }: AppNavigatorProps): React.JSX.Element {
   return (
@@ -68,7 +70,11 @@ export default function AppNavigator({
         }}>
         {!onboardingComplete ? (
           <RootStack.Screen name="Onboarding">
-            {() => <OnboardingScreen />}
+            {() => (
+              <OnboardingScreen
+                onContinueWithDynamic={onContinueWithDynamic}
+              />
+            )}
           </RootStack.Screen>
         ) : null}
         <RootStack.Screen name="MainTabs">
@@ -78,7 +84,7 @@ export default function AppNavigator({
           {({route}) => (
             <PreparingAccountScreen
               profile={route.params.profile}
-              onPrepare={onOnboardingComplete}
+              onPrepare={onPrepare}
             />
           )}
         </RootStack.Screen>

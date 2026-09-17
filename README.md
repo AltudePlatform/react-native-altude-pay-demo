@@ -7,7 +7,7 @@ It demonstrates a payment that behaves like an everyday consumer transfer: you e
 amount, approve it on your device, and it arrives. There is no gas balance to top up,
 and the private key never leaves the phone.
 
-![Altude Pay presented as a polished consumer payment app, with its real balance screen beside the message: Solana payments, without the crypto friction](docs/images/hero-product.png)
+![Altude Pay presented as a polished consumer payment app, with its real balance screen beside the message: Solana payments, without the crypto friction](docs/images/hero-product-01.png)
 
 ## Paying with crypto is still too hard
 
@@ -88,7 +88,12 @@ Create a `.env` file in the repository root using `.env.example` as a template:
 
 ```bash
 ALTUDE_API_KEY=replace_with_your_key
+DYNAMIC_ENVIRONMENT_ID=replace_with_your_dynamic_environment_id
 ```
+
+`DYNAMIC_ENVIRONMENT_ID` is required when using [AppDynamic.tsx](AppDynamic.tsx).
+Find it in the Dynamic Dashboard for the environment where Solana embedded wallets
+are enabled. Restart Metro after updating `.env`.
 
 For Altude configuration, the API key is the only required value. The SDK resolves the
 cluster, Solana RPC connection, RPC credentials, and fee payer. Users should not enter a

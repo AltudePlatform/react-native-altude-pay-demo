@@ -49,7 +49,9 @@ describe('generateDemoWallet startup bootstrap', () => {
       generateMnemonic,
       deriveSolanaKeypair,
     }));
+    const actualScureBase = jest.requireActual('@scure/base');
     jest.doMock('@scure/base', () => ({
+      ...actualScureBase,
       base58: {
         encode: jest.fn(() => 'DemoPublicKey11111111111111111111111111111111'),
       },
