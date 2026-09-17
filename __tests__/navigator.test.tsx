@@ -67,7 +67,8 @@ async function renderApp(onboardingComplete: boolean) {
           <ToastProvider>
             <AppNavigator
               onboardingComplete={onboardingComplete}
-              onOnboardingComplete={noop}
+              onContinueWithDynamic={noop}
+              onPrepare={noop}
               onLogout={noop}
             />
           </ToastProvider>

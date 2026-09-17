@@ -3,7 +3,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createStackNavigator} from '@react-navigation/stack';
 
-import {MainTabParamList, RootStackParamList} from '../types';
+import {MainTabParamList, RootStackParamList, UserProfile} from '../types';
 import HomeScreen from '../screens/HomeScreen';
 import SendScreen from '../screens/SendScreen';
 import HistoryScreen from '../screens/HistoryScreen';
@@ -23,7 +23,8 @@ const RootStack = createStackNavigator<RootStackParamList>();
 
 type AppNavigatorProps = {
   onboardingComplete: boolean;
-  onOnboardingComplete: (profile?: any) => Promise<void>;
+  onContinueWithDynamic: () => Promise<void>;
+  onPrepare: (profile: UserProfile) => Promise<void>;
   onLogout: () => Promise<void>;
 };
 
@@ -53,7 +54,8 @@ function MainTabs({onLogout}: {onLogout: () => Promise<void>}): React.JSX.Elemen
 
 export default function AppNavigator({
   onboardingComplete,
-  onOnboardingComplete,
+  onContinueWithDynamic,
+  onPrepare,
   onLogout,
 }: AppNavigatorProps): React.JSX.Element {
   return (
@@ -70,7 +72,7 @@ export default function AppNavigator({
           <RootStack.Screen name="Onboarding">
             {() => (
               <OnboardingScreen
-                onContinueWithDynamic={onOnboardingComplete}
+                onContinueWithDynamic={onContinueWithDynamic}
               />
             )}
           </RootStack.Screen>
@@ -82,7 +84,7 @@ export default function AppNavigator({
           {({route}) => (
             <PreparingAccountScreen
               profile={route.params.profile}
-              onPrepare={onOnboardingComplete}
+              onPrepare={onPrepare}
             />
           )}
         </RootStack.Screen>

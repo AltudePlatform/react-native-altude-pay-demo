@@ -216,7 +216,8 @@ function AppContent(): React.JSX.Element {
       ) : (
         <AppNavigator
           onboardingComplete={onboardingComplete}
-          onOnboardingComplete={handleOnboardingComplete}
+          onContinueWithDynamic={handleOnboardingComplete}
+          onPrepare={handleOnboardingComplete}
           onLogout={handleLogout}
         />
       )}
