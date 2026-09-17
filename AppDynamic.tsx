@@ -19,6 +19,7 @@ import {
 } from './src/services/storage';
 import {useWalletStore} from './src/store/walletStore';
 import {tokens} from './src/theme/tokens';
+import {UserProfile} from './src/types';
 
 type DynamicUserProfile = NonNullable<
   typeof dynamicClient.auth.authenticatedUser
@@ -192,6 +193,13 @@ function AppContent(): React.JSX.Element {
     await syncDynamicUser(user);
   }, [syncDynamicUser]);
 
+  const handlePrepare = useCallback(
+    async (_profile: UserProfile) => {
+      await handleOnboardingComplete();
+    },
+    [handleOnboardingComplete],
+  );
+
   const handleLogout = useCallback(async () => {
     try {
       await dynamicClient.auth.logout();
@@ -217,7 +225,7 @@ function AppContent(): React.JSX.Element {
         <AppNavigator
           onboardingComplete={onboardingComplete}
           onContinueWithDynamic={handleOnboardingComplete}
-          onPrepare={handleOnboardingComplete}
+          onPrepare={handlePrepare}
           onLogout={handleLogout}
         />
       )}
