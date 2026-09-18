@@ -35,6 +35,15 @@ for (const name of packages) {
     failed = true;
   }
 
+  const reactNativeEntry =
+    typeof entry['react-native'] === 'string'
+      ? path.join(pkgDir, entry['react-native'])
+      : null;
+  if (!reactNativeEntry || !fs.existsSync(reactNativeEntry)) {
+    console.error(`${name} has an invalid react-native export target`);
+    failed = true;
+  }
+
   const distPath = path.join(pkgDir, 'dist');
   if (fs.existsSync(distPath)) {
     const candidates = fs.readdirSync(distPath, {recursive: true});
@@ -55,6 +64,16 @@ for (const name of packages) {
         console.error(`${name} still references Node Buffer in ${relativePath(file, pkgRoot)}`);
         failed = true;
       }
+    }
+  }
+
+  if (name === '@altude/gasstation' && reactNativeEntry) {
+    const nativeSource = fs.readFileSync(reactNativeEntry, 'utf8');
+    if (!nativeSource.includes('maxSupportedTransactionVersion: 1')) {
+      console.error(
+        `${name} react-native history does not support transaction version 1`,
+      );
+      failed = true;
     }
   }
 }
