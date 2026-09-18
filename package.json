@@ -102,6 +102,10 @@
     "testPathIgnorePatterns": [
       "<rootDir>/__tests__/setup/"
     ],
+    "transform": {
+      "^.+\\.(js|jsx|ts|tsx|mjs)$": "babel-jest",
+      "^.+\\.(bmp|gif|jpg|jpeg|mp4|png|psd|svg|webp)$": "@react-native/jest-preset/jest/assetFileTransformer.js"
+    },
     "transformIgnorePatterns": [],
     "testEnvironmentOptions": {
       "customExportConditions": [
