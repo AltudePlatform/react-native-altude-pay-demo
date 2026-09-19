@@ -13089,7 +13089,7 @@ exports[`PaymentStatus in flight 1`] = `
                                                                         },
                                                                         {
                                                                           "children": [
-                                                                            "Approving payment",
+                                                                            "Preparing payment",
                                                                           ],
                                                                           "props": {
                                                                             "style": [

@@ -4,7 +4,7 @@
 
 Altude Pay is a reference React Native app for [Altude](https://altude.so) Gas Station.
 It demonstrates a payment that behaves like an everyday consumer transfer: you enter an
-amount, approve it on your device, and it arrives. There is no gas balance to top up,
+amount, choose a recipient, tap Pay, and it sends. There is no gas balance to top up,
 and the private key never leaves the phone.
 
 ![Altude Pay presented as a polished consumer payment app, with its real balance screen beside the message: Solana payments, without the crypto friction](docs/images/hero-product-01.png)
@@ -37,13 +37,15 @@ network. The user never acquires SOL, and never surrenders their key to do it.
 A payment moves through four participants:
 
 1. **The app** collects the amount ([`SendScreen`](src/screens/SendScreen.tsx)) and the
-   recipient ([`PayAddressScreen`](src/screens/PayAddressScreen.tsx)).
+   recipient ([`PayAddressScreen`](src/screens/PayAddressScreen.tsx)). Tapping **Pay**
+   on the recipient screen authorizes the transfer and immediately starts it after
+   validation, without a second app confirmation dialog or review screen.
 2. **Your device** signs the transaction. [`buildSigner`](src/services/solana.ts) holds
    the key bytes in the app process and signs locally with ed25519.
 3. **Altude Gas Station** adds the fee payer signature and relays the transaction.
 4. **Solana Devnet** confirms it, and the app polls for the result.
 
-While this happens the app shows three stages — **Approving payment**, **Sending** and
+While this happens the app shows three stages — **Preparing payment**, **Sending** and
 **Confirming** — defined in
 [`PaymentStatusScreen`](src/screens/PaymentStatusScreen.tsx).
 
@@ -94,6 +96,18 @@ DYNAMIC_ENVIRONMENT_ID=replace_with_your_dynamic_environment_id
 `DYNAMIC_ENVIRONMENT_ID` is required when using [AppDynamic.tsx](AppDynamic.tsx).
 Find it in the Dynamic Dashboard for the environment where Solana embedded wallets
 are enabled. Restart Metro after updating `.env`.
+
+For the one-tap embedded-wallet payment flow, turn off the **transaction confirmation
+screen** in the Dynamic Dashboard's
+[Embedded Wallet configuration](https://console.dynamic.xyz/dashboard/embedded-wallets/dynamic)
+for the environment matching `DYNAMIC_ENVIRONMENT_ID`. This is a separate Dynamic
+environment setting, not the app's old `confirmBeforeSending` preference (which the
+payment flow no longer reads). See Dynamic's
+[signing configuration](https://www.dynamic.xyz/docs/react-native/wallets/embedded-wallets/mpc/transactions).
+The installed Solana extension does not expose a per-call confirmation override.
+Do not hide or unmount the Dynamic WebView to suppress prompts: it also handles
+authentication and signing. Required authentication/MFA and external-wallet approvals
+are not bypassed by this setting.
 
 For Altude configuration, the API key is the only required value. The SDK resolves the
 cluster, Solana RPC connection, RPC credentials, and fee payer. Users should not enter a
