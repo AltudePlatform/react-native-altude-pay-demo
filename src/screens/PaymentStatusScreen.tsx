@@ -17,7 +17,7 @@ type NavProp = StackNavigationProp<RootStackParamList>;
 type RouteType = RouteProp<RootStackParamList, 'PaymentStatus'>;
 
 const STAGES: readonly Stage[] = [
-  {key: 'signing', label: 'Approving payment'},
+  {key: 'signing', label: 'Preparing payment'},
   {key: 'sending', label: 'Sending'},
   {key: 'confirming', label: 'Confirming'},
 ];
