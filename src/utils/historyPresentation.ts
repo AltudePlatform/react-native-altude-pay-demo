@@ -1,11 +1,8 @@
 import {GetHistorySummary} from '../types';
-import {formatRelativeDate} from './format';
+import {formatRelativeDate, formatUsd} from './format';
 
 export function getHistoryPresentation(item: GetHistorySummary) {
-  const amount = item.amount.toLocaleString('en-US', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 4,
-  });
+  const amount = formatUsd(item.amount);
   const date =
     item.blockTime === null
       ? 'Date unavailable'

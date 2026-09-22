@@ -1,13 +1,15 @@
 const fs = require('fs');
 const path = require('path');
 
-function loadEnv() {
+function loadEnv(envFile) {
   const envPath = path.join(__dirname, '.env');
-  if (!fs.existsSync(envPath)) {
-    return;
+  if (envFile === undefined && !fs.existsSync(envPath)) {
+    return '';
   }
 
-  for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
+  const source = envFile ?? fs.readFileSync(envPath, 'utf8');
+
+  for (const line of source.split(/\r?\n/)) {
     const match = line.match(
       /^\s*(ALTUDE_API_KEY|DYNAMIC_ENVIRONMENT_ID|DYNAMIC_APP_ORIGIN|DYNAMIC_APP_LOGO)\s*=\s*(.*?)\s*$/,
     );
@@ -15,12 +17,26 @@ function loadEnv() {
       process.env[match[1]] = match[2].replace(/^['"]|['"]$/g, '');
     }
   }
+
+  return source;
 }
 
 module.exports = api => {
-  const isTest = api.env('test');
+  let envFile = '';
+
+  api.cache.invalidate(() => {
+    const envName = process.env.BABEL_ENV || process.env.NODE_ENV || 'development';
+    const envPath = path.join(__dirname, '.env');
+
+    envFile = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
+
+    return `${envName}:${envFile}`;
+  });
+
+  const envName = process.env.BABEL_ENV || process.env.NODE_ENV || 'development';
+  const isTest = envName === 'test';
   if (!isTest) {
-    loadEnv();
+    loadEnv(envFile);
   }
 
   return {
