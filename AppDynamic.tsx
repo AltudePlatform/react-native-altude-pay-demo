@@ -188,7 +188,6 @@ function AppContent(): React.JSX.Element {
   }, [clearLocalSession, hydrateWallet, syncDynamicUser]);
 
   const handleOnboardingComplete = useCallback(async () => {
-    await dynamicClient.ui.auth.show();
     const user = await dynamicClient.auth.waitForAuthSuccess();
     await syncDynamicUser(user);
   }, [syncDynamicUser]);

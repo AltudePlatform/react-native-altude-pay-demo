@@ -3,17 +3,22 @@
  */
 
 /** Currency formatting for balances and amounts. */
-export function formatUsd(amount: number): string {
-  if (!Number.isFinite(amount)) {
-    return '$0.00';
+export function formatUsd(amount: number | string): string {
+  const value = Number(amount.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }));
+
+  if (!Number.isFinite(value)) {
+    return '$0';
   }
 
-  return `$${amount.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
+  const hasDecimals = value % 1 !== 0;
+  return `${value.toLocaleString('en-US', {
+    minimumFractionDigits: hasDecimals ? 2 : 0,
     maximumFractionDigits: 2,
   })}`;
 }
-
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;

@@ -145,7 +145,7 @@ export default function HomeScreen({onLogout}: HomeScreenProps): React.JSX.Eleme
           */}
           <BalanceDisplay
             label="Available balance"
-            value={formatUsd(balance?.usdcBalance ?? 0)}
+            value={`$${formatUsd(balance?.usdcBalance ?? 0)}`}
             meta={truncateAddress(wallet!.publicKey, 6)}
             loading={isLoading}
           />
