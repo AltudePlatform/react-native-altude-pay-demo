@@ -1,12 +1,12 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View, Text, Pressable, StyleSheet, Alert} from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
+import {RouteProp, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 
 import {useBalance} from '../hooks/useBalance';
 import {InsufficientBalanceNotice} from '../components/InsufficientBalanceNotice';
-import {getRecentRecipients, getUserPreferences} from '../services/storage';
+import {getRecentRecipients} from '../services/storage';
 import {isValidSolanaAddress, truncateAddress} from '../services/solana';
 import {useWalletStore} from '../store/walletStore';
 import {formatUsd} from '../utils/format';
@@ -36,6 +36,11 @@ export default function PayAddressScreen(): React.JSX.Element {
 
   const [recipient, setRecipient] = useState(route.params.recipient ?? '');
   const [recentRecipients, setRecentRecipients] = useState<string[]>([]);
+  const submitted = useRef(false);
+
+  useFocusEffect(useCallback(() => {
+    submitted.current = false;
+  }, []));
 
   const amount = route.params.amount;
   const parsedAmount = useMemo(() => parseFloat(amount), [amount]);
@@ -100,33 +105,20 @@ export default function PayAddressScreen(): React.JSX.Element {
     return recipientError ?? (recipient.length === 0 ? 'Enter a recipient address.' : null);
   }, [availableBalance, parsedAmount, recipient, recipientError, wallet]);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
+    if (submitted.current) {
+      return;
+    }
+
     const error = validate();
     if (error) {
       Alert.alert('Validation Error', error);
       return;
     }
 
-    const preferences = await getUserPreferences();
-
-    const submit = () => navigation.navigate('PaymentStatus', {amount, recipient});
-
-    if (!preferences.confirmBeforeSending) {
-      submit();
-      return;
-    }
-
-    Alert.alert(
-      'Confirm Payment',
-      `Send ${formatUsd(parsedAmount)} to\n${recipient.slice(0, 8)}...${recipient.slice(
-        -8,
-      )}?`,
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {text: 'Send', onPress: submit},
-      ],
-    );
-  }, [amount, navigation, parsedAmount, recipient, validate]);
+    submitted.current = true;
+    navigation.navigate('PaymentStatus', {amount, recipient});
+  }, [amount, navigation, recipient, validate]);
 
   return (
     <Screen scroll avoidKeyboard>
@@ -199,11 +191,7 @@ export default function PayAddressScreen(): React.JSX.Element {
 
         <Button
           label="Pay"
-          onPress={() => {
-            handleSubmit().catch(() => {
-              Alert.alert('Error', 'Could not start the payment flow.');
-            });
-          }}
+          onPress={handleSubmit}
           disabled={exceedsBalance || !recipientValid}
         />
       </View>
